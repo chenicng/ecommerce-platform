@@ -4,12 +4,15 @@ import com.ecommerce.application.service.MerchantService;
 import com.ecommerce.application.service.ProductService;
 import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.domain.product.Product;
+import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Merchant Controller
@@ -169,6 +172,102 @@ public class MerchantController {
         }
     }
     
+    /**
+     * Get merchant's products
+     * GET /api/merchants/{merchantId}/products
+     */
+    @GetMapping("/{merchantId}/products")
+    public ResponseEntity<MerchantProductListResponse> getMerchantProducts(
+            @PathVariable Long merchantId,
+            @RequestParam(value = "status", required = false) String status) {
+        try {
+            logger.info("Getting products for merchant {}, status: {}", merchantId, status);
+            
+            // Validate merchant exists
+            if (!merchantService.merchantExists(merchantId)) {
+                throw new RuntimeException("Merchant not found with id: " + merchantId);
+            }
+            
+            List<Product> products;
+            
+            if (status != null) {
+                ProductStatus productStatus = ProductStatus.valueOf(status.toUpperCase());
+                products = productService.getProductsByMerchantAndStatus(merchantId, productStatus);
+            } else {
+                products = productService.getProductsByMerchant(merchantId);
+            }
+            
+            List<ProductResponse> productResponses = products.stream()
+                .map(product -> new ProductResponse(
+                    product.getId(),
+                    product.getSku(),
+                    product.getName(),
+                    product.getDescription(),
+                    product.getPrice().getAmount(),
+                    product.getPrice().getCurrency(),
+                    product.getMerchantId(),
+                    product.getAvailableStock(),
+                    product.getStatus().toString()
+                ))
+                .collect(Collectors.toList());
+            
+            MerchantProductListResponse response = new MerchantProductListResponse(
+                merchantId,
+                productResponses,
+                productResponses.size(),
+                status
+            );
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Failed to get products for merchant {}: {}", merchantId, e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Get single product details for merchant
+     * GET /api/merchants/{merchantId}/products/{sku}
+     */
+    @GetMapping("/{merchantId}/products/{sku}")
+    public ResponseEntity<ProductResponse> getMerchantProduct(@PathVariable Long merchantId,
+                                                             @PathVariable String sku) {
+        try {
+            logger.info("Getting product {} for merchant {}", sku, merchantId);
+            
+            // Validate merchant exists
+            if (!merchantService.merchantExists(merchantId)) {
+                throw new RuntimeException("Merchant not found with id: " + merchantId);
+            }
+            
+            Product product = productService.getProductBySku(sku);
+            
+            // Validate product belongs to this merchant
+            if (!product.getMerchantId().equals(merchantId)) {
+                throw new RuntimeException("Product does not belong to this merchant");
+            }
+            
+            ProductResponse response = new ProductResponse(
+                product.getId(),
+                product.getSku(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice().getAmount(),
+                product.getPrice().getCurrency(),
+                product.getMerchantId(),
+                product.getAvailableStock(),
+                product.getStatus().toString()
+            );
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Failed to get product {} for merchant {}: {}", sku, merchantId, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
     // DTO classes
     public static class CreateMerchantRequest {
         private String merchantName;
@@ -311,5 +410,26 @@ public class MerchantController {
         public BigDecimal getCurrentBalance() { return currentBalance; }
         public BigDecimal getTotalIncome() { return totalIncome; }
         public String getCurrency() { return currency; }
+    }
+    
+    public static class MerchantProductListResponse {
+        private Long merchantId;
+        private List<ProductResponse> products;
+        private int totalCount;
+        private String statusFilter;
+        
+        public MerchantProductListResponse(Long merchantId, List<ProductResponse> products, 
+                                         int totalCount, String statusFilter) {
+            this.merchantId = merchantId;
+            this.products = products;
+            this.totalCount = totalCount;
+            this.statusFilter = statusFilter;
+        }
+        
+        // Getters
+        public Long getMerchantId() { return merchantId; }
+        public List<ProductResponse> getProducts() { return products; }
+        public int getTotalCount() { return totalCount; }
+        public String getStatusFilter() { return statusFilter; }
     }
 } 

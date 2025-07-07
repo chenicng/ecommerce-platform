@@ -109,6 +109,41 @@ Content-Type: application/json
 GET /api/merchants/{merchantId}/income
 ```
 
+### Product Browsing and Inventory Management
+
+#### Get Product Details by SKU
+```bash
+GET /api/ecommerce/products/{sku}
+```
+
+#### Browse Available Products
+```bash
+GET /api/ecommerce/products
+# Optional query parameters:
+# - search: Search products by name or description
+# - merchantId: Filter products by specific merchant
+GET /api/ecommerce/products?search=iPhone
+GET /api/ecommerce/products?merchantId=1
+```
+
+#### Check Product Stock
+```bash
+GET /api/ecommerce/products/{sku}/stock
+```
+
+#### Get Merchant's Products (Merchant Management)
+```bash
+GET /api/merchants/{merchantId}/products
+# Optional query parameters:
+# - status: Filter by product status (ACTIVE, INACTIVE, DELETED)
+GET /api/merchants/{merchantId}/products?status=ACTIVE
+```
+
+#### Get Single Product for Merchant
+```bash
+GET /api/merchants/{merchantId}/products/{sku}
+```
+
 ### Product Trading
 
 #### Purchase Product
@@ -163,6 +198,24 @@ curl http://localhost:8080/api/merchants/1/income
 curl -X POST http://localhost:8080/api/merchants/1/products/IPHONE15/add-stock \
   -H "Content-Type: application/json" \
   -d '{"quantity":50}'
+
+# 9. Browse available products
+curl http://localhost:8080/api/ecommerce/products
+
+# 10. Search products by name
+curl "http://localhost:8080/api/ecommerce/products?search=iPhone"
+
+# 11. Get product details
+curl http://localhost:8080/api/ecommerce/products/IPHONE15
+
+# 12. Check product stock
+curl http://localhost:8080/api/ecommerce/products/IPHONE15/stock
+
+# 13. Get merchant's products
+curl http://localhost:8080/api/merchants/1/products
+
+# 14. Get merchant's active products only
+curl "http://localhost:8080/api/merchants/1/products?status=ACTIVE"
 ```
 
 ## System Design

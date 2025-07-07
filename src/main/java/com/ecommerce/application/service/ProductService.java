@@ -1,11 +1,14 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.product.Product;
+import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -93,5 +96,71 @@ public class ProductService {
     @Transactional(readOnly = true)
     public int getProductStock(String sku) {
         return getProductBySku(sku).getAvailableStock();
+    }
+    
+    /**
+     * Get all products
+     */
+    @Transactional(readOnly = true)
+    public List<Product> getAllProducts() {
+        return productStorage.values().stream()
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get products by merchant
+     */
+    @Transactional(readOnly = true)
+    public List<Product> getProductsByMerchant(Long merchantId) {
+        return productStorage.values().stream()
+                .filter(product -> product.getMerchantId().equals(merchantId))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get active products
+     */
+    @Transactional(readOnly = true)
+    public List<Product> getActiveProducts() {
+        return productStorage.values().stream()
+                .filter(Product::isActive)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get available products (active and in stock)
+     */
+    @Transactional(readOnly = true)
+    public List<Product> getAvailableProducts() {
+        return productStorage.values().stream()
+                .filter(Product::isAvailable)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get products by merchant and status
+     */
+    @Transactional(readOnly = true)
+    public List<Product> getProductsByMerchantAndStatus(Long merchantId, ProductStatus status) {
+        return productStorage.values().stream()
+                .filter(product -> product.getMerchantId().equals(merchantId))
+                .filter(product -> product.getStatus().equals(status))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Search products by name (case-insensitive)
+     */
+    @Transactional(readOnly = true)
+    public List<Product> searchProductsByName(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAllProducts();
+        }
+        
+        String lowerSearchTerm = searchTerm.toLowerCase();
+        return productStorage.values().stream()
+                .filter(product -> product.getName().toLowerCase().contains(lowerSearchTerm) ||
+                                 product.getDescription().toLowerCase().contains(lowerSearchTerm))
+                .collect(Collectors.toList());
     }
 } 
