@@ -30,7 +30,7 @@ public class UserController {
      * POST /api/users
      */
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<Object> createUser(@RequestBody CreateUserRequest request) {
         try {
             logger.info("Creating user: {}", request.getUsername());
             
@@ -56,7 +56,14 @@ public class UserController {
             
         } catch (Exception e) {
             logger.error("Failed to create user: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+            
+            ErrorResponse errorResponse = new ErrorResponse(
+                "USER_CREATION_FAILED",
+                e.getMessage(),
+                "/api/users"
+            );
+            
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
     
@@ -65,8 +72,8 @@ public class UserController {
      * POST /api/users/{userId}/recharge
      */
     @PostMapping("/{userId}/recharge")
-    public ResponseEntity<BalanceResponse> rechargeUser(@PathVariable Long userId, 
-                                                       @RequestBody RechargeRequest request) {
+    public ResponseEntity<Object> rechargeUser(@PathVariable Long userId, 
+                                             @RequestBody RechargeRequest request) {
         try {
             logger.info("Processing recharge for user {}: amount={}", userId, request.getAmount());
             
@@ -93,7 +100,29 @@ public class UserController {
             
         } catch (Exception e) {
             logger.error("Failed to recharge user {}: {}", userId, e.getMessage());
-            return ResponseEntity.badRequest().build();
+            
+            // Provide more specific error messages
+            String errorCode;
+            String errorMessage;
+            if (e.getMessage().contains("User not found")) {
+                errorCode = "USER_NOT_FOUND";
+                errorMessage = String.format("User with ID %d does not exist. Please verify the user ID or create the user first.", userId);
+                
+                // Log existing users for debugging
+                var existingUsers = userService.getAllUserIds();
+                logger.warn("Available user IDs: {}", existingUsers);
+            } else {
+                errorCode = "RECHARGE_FAILED";
+                errorMessage = e.getMessage();
+            }
+            
+            ErrorResponse errorResponse = new ErrorResponse(
+                errorCode,
+                errorMessage,
+                "/api/users/" + userId + "/recharge"
+            );
+            
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
     
@@ -102,7 +131,7 @@ public class UserController {
      * GET /api/users/{userId}/balance
      */
     @GetMapping("/{userId}/balance")
-    public ResponseEntity<BalanceResponse> getUserBalance(@PathVariable Long userId) {
+    public ResponseEntity<Object> getUserBalance(@PathVariable Long userId) {
         try {
             Money balance = userService.getUserBalance(userId);
             
@@ -116,7 +145,45 @@ public class UserController {
             
         } catch (Exception e) {
             logger.error("Failed to get balance for user {}: {}", userId, e.getMessage());
-            return ResponseEntity.badRequest().build();
+            
+            ErrorResponse errorResponse = new ErrorResponse(
+                "BALANCE_QUERY_FAILED",
+                e.getMessage(),
+                "/api/users/" + userId + "/balance"
+            );
+            
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * Get all existing user IDs (for debugging)
+     * GET /api/users/debug/all-ids
+     */
+    @GetMapping("/debug/all-ids")
+    public ResponseEntity<Object> getAllUserIds() {
+        try {
+            var userIds = userService.getAllUserIds();
+            int userCount = userService.getUserCount();
+            
+            var response = new java.util.HashMap<String, Object>();
+            response.put("totalUsers", userCount);
+            response.put("existingUserIds", userIds);
+            response.put("timestamp", java.time.LocalDateTime.now());
+            
+            logger.info("Debug: Current system has {} users with IDs: {}", userCount, userIds);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Failed to get user IDs: {}", e.getMessage());
+            
+            ErrorResponse errorResponse = new ErrorResponse(
+                "DEBUG_FAILED",
+                e.getMessage(),
+                "/api/users/debug/all-ids"
+            );
+            
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
     
@@ -226,5 +293,25 @@ public class UserController {
         public Long getUserId() { return userId; }
         public BigDecimal getBalance() { return balance; }
         public String getCurrency() { return currency; }
+    }
+    
+    public static class ErrorResponse {
+        private String error;
+        private String message;
+        private String path;
+        private long timestamp;
+        
+        public ErrorResponse(String error, String message, String path) {
+            this.error = error;
+            this.message = message;
+            this.path = path;
+            this.timestamp = System.currentTimeMillis();
+        }
+        
+        // Getters
+        public String getError() { return error; }
+        public String getMessage() { return message; }
+        public String getPath() { return path; }
+        public long getTimestamp() { return timestamp; }
     }
 } 

@@ -75,4 +75,20 @@ public class UserService {
     public boolean userExists(Long userId) {
         return userStorage.containsKey(userId);
     }
+
+    /**
+     * Get all existing user IDs (for debugging)
+     */
+    @Transactional(readOnly = true)
+    public java.util.Set<Long> getAllUserIds() {
+        return new java.util.HashSet<>(userStorage.keySet());
+    }
+
+    /**
+     * Get total user count
+     */
+    @Transactional(readOnly = true)
+    public int getUserCount() {
+        return userStorage.size();
+    }
 } 
