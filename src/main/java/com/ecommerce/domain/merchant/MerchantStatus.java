@@ -1,21 +1,21 @@
 package com.ecommerce.domain.merchant;
 
 /**
- * 商家状态枚举
+ * Merchant Status Enum
  */
 public enum MerchantStatus {
     /**
-     * 活跃状态
+     * Active status
      */
     ACTIVE,
     
     /**
-     * 非活跃状态
+     * Inactive status
      */
     INACTIVE,
     
     /**
-     * 已删除状态
+     * Deleted status
      */
     DELETED
 } 

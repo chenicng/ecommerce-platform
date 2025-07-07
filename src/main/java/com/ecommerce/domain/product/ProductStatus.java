@@ -1,21 +1,21 @@
 package com.ecommerce.domain.product;
 
 /**
- * 商品状态枚举
+ * Product Status Enum
  */
 public enum ProductStatus {
     /**
-     * 活跃状态
+     * Active status
      */
     ACTIVE,
     
     /**
-     * 非活跃状态
+     * Inactive status
      */
     INACTIVE,
     
     /**
-     * 已删除状态
+     * Deleted status
      */
     DELETED
 } 

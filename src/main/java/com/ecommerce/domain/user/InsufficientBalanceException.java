@@ -1,7 +1,7 @@
 package com.ecommerce.domain.user;
 
 /**
- * 余额不足异常
+ * Insufficient Balance Exception
  */
 public class InsufficientBalanceException extends RuntimeException {
     

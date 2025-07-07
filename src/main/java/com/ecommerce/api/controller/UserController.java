@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 
 /**
- * 用户控制器
- * 处理用户相关的REST API
+ * User Controller
+ * Handles user-related REST APIs
  */
 @RestController
 @RequestMapping("/api/users")
@@ -26,7 +26,7 @@ public class UserController {
     }
     
     /**
-     * 创建用户
+     * Create user
      * POST /api/users
      */
     @PostMapping
@@ -34,11 +34,11 @@ public class UserController {
         try {
             logger.info("Creating user: {}", request.getUsername());
             
-            User user = userService.createUser(
-                request.getUsername(), 
-                request.getEmail(), 
-                request.getPhone(), 
-                "CNY"
+            var user = userService.createUser(
+                request.getUsername(),
+                request.getEmail(),
+                request.getPhone(),
+                "CNY" // Default currency
             );
             
             UserResponse response = new UserResponse(
@@ -55,61 +55,50 @@ public class UserController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("Failed to create user: {}", e.getMessage(), e);
+            logger.error("Failed to create user: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
     
     /**
-     * 用户账户充值
+     * User account recharge
      * POST /api/users/{userId}/recharge
      */
     @PostMapping("/{userId}/recharge")
-    public ResponseEntity<RechargeResponse> rechargeAccount(@PathVariable Long userId, 
-                                                          @RequestBody RechargeRequest request) {
+    public ResponseEntity<BalanceResponse> rechargeUser(@PathVariable Long userId, 
+                                                       @RequestBody RechargeRequest request) {
         try {
-            logger.info("Processing recharge for user {}: {} {}", userId, request.getAmount(), request.getCurrency());
+            logger.info("Processing recharge for user {}: amount={}", userId, request.getAmount());
             
-            // 验证请求参数
-            if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Amount must be positive");
+            // Validate request parameters
+            if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Recharge amount must be positive");
             }
             
-            Money amount = Money.of(request.getAmount(), request.getCurrency());
+            // Recharge
+            Money rechargeAmount = Money.of(request.getAmount(), request.getCurrency());
+            userService.rechargeUser(userId, rechargeAmount);
             
-            // 充值
-            userService.rechargeUserAccount(userId, amount);
+            // Get balance after recharge
+            Money balance = userService.getUserBalance(userId);
             
-            // 获取充值后的余额
-            Money newBalance = userService.getUserBalance(userId);
-            
-            RechargeResponse response = new RechargeResponse(
+            BalanceResponse response = new BalanceResponse(
                 userId,
-                amount.getAmount(),
-                amount.getCurrency(),
-                newBalance.getAmount(),
-                newBalance.getCurrency(),
-                "SUCCESS",
-                "Recharge completed successfully"
+                balance.getAmount(),
+                balance.getCurrency()
             );
             
-            logger.info("Recharge completed for user {}: new balance {}", userId, newBalance);
+            logger.info("Recharge completed for user {}: new balance={}", userId, balance);
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("Recharge failed for user {}: {}", userId, e.getMessage(), e);
-            
-            RechargeResponse errorResponse = new RechargeResponse();
-            errorResponse.setUserId(userId);
-            errorResponse.setStatus("FAILED");
-            errorResponse.setMessage(e.getMessage());
-            
-            return ResponseEntity.badRequest().body(errorResponse);
+            logger.error("Failed to recharge user {}: {}", userId, e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
     
     /**
-     * 获取用户余额
+     * Get user balance
      * GET /api/users/{userId}/balance
      */
     @GetMapping("/{userId}/balance")

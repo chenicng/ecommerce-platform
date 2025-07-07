@@ -3,66 +3,66 @@ package com.ecommerce.domain.product;
 import java.util.Objects;
 
 /**
- * 商品库存值对象
- * 管理商品的库存数量
+ * Product Inventory Value Object
+ * Manages product stock quantity
  */
 public final class ProductInventory {
     
-    private final int availableStock;
+    private final int quantity;
     
-    public ProductInventory(int availableStock) {
-        if (availableStock < 0) {
-            throw new IllegalArgumentException("Available stock cannot be negative");
+    public ProductInventory(int quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Inventory quantity cannot be negative");
         }
-        this.availableStock = availableStock;
+        this.quantity = quantity;
     }
     
     /**
-     * 增加库存
+     * Add inventory
      */
-    public ProductInventory add(int quantity) {
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+    public ProductInventory add(int additionalQuantity) {
+        if (additionalQuantity <= 0) {
+            throw new IllegalArgumentException("Additional quantity must be positive");
         }
-        return new ProductInventory(this.availableStock + quantity);
+        return new ProductInventory(this.quantity + additionalQuantity);
     }
     
     /**
-     * 减少库存
+     * Reduce inventory
      */
-    public ProductInventory reduce(int quantity) {
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+    public ProductInventory reduce(int reduceQuantity) {
+        if (reduceQuantity <= 0) {
+            throw new IllegalArgumentException("Reduce quantity must be positive");
         }
-        if (quantity > this.availableStock) {
-            throw new IllegalArgumentException("Cannot reduce more than available stock");
+        if (reduceQuantity > this.quantity) {
+            throw new InsufficientStockException("Cannot reduce more than available stock");
         }
-        return new ProductInventory(this.availableStock - quantity);
+        return new ProductInventory(this.quantity - reduceQuantity);
     }
     
     /**
-     * 检查是否有足够库存
+     * Check if has enough stock
      */
-    public boolean hasEnoughStock(int quantity) {
-        return this.availableStock >= quantity;
+    public boolean hasEnoughStock(int requiredQuantity) {
+        return this.quantity >= requiredQuantity;
     }
     
     /**
-     * 检查是否有库存
+     * Check if has stock
      */
     public boolean hasStock() {
-        return this.availableStock > 0;
+        return this.quantity > 0;
     }
     
     /**
-     * 检查是否库存为空
+     * Check if inventory is empty
      */
     public boolean isEmpty() {
-        return this.availableStock == 0;
+        return this.quantity == 0;
     }
     
-    public int getAvailableStock() {
-        return availableStock;
+    public int getQuantity() {
+        return quantity;
     }
     
     @Override
@@ -70,16 +70,16 @@ public final class ProductInventory {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProductInventory that = (ProductInventory) o;
-        return availableStock == that.availableStock;
+        return quantity == that.quantity;
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(availableStock);
+        return Objects.hash(quantity);
     }
     
     @Override
     public String toString() {
-        return "ProductInventory{availableStock=" + availableStock + '}';
+        return "ProductInventory{quantity=" + quantity + '}';
     }
 } 

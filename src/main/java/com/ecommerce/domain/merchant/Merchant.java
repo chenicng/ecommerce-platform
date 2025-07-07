@@ -4,8 +4,8 @@ import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
 
 /**
- * 商家聚合根
- * 包含商家基本信息和收入账户
+ * Merchant Aggregate Root
+ * Contains merchant basic information and income account
  */
 public class Merchant extends BaseEntity {
     
@@ -16,24 +16,24 @@ public class Merchant extends BaseEntity {
     private MerchantAccount account;
     private MerchantStatus status;
     
-    // 构造函数
+    // Constructor
     protected Merchant() {
         super();
     }
     
-    public Merchant(String merchantName, String businessLicense, String contactEmail, 
-                   String contactPhone, String currency) {
+    public Merchant(String merchantName, String businessLicense, 
+                   String contactEmail, String contactPhone) {
         super();
         this.merchantName = merchantName;
         this.businessLicense = businessLicense;
         this.contactEmail = contactEmail;
         this.contactPhone = contactPhone;
-        this.account = new MerchantAccount(Money.zero(currency));
+        this.account = new MerchantAccount(Money.zero("CNY"));
         this.status = MerchantStatus.ACTIVE;
     }
     
     /**
-     * 接收收入
+     * Receive income
      */
     public void receiveIncome(Money amount) {
         validateActiveStatus();
@@ -45,43 +45,45 @@ public class Merchant extends BaseEntity {
     }
     
     /**
-     * 提取收入
+     * Withdraw income
      */
-    public void withdraw(Money amount) {
+    public void withdrawIncome(Money amount) {
         validateActiveStatus();
         if (amount == null || amount.isZero()) {
-            throw new IllegalArgumentException("Withdraw amount must be positive");
+            throw new IllegalArgumentException("Withdrawal amount must be positive");
         }
+        
         if (!canWithdraw(amount)) {
             throw new InsufficientFundsException("Insufficient funds for withdrawal");
         }
+        
         this.account = this.account.withdraw(amount);
         this.markAsUpdated();
     }
     
     /**
-     * 检查是否可以提取指定金额
+     * Check if can withdraw specified amount
      */
     public boolean canWithdraw(Money amount) {
-        return this.account.getBalance().isGreaterThanOrEqual(amount);
+        return this.account.hasEnoughBalance(amount);
     }
     
     /**
-     * 获取账户余额
+     * Get account balance
      */
     public Money getBalance() {
         return this.account.getBalance();
     }
     
     /**
-     * 获取总收入
+     * Get total income
      */
     public Money getTotalIncome() {
         return this.account.getTotalIncome();
     }
     
     /**
-     * 激活商家
+     * Activate merchant
      */
     public void activate() {
         this.status = MerchantStatus.ACTIVE;
@@ -89,7 +91,7 @@ public class Merchant extends BaseEntity {
     }
     
     /**
-     * 停用商家
+     * Deactivate merchant
      */
     public void deactivate() {
         this.status = MerchantStatus.INACTIVE;

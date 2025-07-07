@@ -1,21 +1,21 @@
 package com.ecommerce.domain.user;
 
 /**
- * 用户状态枚举
+ * User Status Enum
  */
 public enum UserStatus {
     /**
-     * 活跃状态
+     * Active status
      */
     ACTIVE,
     
     /**
-     * 非活跃状态
+     * Inactive status
      */
     INACTIVE,
     
     /**
-     * 已删除状态
+     * Deleted status
      */
     DELETED
 } 

@@ -1,31 +1,31 @@
 package com.ecommerce.domain.order;
 
 /**
- * 订单状态枚举
+ * Order Status Enum
  */
 public enum OrderStatus {
     /**
-     * 待处理状态
+     * Pending status
      */
     PENDING,
     
     /**
-     * 已确认状态
+     * Confirmed status
      */
     CONFIRMED,
     
     /**
-     * 已支付状态
+     * Paid status
      */
     PAID,
     
     /**
-     * 已完成状态
+     * Completed status
      */
     COMPLETED,
     
     /**
-     * 已取消状态
+     * Cancelled status
      */
     CANCELLED
 } 

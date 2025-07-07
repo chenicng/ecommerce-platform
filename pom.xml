@@ -3,15 +3,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
-    <!-- 项目坐标信息 -->
+    <!-- Project Coordinate Information -->
     <groupId>com.ecommerce</groupId>
     <artifactId>ecommerce-platform</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>ecommerce-platform</name>
+    <n>ecommerce-platform</n>
     <description>E-commerce Platform API Service with Spring Boot and DDD - Demo Project</description>
-    <url>https://github.com/chenlicong/ecommerce-platform</url>
+    <url>https://github.com/chenlicong0821/ecommerce-platform</url>
     
-    <!-- Spring Boot 父依赖 -->
+    <!-- Spring Boot Parent Dependency -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -24,68 +24,68 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         
-        <!-- 项目版本标识 -->
+        <!-- Project Version Identifiers -->
         <project.version.major>1</project.version.major>
         <project.version.minor>0</project.version.minor>
         <project.version.patch>0</project.version.patch>
         <project.version.qualifier>SNAPSHOT</project.version.qualifier>
         
-        <!-- 技术栈版本信息 -->
+        <!-- Technology Stack Version Information -->
         <spring.boot.version>3.2.0</spring.boot.version>
         <java.target.version>21</java.target.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         
-        <!-- 构建时间戳 -->
+        <!-- Build Timestamp -->
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <project.build.timestamp>${maven.build.timestamp}</project.build.timestamp>
     </properties>
     
     <dependencies>
-        <!-- Spring Boot Web 依赖，用于创建REST API -->
+        <!-- Spring Boot Web dependency for creating REST APIs -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         
-        <!-- Spring Boot JPA 依赖，用于数据持久化 -->
+        <!-- Spring Boot JPA dependency for data persistence -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         
-        <!-- H2 数据库，用于本地开发和测试 -->
+        <!-- H2 database for local development and testing -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
         
-        <!-- Spring Boot Validation 依赖，用于参数验证 -->
+        <!-- Spring Boot Validation dependency for parameter validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         
-        <!-- Spring Boot Actuator 依赖，用于健康检查和监控 -->
+        <!-- Spring Boot Actuator dependency for health checks and monitoring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         
-        <!-- Spring Boot Scheduler 依赖，用于定时任务 -->
+        <!-- Spring Boot Scheduler dependency for scheduled tasks -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
         </dependency>
         
-        <!-- Spring Boot Transaction 依赖，用于事务管理 -->
+        <!-- Spring Boot Transaction dependency for transaction management -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
         </dependency>
         
-        <!-- Spring Boot Test 依赖，用于单元测试 -->
+        <!-- Spring Boot Test dependency for unit testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -102,13 +102,13 @@
     
     <build>
         <plugins>
-            <!-- Spring Boot Maven 插件，用于构建可执行的jar包 -->
+            <!-- Spring Boot Maven plugin for building executable jar packages -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
             
-            <!-- JaCoCo Maven 插件，用于测试覆盖率报告 -->
+            <!-- JaCoCo Maven plugin for test coverage reports -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>

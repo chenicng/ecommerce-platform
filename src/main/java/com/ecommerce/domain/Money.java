@@ -5,8 +5,8 @@ import java.math.RoundingMode;
 import java.util.Objects;
 
 /**
- * 金额值对象
- * 使用BigDecimal确保精度，遵循不可变性原则
+ * Money Value Object
+ * Uses BigDecimal to ensure precision, follows immutability principle
  */
 public final class Money {
     

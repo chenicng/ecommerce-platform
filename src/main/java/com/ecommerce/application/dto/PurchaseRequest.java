@@ -1,7 +1,7 @@
 package com.ecommerce.application.dto;
 
 /**
- * 购买请求DTO
+ * Purchase Request DTO
  */
 public class PurchaseRequest {
     
@@ -9,7 +9,7 @@ public class PurchaseRequest {
     private String sku;
     private int quantity;
     
-    // 构造函数
+    // Constructor
     public PurchaseRequest() {}
     
     public PurchaseRequest(Long userId, String sku, int quantity) {

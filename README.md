@@ -1,43 +1,43 @@
-# 电商平台系统 (E-commerce Platform)
+# E-commerce Platform
 
-基于Spring Boot和DDD（领域驱动设计）的完整电商平台系统，支持用户购买商品、商家管理库存、自动结算等功能。
+A complete e-commerce platform system based on Spring Boot and DDD (Domain-Driven Design), supporting user product purchases, merchant inventory management, automatic settlement, and other features.
 
-## 系统特性
+## System Features
 
-### 核心功能
-- **用户管理**: 用户注册、账户充值、余额查询
-- **商家管理**: 商家注册、商品管理、库存管理、收入查询
-- **商品交易**: 完整的购买流程，包括库存扣减、资金转移
-- **自动结算**: 定时任务每天进行商家结算，匹配收入与账户余额
+### Core Functions
+- **User Management**: User registration, account recharge, balance inquiry
+- **Merchant Management**: Merchant registration, product management, inventory management, income inquiry
+- **Product Trading**: Complete purchase process, including inventory deduction and fund transfer
+- **Automatic Settlement**: Scheduled tasks for daily merchant settlement, matching income with account balance
 
-### 技术架构
-- **领域驱动设计(DDD)**: 清晰的领域划分和聚合根设计
-- **Spring Boot 3.2**: 现代化的Spring框架
-- **内存存储**: 简化的数据存储，便于演示（生产环境应使用数据库）
-- **REST API**: 完整的RESTful接口设计
-- **定时任务**: 基于Spring Scheduler的结算任务
+### Technical Architecture
+- **Domain-Driven Design (DDD)**: Clear domain division and aggregate root design
+- **Spring Boot 3.2**: Modern Spring framework
+- **In-Memory Storage**: Simplified data storage for demonstration (production should use database)
+- **REST API**: Complete RESTful interface design
+- **Scheduled Tasks**: Settlement tasks based on Spring Scheduler
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Environment Requirements
 - Java 21+
 - Maven 3.6+
 
-### 启动应用
+### Start Application
 ```bash
 mvn clean spring-boot:run
 ```
 
-应用启动后访问：
-- 应用端口: http://localhost:8080
-- 健康检查: http://localhost:8080/actuator/health
-- H2控制台: http://localhost:8080/h2-console
+After application startup, access:
+- Application port: http://localhost:8080
+- Health check: http://localhost:8080/actuator/health
+- H2 console: http://localhost:8080/h2-console
 
-## API 接口文档
+## API Documentation
 
-### 用户管理
+### User Management
 
-#### 创建用户
+#### Create User
 ```bash
 POST /api/users
 Content-Type: application/json
@@ -49,7 +49,7 @@ Content-Type: application/json
 }
 ```
 
-#### 用户充值
+#### User Recharge
 ```bash
 POST /api/users/{userId}/recharge
 Content-Type: application/json
@@ -60,27 +60,27 @@ Content-Type: application/json
 }
 ```
 
-#### 查询余额
+#### Query Balance
 ```bash
 GET /api/users/{userId}/balance
 ```
 
-### 商家管理
+### Merchant Management
 
-#### 创建商家
+#### Create Merchant
 ```bash
 POST /api/merchants
 Content-Type: application/json
 
 {
-  "merchantName": "测试商家",
+  "merchantName": "Test Merchant",
   "businessLicense": "12345678",
   "contactEmail": "merchant@example.com",
   "contactPhone": "13900139000"
 }
 ```
 
-#### 创建商品
+#### Create Product
 ```bash
 POST /api/merchants/{merchantId}/products
 Content-Type: application/json
@@ -88,13 +88,13 @@ Content-Type: application/json
 {
   "sku": "IPHONE15",
   "name": "iPhone 15",
-  "description": "最新款iPhone",
+  "description": "Latest iPhone model",
   "price": 6999.00,
   "initialStock": 100
 }
 ```
 
-#### 添加库存
+#### Add Stock
 ```bash
 POST /api/merchants/{merchantId}/products/{sku}/add-stock
 Content-Type: application/json
@@ -104,14 +104,14 @@ Content-Type: application/json
 }
 ```
 
-#### 查询收入
+#### Query Income
 ```bash
 GET /api/merchants/{merchantId}/income
 ```
 
-### 商品交易
+### Product Trading
 
-#### 购买商品
+#### Purchase Product
 ```bash
 POST /api/commerce/purchase
 Content-Type: application/json
@@ -123,125 +123,125 @@ Content-Type: application/json
 }
 ```
 
-## 完整测试流程
+## Complete Test Flow
 
-以下是一个完整的测试流程示例：
+The following is a complete test flow example:
 
 ```bash
-# 1. 创建用户
+# 1. Create user
 curl -X POST http://localhost:8080/api/users \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
 
-# 2. 创建商家
+# 2. Create merchant
 curl -X POST http://localhost:8080/api/merchants \
   -H "Content-Type: application/json" \
-  -d '{"merchantName":"测试商家","businessLicense":"12345678","contactEmail":"merchant@example.com","contactPhone":"13900139000"}'
+  -d '{"merchantName":"Test Merchant","businessLicense":"12345678","contactEmail":"merchant@example.com","contactPhone":"13900139000"}'
 
-# 3. 创建商品
+# 3. Create product
 curl -X POST http://localhost:8080/api/merchants/1/products \
   -H "Content-Type: application/json" \
-  -d '{"sku":"IPHONE15","name":"iPhone 15","description":"最新款iPhone","price":6999.00,"initialStock":100}'
+  -d '{"sku":"IPHONE15","name":"iPhone 15","description":"Latest iPhone model","price":6999.00,"initialStock":100}'
 
-# 4. 用户充值
+# 4. User recharge
 curl -X POST http://localhost:8080/api/users/1/recharge \
   -H "Content-Type: application/json" \
   -d '{"amount":10000.00,"currency":"CNY"}'
 
-# 5. 购买商品
+# 5. Purchase product
 curl -X POST http://localhost:8080/api/commerce/purchase \
   -H "Content-Type: application/json" \
   -d '{"userId":1,"sku":"IPHONE15","quantity":1}'
 
-# 6. 查询用户余额（应该减少6999.00）
+# 6. Query user balance (should decrease by 6999.00)
 curl http://localhost:8080/api/users/1/balance
 
-# 7. 查询商家收入（应该增加6999.00）
+# 7. Query merchant income (should increase by 6999.00)
 curl http://localhost:8080/api/merchants/1/income
 
-# 8. 添加库存
+# 8. Add stock
 curl -X POST http://localhost:8080/api/merchants/1/products/IPHONE15/add-stock \
   -H "Content-Type: application/json" \
   -d '{"quantity":50}'
 ```
 
-## 系统设计
+## System Design
 
-### DDD领域划分
+### DDD Domain Division
 
-1. **User Context（用户上下文）**
-   - User聚合根：管理用户信息和预存账户
-   - UserAccount值对象：封装账户余额操作
-   - UserStatus枚举：用户状态管理
+1. **User Context**
+   - User aggregate root: Manages user information and prepaid account
+   - UserAccount value object: Encapsulates account balance operations
+   - UserStatus enum: User status management
 
-2. **Merchant Context（商家上下文）**
-   - Merchant聚合根：管理商家信息和收入账户
-   - MerchantAccount值对象：封装收入和余额管理
-   - MerchantStatus枚举：商家状态管理
+2. **Merchant Context**
+   - Merchant aggregate root: Manages merchant information and income account
+   - MerchantAccount value object: Encapsulates income and balance management
+   - MerchantStatus enum: Merchant status management
 
-3. **Product Context（商品上下文）**
-   - Product聚合根：管理商品信息、价格和库存
-   - ProductInventory值对象：封装库存操作
-   - ProductStatus枚举：商品状态管理
+3. **Product Context**
+   - Product aggregate root: Manages product information, price and inventory
+   - ProductInventory value object: Encapsulates inventory operations
+   - ProductStatus enum: Product status management
 
-4. **Order Context（订单上下文）**
-   - Order聚合根：管理订单流程和状态
-   - OrderItem值对象：订单项明细
-   - OrderStatus枚举：订单状态流转
+4. **Order Context**
+   - Order aggregate root: Manages order process and status
+   - OrderItem value object: Order item details
+   - OrderStatus enum: Order status transitions
 
-5. **Settlement Context（结算上下文）**
-   - Settlement聚合根：管理结算记录和状态
-   - SettlementStatus枚举：结算状态管理
+5. **Settlement Context**
+   - Settlement aggregate root: Manages settlement records and status
+   - SettlementStatus enum: Settlement status management
 
-### 核心业务流程
+### Core Business Processes
 
-#### 购买流程
-1. 验证用户、商品、商家状态
-2. 检查库存和余额充足性
-3. 创建订单并确认
-4. 扣减商品库存
-5. 扣减用户账户余额
-6. 增加商家收入
-7. 完成订单并返回结果
+#### Purchase Process
+1. Validate user, product, and merchant status
+2. Check inventory and balance sufficiency
+3. Create and confirm order
+4. Reduce product inventory
+5. Deduct user account balance
+6. Increase merchant income
+7. Complete order and return results
 
-#### 结算流程
-1. 定时任务每天凌晨2点触发
-2. 计算商家预期收入（基于订单记录）
-3. 获取商家实际余额
-4. 对比并记录差异
-5. 生成结算报告
+#### Settlement Process
+1. Scheduled task triggers daily at 2 AM
+2. Calculate merchant expected income (based on order records)
+3. Get merchant actual balance
+4. Compare and record differences
+5. Generate settlement report
 
-## 配置说明
+## Configuration Instructions
 
-应用配置文件 `application.yml` 包含以下重要配置：
+Application configuration file `application.yml` contains the following important configurations:
 
-- **数据库配置**: H2内存数据库
-- **结算配置**: 定时任务cron表达式
-- **货币配置**: 默认货币和精度设置
-- **日志配置**: SQL日志和应用日志级别
+- **Database Configuration**: H2 in-memory database
+- **Settlement Configuration**: Scheduled task cron expression
+- **Currency Configuration**: Default currency and precision settings
+- **Logging Configuration**: SQL logs and application log levels
 
-## 生产环境考虑
+## Production Environment Considerations
 
-当前系统为演示版本，生产环境部署需要考虑：
+The current system is a demonstration version. Production deployment should consider:
 
-1. **数据持久化**: 使用MySQL/PostgreSQL等关系型数据库
-2. **事务管理**: 确保数据一致性和并发安全
-3. **缓存**: 使用Redis等缓存热点数据
-4. **监控**: 集成监控和告警系统
-5. **安全**: 添加认证授权机制
-6. **性能**: 数据库索引优化和查询优化
-7. **扩展性**: 考虑微服务拆分和分布式部署
+1. **Data Persistence**: Use relational databases like MySQL/PostgreSQL
+2. **Transaction Management**: Ensure data consistency and concurrency safety
+3. **Caching**: Use Redis and other caches for hot data
+4. **Monitoring**: Integrate monitoring and alerting systems
+5. **Security**: Add authentication and authorization mechanisms
+6. **Performance**: Database index optimization and query optimization
+7. **Scalability**: Consider microservice splitting and distributed deployment
 
-## 扩展性
+## Extensibility
 
-系统采用DDD设计，具有良好的扩展性：
+The system uses DDD design with good extensibility:
 
-- **新增支付方式**: 扩展支付领域
-- **多货币支持**: 扩展Money值对象
-- **促销活动**: 新增促销上下文
-- **库存预警**: 扩展库存管理功能
-- **数据报表**: 新增分析和报表功能
+- **New Payment Methods**: Extend payment domain
+- **Multi-currency Support**: Extend Money value object
+- **Promotional Activities**: Add promotion context
+- **Inventory Alerts**: Extend inventory management functions
+- **Data Reports**: Add analysis and reporting functions
 
-## 许可证
+## License
 
 MIT License

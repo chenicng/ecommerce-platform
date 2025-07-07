@@ -9,20 +9,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 商品服务
- * 管理商品相关的业务操作
+ * Product Service
+ * Manages product-related business operations
  */
 @Service
 @Transactional
 public class ProductService {
     
-    // 简单的内存存储，生产环境应该使用数据库
+    // Simple in-memory storage, production should use database
     private final Map<Long, Product> productStorage = new HashMap<>();
     private final Map<String, Product> skuIndex = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
     
     /**
-     * 创建商品
+     * Create product
      */
     public Product createProduct(String sku, String name, String description, 
                                Money price, Long merchantId, int initialStock) {
@@ -39,7 +39,7 @@ public class ProductService {
     }
     
     /**
-     * 根据SKU获取商品
+     * Get product by SKU
      */
     @Transactional(readOnly = true)
     public Product getProductBySku(String sku) {
@@ -51,7 +51,7 @@ public class ProductService {
     }
     
     /**
-     * 根据ID获取商品
+     * Get product by ID
      */
     @Transactional(readOnly = true)
     public Product getProductById(Long productId) {
@@ -63,7 +63,7 @@ public class ProductService {
     }
     
     /**
-     * 添加商品库存
+     * Add product stock
      */
     public void addProductStock(String sku, int quantity) {
         Product product = getProductBySku(sku);
@@ -72,7 +72,7 @@ public class ProductService {
     }
     
     /**
-     * 保存商品
+     * Save product
      */
     public void saveProduct(Product product) {
         productStorage.put(product.getId(), product);
@@ -80,7 +80,7 @@ public class ProductService {
     }
     
     /**
-     * 检查商品是否存在
+     * Check if product exists
      */
     @Transactional(readOnly = true)
     public boolean productExists(String sku) {
@@ -88,7 +88,7 @@ public class ProductService {
     }
     
     /**
-     * 获取商品库存
+     * Get product stock
      */
     @Transactional(readOnly = true)
     public int getProductStock(String sku) {

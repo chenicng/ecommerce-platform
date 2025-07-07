@@ -2,57 +2,56 @@ package com.ecommerce.domain.settlement;
 
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
- * 结算聚合根
- * 记录商家每日结算信息
+ * Settlement Aggregate Root
+ * Records daily settlement information for merchants
  */
 public class Settlement extends BaseEntity {
     
     private Long merchantId;
-    private LocalDateTime settlementDate;
-    private Money expectedIncome;  // 根据销售记录计算的预期收入
-    private Money actualBalance;   // 商家账户实际余额
-    private Money difference;      // 差异金额
+    private LocalDate settlementDate;
+    private Money expectedIncome;  // Expected income calculated from sales records
+    private Money actualBalance;   // Actual balance in merchant account
+    private Money difference;      // Difference amount
     private SettlementStatus status;
-    private String remarks;
+    private String notes;
     
-    // 构造函数
+    // Constructor
     protected Settlement() {
         super();
     }
     
-    public Settlement(Long merchantId, LocalDateTime settlementDate, 
+    public Settlement(Long merchantId, LocalDate settlementDate, 
                      Money expectedIncome, Money actualBalance) {
         super();
         this.merchantId = merchantId;
         this.settlementDate = settlementDate;
         this.expectedIncome = expectedIncome;
         this.actualBalance = actualBalance;
-        this.difference = calculateDifference(expectedIncome, actualBalance);
-        this.status = determinateStatus();
-        this.remarks = "";
+        this.difference = calculateDifference();
+        this.status = determineStatus();
+        this.notes = "";
     }
     
     /**
-     * 计算差异金额
+     * Calculate difference amount
      */
-    private Money calculateDifference(Money expected, Money actual) {
-        if (actual.isGreaterThanOrEqual(expected)) {
-            return actual.subtract(expected);
-        } else {
-            return expected.subtract(actual);
+    private Money calculateDifference() {
+        if (this.expectedIncome == null || this.actualBalance == null) {
+            return Money.zero("CNY");
         }
+        return this.actualBalance.subtract(this.expectedIncome);
     }
     
     /**
-     * 根据差异判断结算状态
+     * Determine settlement status based on difference
      */
-    private SettlementStatus determinateStatus() {
-        if (this.difference.isZero()) {
+    private SettlementStatus determineStatus() {
+        if (this.difference == null || this.difference.isZero()) {
             return SettlementStatus.MATCHED;
-        } else if (this.actualBalance.isGreaterThan(this.expectedIncome)) {
+        } else if (this.difference.getAmount().signum() > 0) {
             return SettlementStatus.SURPLUS;
         } else {
             return SettlementStatus.DEFICIT;
@@ -60,41 +59,40 @@ public class Settlement extends BaseEntity {
     }
     
     /**
-     * 添加备注
+     * Add notes
      */
-    public void addRemarks(String remarks) {
-        this.remarks = remarks;
+    public void addNotes(String notes) {
+        this.notes = notes != null ? notes : "";
         this.markAsUpdated();
     }
     
     /**
-     * 标记为已处理
+     * Mark as processed
      */
-    public void markAsProcessed(String processRemarks) {
+    public void markAsProcessed() {
         this.status = SettlementStatus.PROCESSED;
-        this.remarks = processRemarks;
         this.markAsUpdated();
     }
     
     /**
-     * 检查是否匹配
+     * Check if matched
      */
     public boolean isMatched() {
-        return SettlementStatus.MATCHED.equals(this.status);
+        return this.status == SettlementStatus.MATCHED;
     }
     
     /**
-     * 检查是否有盈余
+     * Check if has surplus
      */
     public boolean hasSurplus() {
-        return SettlementStatus.SURPLUS.equals(this.status);
+        return this.status == SettlementStatus.SURPLUS;
     }
     
     /**
-     * 检查是否有亏损
+     * Check if has deficit
      */
     public boolean hasDeficit() {
-        return SettlementStatus.DEFICIT.equals(this.status);
+        return this.status == SettlementStatus.DEFICIT;
     }
     
     // Getters
@@ -102,7 +100,7 @@ public class Settlement extends BaseEntity {
         return merchantId;
     }
     
-    public LocalDateTime getSettlementDate() {
+    public LocalDate getSettlementDate() {
         return settlementDate;
     }
     
@@ -122,8 +120,8 @@ public class Settlement extends BaseEntity {
         return status;
     }
     
-    public String getRemarks() {
-        return remarks;
+    public String getNotes() {
+        return notes;
     }
     
     // Package private setters for JPA
@@ -131,7 +129,7 @@ public class Settlement extends BaseEntity {
         this.merchantId = merchantId;
     }
     
-    void setSettlementDate(LocalDateTime settlementDate) {
+    void setSettlementDate(LocalDate settlementDate) {
         this.settlementDate = settlementDate;
     }
     
@@ -151,7 +149,7 @@ public class Settlement extends BaseEntity {
         this.status = status;
     }
     
-    void setRemarks(String remarks) {
-        this.remarks = remarks;
+    void setNotes(String notes) {
+        this.notes = notes;
     }
 } 

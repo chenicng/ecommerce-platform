@@ -1,7 +1,7 @@
 package com.ecommerce.domain.product;
 
 /**
- * 库存不足异常
+ * Insufficient Stock Exception
  */
 public class InsufficientStockException extends RuntimeException {
     

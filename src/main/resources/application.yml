@@ -1,18 +1,18 @@
-# E-commerce Platform API 配置文件
+# E-commerce Platform API Configuration File
 
-# Spring Boot 应用配置
+# Spring Boot Application Configuration
 spring:
   application:
     name: ecommerce-platform
   
-  # 数据源配置 - H2内存数据库
+  # Data Source Configuration - H2 In-Memory Database
   datasource:
     url: jdbc:h2:mem:ecommerce_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driverClassName: org.h2.Driver
     username: sa
     password: password
     
-  # H2控制台配置（开发环境）
+  # H2 Console Configuration (Development Environment)
   h2:
     console:
       enabled: true
@@ -20,51 +20,51 @@ spring:
       settings:
         web-allow-others: false
   
-  # JPA配置
+  # JPA Configuration
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop  # 开发环境自动创建表结构
-    show-sql: true  # 显示SQL语句
+      ddl-auto: create-drop  # Auto-create table structure in development environment
+    show-sql: true  # Display SQL statements
     properties:
       hibernate:
-        format_sql: true  # 格式化SQL语句
-        use_sql_comments: true  # 显示SQL注释
+        format_sql: true  # Format SQL statements
+        use_sql_comments: true  # Display SQL comments
   
-  # JSON 序列化配置
+  # JSON Serialization Configuration
   jackson:
     serialization:
-      indent-output: true  # 格式化输出JSON
-    date-format: yyyy-MM-dd HH:mm:ss  # 日期格式
-    time-zone: Asia/Shanghai  # 时区设置
-    default-property-inclusion: non-null  # 忽略null值
+      indent-output: true  # Format JSON output
+    date-format: yyyy-MM-dd HH:mm:ss  # Date format
+    time-zone: Asia/Shanghai  # Timezone setting
+    default-property-inclusion: non-null  # Ignore null values
 
-# 服务器配置
+# Server Configuration
 server:
-  port: 8080  # 服务端口
+  port: 8080  # Service port
 
-# 日志配置
+# Logging Configuration
 logging:
   level:
-    root: INFO  # 根日志级别
-    com.ecommerce: INFO  # 应用日志级别
-    org.hibernate.SQL: DEBUG  # SQL日志级别
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 参数绑定日志
+    root: INFO  # Root log level
+    com.ecommerce: INFO  # Application log level
+    org.hibernate.SQL: DEBUG  # SQL log level
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Parameter binding log
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{requestId:-}] %logger{36} - %msg%n"
 
-# Actuator 监控端点配置
+# Actuator Monitoring Endpoint Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics  # 暴露的端点
-      base-path: /actuator  # 监控端点基础路径
+        include: health,info,metrics  # Exposed endpoints
+      base-path: /actuator  # Monitoring endpoint base path
   endpoint:
     health:
-      show-details: when-authorized  # 健康检查详情显示策略
+      show-details: when-authorized  # Health check detail display policy
 
-# 应用信息配置
+# Application Information Configuration
 info:
   app:
     name: E-commerce Platform API
@@ -74,24 +74,24 @@ info:
     java:
       version: 21
 
-# 业务配置
+# Business Configuration
 ecommerce:
-  # 结算配置
+  # Settlement Configuration
   settlement:
-    cron: "0 0 2 * * ?"  # 每天凌晨2点执行结算
+    cron: "0 0 2 * * ?"  # Execute settlement daily at 2 AM
     enabled: true
   
-  # 货币配置
+  # Currency Configuration
   currency:
     default: CNY
-    precision: 2  # 金额精度（小数位数）
+    precision: 2  # Amount precision (decimal places)
     
-  # 订单配置
+  # Order Configuration
   order:
-    timeout-minutes: 30  # 订单超时时间（分钟）
+    timeout-minutes: 30  # Order timeout (minutes)
 
-# 生产环境配置建议：
-# 1. 修改server.port为生产环境端口
-# 2. 设置logging.level.root为WARN或ERROR
-# 3. 限制management.endpoints.web.exposure.include只包含health
-# 4. 配置适当的安全策略 
+# Production Environment Configuration Recommendations:
+# 1. Modify server.port to production environment port
+# 2. Set logging.level.root to WARN or ERROR
+# 3. Limit management.endpoints.web.exposure.include to only include health
+# 4. Configure appropriate security policies 

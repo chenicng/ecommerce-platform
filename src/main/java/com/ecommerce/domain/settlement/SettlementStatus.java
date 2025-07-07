@@ -1,26 +1,26 @@
 package com.ecommerce.domain.settlement;
 
 /**
- * 结算状态枚举
+ * Settlement Status Enum
  */
 public enum SettlementStatus {
     /**
-     * 匹配状态 - 预期收入与实际余额一致
+     * Matched status - expected income matches actual balance
      */
     MATCHED,
     
     /**
-     * 盈余状态 - 实际余额大于预期收入
+     * Surplus status - actual balance exceeds expected income
      */
     SURPLUS,
     
     /**
-     * 亏损状态 - 实际余额小于预期收入
+     * Deficit status - actual balance is less than expected income
      */
     DEFICIT,
     
     /**
-     * 已处理状态 - 差异已被人工处理
+     * Processed status - settlement has been handled
      */
     PROCESSED
 } 

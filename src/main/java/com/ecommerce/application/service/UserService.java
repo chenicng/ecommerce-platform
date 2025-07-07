@@ -9,19 +9,19 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 用户服务
- * 管理用户相关的业务操作
+ * User Service
+ * Manages user-related business operations
  */
 @Service
 @Transactional
 public class UserService {
     
-    // 简单的内存存储，生产环境应该使用数据库
+    // Simple in-memory storage, production should use database
     private final Map<Long, User> userStorage = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
     
     /**
-     * 创建用户
+     * Create user
      */
     public User createUser(String username, String email, String phone, String currency) {
         User user = new User(username, email, phone, currency);
@@ -32,7 +32,7 @@ public class UserService {
     }
     
     /**
-     * 根据ID获取用户
+     * Get user by ID
      */
     @Transactional(readOnly = true)
     public User getUserById(Long userId) {
@@ -44,31 +44,32 @@ public class UserService {
     }
     
     /**
-     * 用户账户充值
+     * User account recharge
      */
-    public void rechargeUserAccount(Long userId, Money amount) {
+    public void rechargeUser(Long userId, Money amount) {
         User user = getUserById(userId);
         user.recharge(amount);
-        userStorage.put(userId, user);
+        saveUser(user);
     }
     
     /**
-     * 保存用户
+     * Save user
      */
     public void saveUser(User user) {
         userStorage.put(user.getId(), user);
     }
     
     /**
-     * 获取用户余额
+     * Get user balance
      */
     @Transactional(readOnly = true)
     public Money getUserBalance(Long userId) {
-        return getUserById(userId).getBalance();
+        User user = getUserById(userId);
+        return user.getBalance();
     }
     
     /**
-     * 检查用户是否存在
+     * Check if user exists
      */
     @Transactional(readOnly = true)
     public boolean userExists(Long userId) {

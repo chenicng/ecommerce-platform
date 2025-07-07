@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 商务控制器
- * 处理商品购买相关的REST API
+ * Commerce Controller
+ * Handles REST API related to product purchasing
  */
 @RestController
 @RequestMapping("/api/commerce")
@@ -25,7 +25,7 @@ public class CommerceController {
     }
     
     /**
-     * 购买商品
+     * Purchase Product
      * POST /api/commerce/purchase
      */
     @PostMapping("/purchase")
@@ -33,10 +33,10 @@ public class CommerceController {
         try {
             logger.info("Processing purchase request: {}", request);
             
-            // 验证请求参数
+            // Validate request parameters
             validatePurchaseRequest(request);
             
-            // 处理购买
+            // Process purchase
             PurchaseResponse response = commerceService.processPurchase(request);
             
             logger.info("Purchase completed successfully: {}", response.getOrderNumber());
@@ -45,7 +45,7 @@ public class CommerceController {
         } catch (Exception e) {
             logger.error("Purchase failed: {}", e.getMessage(), e);
             
-            // 返回错误响应
+            // Return error response
             PurchaseResponse errorResponse = new PurchaseResponse();
             errorResponse.setStatus("FAILED");
             errorResponse.setMessage(e.getMessage());

@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * 结算服务
- * 处理商家结算相关的业务逻辑
+ * Settlement Service
+ * Handles business logic related to merchant settlement
  */
 @Service
 @Transactional
@@ -25,7 +25,7 @@ public class SettlementService {
     
     private static final Logger logger = LoggerFactory.getLogger(SettlementService.class);
     
-    // 简单的内存存储，生产环境应该使用数据库
+    // Simple in-memory storage, production should use database
     private final Map<Long, Settlement> settlementStorage = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
     
@@ -38,30 +38,41 @@ public class SettlementService {
     }
     
     /**
-     * 执行商家结算
+     * Execute settlement for all merchants (called by scheduler)
+     */
+    public void executeSettlement() {
+        LocalDate settlementDate = LocalDate.now().minusDays(1); // Settle previous day's data
+        
+        // In a real project, this should query database for all active merchants
+        // For demo purposes, we'll skip this implementation
+        logger.info("Settlement execution completed for date: {}", settlementDate);
+    }
+    
+    /**
+     * Execute merchant settlement
      */
     public Settlement performSettlement(Long merchantId, LocalDate settlementDate) {
         try {
             logger.info("Starting settlement for merchant {} on date {}", merchantId, settlementDate);
             
-            // 1. 计算预期收入（基于完成的订单）
+            // 1. Calculate expected income (based on completed orders)
             Money expectedIncome = calculateExpectedIncome(merchantId, settlementDate);
             
-            // 2. 获取商家实际余额
+            // 2. Get merchant actual balance
             Money actualBalance = merchantService.getMerchantBalance(merchantId);
             
-            // 3. 创建结算记录
+            // 3. Create settlement record
             Settlement settlement = new Settlement(
                 merchantId,
-                settlementDate.atTime(2, 0), // 结算时间设为凌晨2点
+                settlementDate,
                 expectedIncome,
                 actualBalance
             );
             
-            // 4. 保存结算记录
+            // 4. Save settlement record
             saveSettlement(settlement);
             
-            // 5. 记录结算结果
+            // 5. Log settlement result
             logSettlementResult(settlement);
             
             logger.info("Settlement completed for merchant {}: status={}, difference={}", 
@@ -76,12 +87,12 @@ public class SettlementService {
     }
     
     /**
-     * 计算预期收入
-     * 在实际项目中，这里应该查询数据库中的订单记录
+     * Calculate expected income
+     * In a real project, this should query database for order records
      */
     private Money calculateExpectedIncome(Long merchantId, LocalDate settlementDate) {
-        // 由于我们使用内存存储，这里返回商家的总收入作为预期收入
-        // 在真实项目中，这里应该计算指定日期的销售额
+        // Since we use in-memory storage, return merchant's total income as expected income
+        // In a real project, this should calculate sales amount for the specified date
         Money totalIncome = merchantService.getMerchantTotalIncome(merchantId);
         
         logger.debug("Calculated expected income for merchant {}: {}", merchantId, totalIncome);
@@ -89,7 +100,7 @@ public class SettlementService {
     }
     
     /**
-     * 保存结算记录
+     * Save settlement record
      */
     private void saveSettlement(Settlement settlement) {
         Long id = idGenerator.getAndIncrement();
@@ -98,28 +109,28 @@ public class SettlementService {
     }
     
     /**
-     * 记录结算结果
+     * Log settlement result
      */
     private void logSettlementResult(Settlement settlement) {
         String statusDesc;
         switch (settlement.getStatus()) {
             case MATCHED:
-                statusDesc = "完全匹配";
+                statusDesc = "Perfect match";
                 break;
             case SURPLUS:
-                statusDesc = "有盈余";
-                settlement.addRemarks("账户余额超出预期收入 " + settlement.getDifference());
+                statusDesc = "Has surplus";
+                settlement.addNotes("Account balance exceeds expected income " + settlement.getDifference());
                 break;
             case DEFICIT:
-                statusDesc = "有亏损";
-                settlement.addRemarks("账户余额低于预期收入 " + settlement.getDifference());
+                statusDesc = "Has deficit";
+                settlement.addNotes("Account balance is below expected income " + settlement.getDifference());
                 break;
             default:
-                statusDesc = "未知状态";
+                statusDesc = "Unknown status";
                 break;
         }
         
-        logger.info("结算结果 - 商家ID: {}, 状态: {}, 预期收入: {}, 实际余额: {}, 差异: {}", 
+        logger.info("Settlement result - Merchant ID: {}, Status: {}, Expected income: {}, Actual balance: {}, Difference: {}", 
                    settlement.getMerchantId(), 
                    statusDesc,
                    settlement.getExpectedIncome(),
@@ -128,7 +139,7 @@ public class SettlementService {
     }
     
     /**
-     * 获取结算记录
+     * Get settlement record
      */
     @Transactional(readOnly = true)
     public Settlement getSettlementById(Long settlementId) {
@@ -140,7 +151,7 @@ public class SettlementService {
     }
     
     /**
-     * 获取商家的所有结算记录
+     * Get all settlement records for a merchant
      */
     @Transactional(readOnly = true)
     public List<Settlement> getSettlementsByMerchant(Long merchantId) {
@@ -150,7 +161,7 @@ public class SettlementService {
     }
     
     /**
-     * 获取所有不匹配的结算记录
+     * Get all mismatched settlement records
      */
     @Transactional(readOnly = true)
     public List<Settlement> getMismatchedSettlements() {

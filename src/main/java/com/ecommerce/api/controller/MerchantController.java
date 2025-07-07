@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 
 /**
- * 商家控制器
- * 处理商家相关的REST API
+ * Merchant Controller
+ * Handles merchant-related REST APIs
  */
 @RestController
 @RequestMapping("/api/merchants")
@@ -30,7 +30,7 @@ public class MerchantController {
     }
     
     /**
-     * 创建商家
+     * Create merchant
      * POST /api/merchants
      */
     @PostMapping
@@ -42,8 +42,7 @@ public class MerchantController {
                 request.getMerchantName(),
                 request.getBusinessLicense(),
                 request.getContactEmail(),
-                request.getContactPhone(),
-                "CNY"
+                request.getContactPhone()
             );
             
             MerchantResponse response = new MerchantResponse(
@@ -62,33 +61,31 @@ public class MerchantController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("Failed to create merchant: {}", e.getMessage(), e);
+            logger.error("Failed to create merchant: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
     
     /**
-     * 创建商品
+     * Create product
      * POST /api/merchants/{merchantId}/products
      */
     @PostMapping("/{merchantId}/products")
     public ResponseEntity<ProductResponse> createProduct(@PathVariable Long merchantId,
-                                                       @RequestBody CreateProductRequest request) {
+                                                        @RequestBody CreateProductRequest request) {
         try {
             logger.info("Creating product for merchant {}: {}", merchantId, request.getSku());
             
-            // 验证商家是否存在
+            // Validate merchant exists
             if (!merchantService.merchantExists(merchantId)) {
                 throw new RuntimeException("Merchant not found with id: " + merchantId);
             }
-            
-            Money price = Money.of(request.getPrice(), request.getCurrency());
             
             Product product = productService.createProduct(
                 request.getSku(),
                 request.getName(),
                 request.getDescription(),
-                price,
+                Money.of(request.getPrice(), request.getCurrency()),
                 merchantId,
                 request.getInitialStock()
             );
@@ -109,69 +106,46 @@ public class MerchantController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("Failed to create product: {}", e.getMessage(), e);
+            logger.error("Failed to create product for merchant {}: {}", merchantId, e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
     
     /**
-     * 添加商品库存
+     * Add product stock
      * POST /api/merchants/{merchantId}/products/{sku}/add-stock
      */
     @PostMapping("/{merchantId}/products/{sku}/add-stock")
-    public ResponseEntity<AddStockResponse> addProductStock(@PathVariable Long merchantId,
-                                                          @PathVariable String sku,
-                                                          @RequestBody AddStockRequest request) {
+    public ResponseEntity<String> addProductStock(@PathVariable Long merchantId,
+                                                  @PathVariable String sku,
+                                                  @RequestBody AddStockRequest request) {
         try {
-            logger.info("Adding stock for product {} (merchant {}): {} units", sku, merchantId, request.getQuantity());
+            logger.info("Adding stock for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
             
-            // 验证商家是否存在
+            // Validate merchant exists
             if (!merchantService.merchantExists(merchantId)) {
                 throw new RuntimeException("Merchant not found with id: " + merchantId);
             }
             
-            // 验证商品是否存在且属于该商家
+            // Validate product exists and belongs to this merchant
             Product product = productService.getProductBySku(sku);
             if (!product.getMerchantId().equals(merchantId)) {
-                throw new RuntimeException("Product does not belong to merchant");
+                throw new RuntimeException("Product does not belong to this merchant");
             }
             
-            int originalStock = product.getAvailableStock();
-            
-            // 添加库存
             productService.addProductStock(sku, request.getQuantity());
             
-            // 获取更新后的库存
-            int newStock = productService.getProductStock(sku);
-            
-            AddStockResponse response = new AddStockResponse(
-                merchantId,
-                sku,
-                request.getQuantity(),
-                originalStock,
-                newStock,
-                "SUCCESS",
-                "Stock added successfully"
-            );
-            
-            logger.info("Stock added successfully for {}: {} -> {}", sku, originalStock, newStock);
-            return ResponseEntity.ok(response);
+            logger.info("Stock added successfully for product {}: quantity={}", sku, request.getQuantity());
+            return ResponseEntity.ok("Stock added successfully");
             
         } catch (Exception e) {
-            logger.error("Failed to add stock for {}: {}", sku, e.getMessage(), e);
-            
-            AddStockResponse errorResponse = new AddStockResponse();
-            errorResponse.setMerchantId(merchantId);
-            errorResponse.setSku(sku);
-            errorResponse.setStatus("FAILED");
-            errorResponse.setMessage(e.getMessage());
-            
-            return ResponseEntity.badRequest().body(errorResponse);
+            logger.error("Failed to add stock for merchant {}, product {}: {}", merchantId, sku, e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to add stock: " + e.getMessage());
         }
     }
     
     /**
-     * 获取商家收入信息
+     * Get merchant income information
      * GET /api/merchants/{merchantId}/income
      */
     @GetMapping("/{merchantId}/income")
@@ -316,42 +290,6 @@ public class MerchantController {
         // Getters and Setters
         public int getQuantity() { return quantity; }
         public void setQuantity(int quantity) { this.quantity = quantity; }
-    }
-    
-    public static class AddStockResponse {
-        private Long merchantId;
-        private String sku;
-        private int addedQuantity;
-        private int originalStock;
-        private int newStock;
-        private String status;
-        private String message;
-        
-        public AddStockResponse() {}
-        
-        public AddStockResponse(Long merchantId, String sku, int addedQuantity,
-                              int originalStock, int newStock, String status, String message) {
-            this.merchantId = merchantId;
-            this.sku = sku;
-            this.addedQuantity = addedQuantity;
-            this.originalStock = originalStock;
-            this.newStock = newStock;
-            this.status = status;
-            this.message = message;
-        }
-        
-        // Getters and Setters
-        public Long getMerchantId() { return merchantId; }
-        public void setMerchantId(Long merchantId) { this.merchantId = merchantId; }
-        public String getSku() { return sku; }
-        public void setSku(String sku) { this.sku = sku; }
-        public int getAddedQuantity() { return addedQuantity; }
-        public int getOriginalStock() { return originalStock; }
-        public int getNewStock() { return newStock; }
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
     }
     
     public static class IncomeResponse {

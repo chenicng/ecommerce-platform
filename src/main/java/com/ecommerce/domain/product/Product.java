@@ -4,8 +4,8 @@ import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
 
 /**
- * 商品聚合根
- * 包含商品基本信息、价格和库存
+ * Product Aggregate Root
+ * Contains product basic information, price and inventory
  */
 public class Product extends BaseEntity {
     
@@ -17,7 +17,7 @@ public class Product extends BaseEntity {
     private ProductInventory inventory;
     private ProductStatus status;
     
-    // 构造函数
+    // Constructor
     protected Product() {
         super();
     }
@@ -35,7 +35,7 @@ public class Product extends BaseEntity {
     }
     
     /**
-     * 增加库存
+     * Add stock
      */
     public void addStock(int quantity) {
         validateActiveStatus();
@@ -47,7 +47,7 @@ public class Product extends BaseEntity {
     }
     
     /**
-     * 减少库存
+     * Reduce stock
      */
     public void reduceStock(int quantity) {
         validateActiveStatus();
@@ -62,14 +62,14 @@ public class Product extends BaseEntity {
     }
     
     /**
-     * 检查是否有足够库存
+     * Check if has enough stock
      */
     public boolean hasEnoughStock(int quantity) {
         return this.inventory.hasEnoughStock(quantity);
     }
     
     /**
-     * 计算总价
+     * Calculate total price
      */
     public Money calculateTotalPrice(int quantity) {
         if (quantity <= 0) {
@@ -79,7 +79,7 @@ public class Product extends BaseEntity {
     }
     
     /**
-     * 更新价格
+     * Update price
      */
     public void updatePrice(Money newPrice) {
         validateActiveStatus();
@@ -91,7 +91,7 @@ public class Product extends BaseEntity {
     }
     
     /**
-     * 激活商品
+     * Activate product
      */
     public void activate() {
         this.status = ProductStatus.ACTIVE;
@@ -99,7 +99,7 @@ public class Product extends BaseEntity {
     }
     
     /**
-     * 停用商品
+     * Deactivate product
      */
     public void deactivate() {
         this.status = ProductStatus.INACTIVE;
@@ -146,7 +146,7 @@ public class Product extends BaseEntity {
     }
     
     public int getAvailableStock() {
-        return inventory.getAvailableStock();
+        return inventory.getQuantity();
     }
     
     public ProductStatus getStatus() {

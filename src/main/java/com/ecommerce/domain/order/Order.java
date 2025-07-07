@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 订单聚合根
- * 处理用户购买商品的完整流程
+ * Order Aggregate Root
+ * Handles the complete process of user purchasing products
  */
 public class Order extends BaseEntity {
     
@@ -21,7 +21,7 @@ public class Order extends BaseEntity {
     private LocalDateTime orderTime;
     private LocalDateTime completedTime;
     
-    // 构造函数
+    // Constructor
     protected Order() {
         super();
         this.items = new ArrayList<>();
@@ -33,13 +33,13 @@ public class Order extends BaseEntity {
         this.userId = userId;
         this.merchantId = merchantId;
         this.items = new ArrayList<>();
-        this.totalAmount = Money.zero("CNY"); // 默认货币
+        this.totalAmount = Money.zero("CNY"); // Default currency
         this.status = OrderStatus.PENDING;
         this.orderTime = LocalDateTime.now();
     }
     
     /**
-     * 添加订单项
+     * Add order item
      */
     public void addOrderItem(String sku, String productName, Money unitPrice, int quantity) {
         if (this.status != OrderStatus.PENDING) {
@@ -53,7 +53,7 @@ public class Order extends BaseEntity {
     }
     
     /**
-     * 确认订单
+     * Confirm order
      */
     public void confirm() {
         validatePendingStatus();
@@ -65,7 +65,7 @@ public class Order extends BaseEntity {
     }
     
     /**
-     * 处理支付
+     * Process payment
      */
     public void processPayment() {
         if (this.status != OrderStatus.CONFIRMED) {
@@ -76,7 +76,7 @@ public class Order extends BaseEntity {
     }
     
     /**
-     * 完成订单
+     * Complete order
      */
     public void complete() {
         if (this.status != OrderStatus.PAID) {
@@ -88,7 +88,7 @@ public class Order extends BaseEntity {
     }
     
     /**
-     * 取消订单
+     * Cancel order
      */
     public void cancel(String reason) {
         if (this.status == OrderStatus.COMPLETED) {
@@ -99,28 +99,28 @@ public class Order extends BaseEntity {
     }
     
     /**
-     * 检查订单是否可以支付
+     * Check if order can be paid
      */
     public boolean canBePaid() {
         return OrderStatus.CONFIRMED.equals(this.status);
     }
     
     /**
-     * 检查订单是否已完成
+     * Check if order is completed
      */
     public boolean isCompleted() {
         return OrderStatus.COMPLETED.equals(this.status);
     }
     
     /**
-     * 检查订单是否已取消
+     * Check if order is cancelled
      */
     public boolean isCancelled() {
         return OrderStatus.CANCELLED.equals(this.status);
     }
     
     /**
-     * 获取订单中的商品总数量
+     * Get total quantity of items in order
      */
     public int getTotalQuantity() {
         return this.items.stream()
@@ -148,7 +148,7 @@ public class Order extends BaseEntity {
     }
     
     public List<OrderItem> getItems() {
-        return new ArrayList<>(items); // 返回副本保护封装
+        return new ArrayList<>(items); // Return a copy to protect encapsulation
     }
     
     public Money getTotalAmount() {

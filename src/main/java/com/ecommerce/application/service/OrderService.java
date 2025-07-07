@@ -8,20 +8,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 订单服务
- * 管理订单相关的业务操作
+ * Order Service
+ * Manages order-related business operations
  */
 @Service
 @Transactional
 public class OrderService {
     
-    // 简单的内存存储，生产环境应该使用数据库
+    // Simple in-memory storage, production should use database
     private final Map<Long, Order> orderStorage = new HashMap<>();
     private final Map<String, Order> orderNumberIndex = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
     
     /**
-     * 保存订单
+     * Save order
      */
     public void saveOrder(Order order) {
         if (order.getId() == null) {
@@ -33,7 +33,7 @@ public class OrderService {
     }
     
     /**
-     * 根据订单号获取订单
+     * Get order by number
      */
     @Transactional(readOnly = true)
     public Order getOrderByNumber(String orderNumber) {
@@ -45,7 +45,7 @@ public class OrderService {
     }
     
     /**
-     * 根据ID获取订单
+     * Get order by ID
      */
     @Transactional(readOnly = true)
     public Order getOrderById(Long orderId) {
@@ -57,7 +57,7 @@ public class OrderService {
     }
     
     /**
-     * 检查订单是否存在
+     * Check if order exists
      */
     @Transactional(readOnly = true)
     public boolean orderExists(String orderNumber) {

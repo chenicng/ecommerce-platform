@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * 基础实体类，包含通用字段和方法
+ * Base Entity Class containing common fields and methods
  */
 public abstract class BaseEntity {
     

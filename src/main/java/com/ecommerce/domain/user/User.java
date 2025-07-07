@@ -4,8 +4,8 @@ import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
 
 /**
- * 用户聚合根
- * 包含用户基本信息和预存账户
+ * User Aggregate Root
+ * Contains user basic information and prepaid account
  */
 public class User extends BaseEntity {
     
@@ -15,7 +15,7 @@ public class User extends BaseEntity {
     private UserAccount account;
     private UserStatus status;
     
-    // 构造函数
+    // Constructor
     protected User() {
         super();
     }
@@ -30,19 +30,19 @@ public class User extends BaseEntity {
     }
     
     /**
-     * 向账户充值
+     * Recharge account
      */
     public void recharge(Money amount) {
         validateActiveStatus();
         if (amount == null || amount.isZero()) {
             throw new IllegalArgumentException("Recharge amount must be positive");
         }
-        this.account = this.account.add(amount);
+        this.account = this.account.addBalance(amount);
         this.markAsUpdated();
     }
     
     /**
-     * 从账户扣款
+     * Deduct from account
      */
     public void deduct(Money amount) {
         validateActiveStatus();
@@ -52,26 +52,26 @@ public class User extends BaseEntity {
         if (!canAfford(amount)) {
             throw new InsufficientBalanceException("Insufficient balance for deduction");
         }
-        this.account = this.account.subtract(amount);
+        this.account = this.account.deduct(amount);
         this.markAsUpdated();
     }
     
     /**
-     * 检查是否有足够余额
+     * Check if has enough balance
      */
     public boolean canAfford(Money amount) {
         return this.account.getBalance().isGreaterThanOrEqual(amount);
     }
     
     /**
-     * 获取账户余额
+     * Get account balance
      */
     public Money getBalance() {
         return this.account.getBalance();
     }
     
     /**
-     * 激活用户
+     * Activate user
      */
     public void activate() {
         this.status = UserStatus.ACTIVE;
@@ -79,7 +79,7 @@ public class User extends BaseEntity {
     }
     
     /**
-     * 停用用户
+     * Deactivate user
      */
     public void deactivate() {
         this.status = UserStatus.INACTIVE;

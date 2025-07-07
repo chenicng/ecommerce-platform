@@ -4,8 +4,8 @@ import com.ecommerce.domain.Money;
 import java.util.Objects;
 
 /**
- * 订单项值对象
- * 表示订单中的单个商品项
+ * Order Item Value Object
+ * Represents a single product item in the order
  */
 public final class OrderItem {
     

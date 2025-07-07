@@ -1,7 +1,7 @@
 package com.ecommerce.domain.merchant;
 
 /**
- * 资金不足异常
+ * Insufficient Funds Exception
  */
 public class InsufficientFundsException extends RuntimeException {
     

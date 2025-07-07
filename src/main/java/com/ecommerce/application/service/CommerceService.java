@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 商务服务
- * 处理用户购买商品的完整业务流程
+ * Commerce Service
+ * Handles the complete business process of user purchasing products
  */
 @Service
 @Transactional
@@ -34,60 +34,60 @@ public class CommerceService {
     }
     
     /**
-     * 处理购买请求
-     * 完整的业务流程：验证 -> 扣库存 -> 扣钱 -> 加钱 -> 创建订单
+     * Process purchase request
+     * Complete business flow: validate -> deduct inventory -> deduct money -> add money -> create order
      */
     public PurchaseResponse processPurchase(PurchaseRequest request) {
-        // 1. 获取并验证相关实体
+        // 1. Get and validate related entities
         User user = userService.getUserById(request.getUserId());
         Product product = productService.getProductBySku(request.getSku());
         Merchant merchant = merchantService.getMerchantById(product.getMerchantId());
         
-        // 2. 业务验证
+        // 2. Business validation
         validatePurchaseRequest(user, product, merchant, request.getQuantity());
         
-        // 3. 计算总价
+        // 3. Calculate total price
         Money totalPrice = product.calculateTotalPrice(request.getQuantity());
         
-        // 4. 检查用户余额
+        // 4. Check user balance
         if (!user.canAfford(totalPrice)) {
             throw new RuntimeException("Insufficient balance. Required: " + totalPrice + 
                                      ", Available: " + user.getBalance());
         }
         
-        // 5. 检查商品库存
+        // 5. Check product inventory
         if (!product.hasEnoughStock(request.getQuantity())) {
             throw new RuntimeException("Insufficient stock. Required: " + request.getQuantity() + 
                                      ", Available: " + product.getAvailableStock());
         }
         
         try {
-            // 6. 创建订单
+            // 6. Create order
             String orderNumber = generateOrderNumber();
             Order order = new Order(orderNumber, user.getId(), merchant.getId());
             order.addOrderItem(product.getSku(), product.getName(), product.getPrice(), request.getQuantity());
             order.confirm();
             
-            // 7. 扣减库存
+            // 7. Reduce inventory
             product.reduceStock(request.getQuantity());
             
-            // 8. 扣减用户账户
+            // 8. Deduct user account
             user.deduct(totalPrice);
             
-            // 9. 增加商家收入
+            // 9. Add merchant income
             merchant.receiveIncome(totalPrice);
             
-            // 10. 处理支付并完成订单
+            // 10. Process payment and complete order
             order.processPayment();
             order.complete();
             
-            // 11. 保存所有更改
+            // 11. Save all changes
             userService.saveUser(user);
             productService.saveProduct(product);
             merchantService.saveMerchant(merchant);
             orderService.saveOrder(order);
             
-            // 12. 返回结果
+            // 12. Return result
             return new PurchaseResponse(
                 order.getOrderNumber(),
                 user.getId(),
@@ -101,7 +101,7 @@ public class CommerceService {
             );
             
         } catch (Exception e) {
-            // 如果出现异常，事务会自动回滚
+            // If an exception occurs, the transaction will automatically rollback
             throw new RuntimeException("Purchase failed: " + e.getMessage(), e);
         }
     }

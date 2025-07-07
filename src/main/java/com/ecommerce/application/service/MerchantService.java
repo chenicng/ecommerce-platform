@@ -9,23 +9,23 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 商家服务
- * 管理商家相关的业务操作
+ * Merchant Service
+ * Manages merchant-related business operations
  */
 @Service
 @Transactional
 public class MerchantService {
     
-    // 简单的内存存储，生产环境应该使用数据库
+    // Simple in-memory storage, production should use database
     private final Map<Long, Merchant> merchantStorage = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
     
     /**
-     * 创建商家
+     * Create merchant
      */
-    public Merchant createMerchant(String merchantName, String businessLicense, 
-                                 String contactEmail, String contactPhone, String currency) {
-        Merchant merchant = new Merchant(merchantName, businessLicense, contactEmail, contactPhone, currency);
+    public Merchant createMerchant(String merchantName, String businessLicense,
+                                 String contactEmail, String contactPhone) {
+        Merchant merchant = new Merchant(merchantName, businessLicense, contactEmail, contactPhone);
         Long id = idGenerator.getAndIncrement();
         merchant.setId(id);
         merchantStorage.put(id, merchant);
@@ -33,7 +33,7 @@ public class MerchantService {
     }
     
     /**
-     * 根据ID获取商家
+     * Get merchant by ID
      */
     @Transactional(readOnly = true)
     public Merchant getMerchantById(Long merchantId) {
@@ -45,30 +45,32 @@ public class MerchantService {
     }
     
     /**
-     * 保存商家
+     * Save merchant
      */
     public void saveMerchant(Merchant merchant) {
         merchantStorage.put(merchant.getId(), merchant);
     }
     
     /**
-     * 获取商家余额
+     * Get merchant balance
      */
     @Transactional(readOnly = true)
     public Money getMerchantBalance(Long merchantId) {
-        return getMerchantById(merchantId).getBalance();
+        Merchant merchant = getMerchantById(merchantId);
+        return merchant.getBalance();
     }
     
     /**
-     * 获取商家总收入
+     * Get merchant total income
      */
     @Transactional(readOnly = true)
     public Money getMerchantTotalIncome(Long merchantId) {
-        return getMerchantById(merchantId).getTotalIncome();
+        Merchant merchant = getMerchantById(merchantId);
+        return merchant.getTotalIncome();
     }
     
     /**
-     * 检查商家是否存在
+     * Check if merchant exists
      */
     @Transactional(readOnly = true)
     public boolean merchantExists(Long merchantId) {

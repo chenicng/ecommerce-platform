@@ -4,8 +4,8 @@ import com.ecommerce.domain.Money;
 import java.util.Objects;
 
 /**
- * 用户账户值对象
- * 包含用户的预存余额信息
+ * User Account Value Object
+ * Contains user prepaid balance information
  */
 public final class UserAccount {
     
@@ -19,9 +19,9 @@ public final class UserAccount {
     }
     
     /**
-     * 增加余额
+     * Add balance
      */
-    public UserAccount add(Money amount) {
+    public UserAccount addBalance(Money amount) {
         if (amount == null || amount.isZero()) {
             throw new IllegalArgumentException("Amount must be positive");
         }
@@ -29,9 +29,9 @@ public final class UserAccount {
     }
     
     /**
-     * 减少余额
+     * Deduct balance
      */
-    public UserAccount subtract(Money amount) {
+    public UserAccount deduct(Money amount) {
         if (amount == null || amount.isZero()) {
             throw new IllegalArgumentException("Amount must be positive");
         }
@@ -39,7 +39,7 @@ public final class UserAccount {
     }
     
     /**
-     * 检查是否有足够余额
+     * Check if has enough balance
      */
     public boolean hasEnoughBalance(Money amount) {
         return this.balance.isGreaterThanOrEqual(amount);

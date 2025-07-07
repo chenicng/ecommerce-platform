@@ -3,7 +3,7 @@ package com.ecommerce.application.dto;
 import com.ecommerce.domain.Money;
 
 /**
- * 购买响应DTO
+ * Purchase Response DTO
  */
 public class PurchaseResponse {
     
@@ -17,7 +17,7 @@ public class PurchaseResponse {
     private String status;
     private String message;
     
-    // 构造函数
+    // Constructor
     public PurchaseResponse() {}
     
     public PurchaseResponse(String orderNumber, Long userId, Long merchantId, String sku, 

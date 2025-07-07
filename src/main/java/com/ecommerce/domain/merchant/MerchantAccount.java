@@ -4,8 +4,8 @@ import com.ecommerce.domain.Money;
 import java.util.Objects;
 
 /**
- * 商家账户值对象
- * 包含商家的收入和余额信息
+ * Merchant Account Value Object
+ * Contains merchant income and balance information
  */
 public final class MerchantAccount {
     
@@ -28,7 +28,7 @@ public final class MerchantAccount {
     }
     
     /**
-     * 增加收入
+     * Add income
      */
     public MerchantAccount addIncome(Money amount) {
         if (amount == null || amount.isZero()) {
@@ -41,7 +41,7 @@ public final class MerchantAccount {
     }
     
     /**
-     * 提取金额
+     * Withdraw amount
      */
     public MerchantAccount withdraw(Money amount) {
         if (amount == null || amount.isZero()) {
@@ -54,7 +54,7 @@ public final class MerchantAccount {
     }
     
     /**
-     * 检查是否有足够余额
+     * Check if has enough balance
      */
     public boolean hasEnoughBalance(Money amount) {
         return this.balance.isGreaterThanOrEqual(amount);
