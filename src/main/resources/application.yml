@@ -1,13 +1,13 @@
-# Trading System API 配置文件
+# E-commerce Platform API 配置文件
 
 # Spring Boot 应用配置
 spring:
   application:
-    name: trading-system
+    name: ecommerce-platform
   
   # 数据源配置 - H2内存数据库
   datasource:
-    url: jdbc:h2:mem:trading_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:ecommerce_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driverClassName: org.h2.Driver
     username: sa
     password: password
@@ -67,15 +67,15 @@ management:
 # 应用信息配置
 info:
   app:
-    name: Trading System API
-    description: Trading System API Service with Spring Boot and DDD
+    name: E-commerce Platform API
+    description: E-commerce Platform API Service with Spring Boot and DDD
     version: 1.0.0
     encoding: UTF-8
     java:
       version: 21
 
 # 业务配置
-trading:
+ecommerce:
   # 结算配置
   settlement:
     cron: "0 0 2 * * ?"  # 每天凌晨2点执行结算

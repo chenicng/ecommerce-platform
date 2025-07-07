@@ -29,7 +29,7 @@ public class SettlementScheduler {
      * 每天凌晨2点执行结算
      * cron表达式: 0 0 2 * * ? (秒 分 时 日 月 周)
      */
-    @Scheduled(cron = "${trading.settlement.cron:0 0 2 * * ?}")
+    @Scheduled(cron = "${ecommerce.settlement.cron:0 0 2 * * ?}")
     public void performDailySettlement() {
         logger.info("开始执行每日结算任务...");
         

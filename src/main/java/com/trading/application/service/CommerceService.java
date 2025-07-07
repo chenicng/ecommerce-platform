@@ -13,20 +13,20 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 交易服务
+ * 商务服务
  * 处理用户购买商品的完整业务流程
  */
 @Service
 @Transactional
-public class TradingService {
+public class CommerceService {
     
     private final UserService userService;
     private final MerchantService merchantService;
     private final ProductService productService;
     private final OrderService orderService;
     
-    public TradingService(UserService userService, MerchantService merchantService,
-                         ProductService productService, OrderService orderService) {
+    public CommerceService(UserService userService, MerchantService merchantService,
+                          ProductService productService, OrderService orderService) {
         this.userService = userService;
         this.merchantService = merchantService;
         this.productService = productService;

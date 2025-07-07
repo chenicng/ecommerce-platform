@@ -1,6 +1,6 @@
 package com.trading.api.controller;
 
-import com.trading.application.service.TradingService;
+import com.trading.application.service.CommerceService;
 import com.trading.application.dto.PurchaseRequest;
 import com.trading.application.dto.PurchaseResponse;
 import org.springframework.http.ResponseEntity;
@@ -9,24 +9,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 交易控制器
+ * 商务控制器
  * 处理商品购买相关的REST API
  */
 @RestController
-@RequestMapping("/api/trading")
-public class TradingController {
+@RequestMapping("/api/commerce")
+public class CommerceController {
     
-    private static final Logger logger = LoggerFactory.getLogger(TradingController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommerceController.class);
     
-    private final TradingService tradingService;
+    private final CommerceService commerceService;
     
-    public TradingController(TradingService tradingService) {
-        this.tradingService = tradingService;
+    public CommerceController(CommerceService commerceService) {
+        this.commerceService = commerceService;
     }
     
     /**
      * 购买商品
-     * POST /api/trading/purchase
+     * POST /api/commerce/purchase
      */
     @PostMapping("/purchase")
     public ResponseEntity<PurchaseResponse> purchaseProduct(@RequestBody PurchaseRequest request) {
@@ -37,7 +37,7 @@ public class TradingController {
             validatePurchaseRequest(request);
             
             // 处理购买
-            PurchaseResponse response = tradingService.processPurchase(request);
+            PurchaseResponse response = commerceService.processPurchase(request);
             
             logger.info("Purchase completed successfully: {}", response.getOrderNumber());
             return ResponseEntity.ok(response);

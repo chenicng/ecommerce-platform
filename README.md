@@ -1,6 +1,6 @@
-# 商品交易系统 (Trading System)
+# 电商平台系统 (E-commerce Platform)
 
-基于Spring Boot和DDD（领域驱动设计）的完整商品交易系统，支持用户购买商品、商家管理库存、自动结算等功能。
+基于Spring Boot和DDD（领域驱动设计）的完整电商平台系统，支持用户购买商品、商家管理库存、自动结算等功能。
 
 ## 系统特性
 
@@ -113,7 +113,7 @@ GET /api/merchants/{merchantId}/income
 
 #### 购买商品
 ```bash
-POST /api/trading/purchase
+POST /api/commerce/purchase
 Content-Type: application/json
 
 {
@@ -149,7 +149,7 @@ curl -X POST http://localhost:8080/api/users/1/recharge \
   -d '{"amount":10000.00,"currency":"CNY"}'
 
 # 5. 购买商品
-curl -X POST http://localhost:8080/api/trading/purchase \
+curl -X POST http://localhost:8080/api/commerce/purchase \
   -H "Content-Type: application/json" \
   -d '{"userId":1,"sku":"IPHONE15","quantity":1}'
 

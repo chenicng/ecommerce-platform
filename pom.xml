@@ -5,10 +5,10 @@
     
     <!-- 项目坐标信息 -->
     <groupId>com.trading</groupId>
-    <artifactId>trading-system</artifactId>
+    <artifactId>ecommerce-platform</artifactId>
     <version>1.0.0</version>
-    <name>trading-system</name>
-    <description>Trading System API Service with Spring Boot and DDD</description>
+    <name>ecommerce-platform</name>
+    <description>E-commerce Platform API Service with Spring Boot and DDD</description>
     
     <!-- Spring Boot 父依赖 -->
     <parent>
