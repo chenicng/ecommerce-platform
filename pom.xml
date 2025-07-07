@@ -7,7 +7,7 @@
     <groupId>com.ecommerce</groupId>
     <artifactId>ecommerce-platform</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <n>ecommerce-platform</n>
+    <name>ecommerce-platform</name>
     <description>E-commerce Platform API Service with Spring Boot and DDD - Demo Project</description>
     <url>https://github.com/chenlicong0821/ecommerce-platform</url>
     

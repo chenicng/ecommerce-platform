@@ -113,7 +113,7 @@ GET /api/merchants/{merchantId}/income
 
 #### Purchase Product
 ```bash
-POST /api/commerce/purchase
+POST /api/ecommerce/purchase
 Content-Type: application/json
 
 {
@@ -149,7 +149,7 @@ curl -X POST http://localhost:8080/api/users/1/recharge \
   -d '{"amount":10000.00,"currency":"CNY"}'
 
 # 5. Purchase product
-curl -X POST http://localhost:8080/api/commerce/purchase \
+curl -X POST http://localhost:8080/api/ecommerce/purchase \
   -H "Content-Type: application/json" \
   -d '{"userId":1,"sku":"IPHONE15","quantity":1}'
 

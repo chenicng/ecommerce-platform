@@ -13,19 +13,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Commerce Service
+ * Ecommerce Service
  * Handles the complete business process of user purchasing products
  */
 @Service
 @Transactional
-public class CommerceService {
+public class EcommerceService {
     
     private final UserService userService;
     private final MerchantService merchantService;
     private final ProductService productService;
     private final OrderService orderService;
     
-    public CommerceService(UserService userService, MerchantService merchantService,
+    public EcommerceService(UserService userService, MerchantService merchantService,
                           ProductService productService, OrderService orderService) {
         this.userService = userService;
         this.merchantService = merchantService;

@@ -1,6 +1,6 @@
 package com.ecommerce.api.controller;
 
-import com.ecommerce.application.service.CommerceService;
+import com.ecommerce.application.service.EcommerceService;
 import com.ecommerce.application.dto.PurchaseRequest;
 import com.ecommerce.application.dto.PurchaseResponse;
 import org.springframework.http.ResponseEntity;
@@ -9,24 +9,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Commerce Controller
+ * Ecommerce Controller
  * Handles REST API related to product purchasing
  */
 @RestController
-@RequestMapping("/api/commerce")
-public class CommerceController {
+@RequestMapping("/api/ecommerce")
+public class EcommerceController {
     
-    private static final Logger logger = LoggerFactory.getLogger(CommerceController.class);
+    private static final Logger logger = LoggerFactory.getLogger(EcommerceController.class);
     
-    private final CommerceService commerceService;
+    private final EcommerceService ecommerceService;
     
-    public CommerceController(CommerceService commerceService) {
-        this.commerceService = commerceService;
+    public EcommerceController(EcommerceService ecommerceService) {
+        this.ecommerceService = ecommerceService;
     }
     
     /**
      * Purchase Product
-     * POST /api/commerce/purchase
+     * POST /api/ecommerce/purchase
      */
     @PostMapping("/purchase")
     public ResponseEntity<PurchaseResponse> purchaseProduct(@RequestBody PurchaseRequest request) {
@@ -37,7 +37,7 @@ public class CommerceController {
             validatePurchaseRequest(request);
             
             // Process purchase
-            PurchaseResponse response = commerceService.processPurchase(request);
+            PurchaseResponse response = ecommerceService.processPurchase(request);
             
             logger.info("Purchase completed successfully: {}", response.getOrderNumber());
             return ResponseEntity.ok(response);
