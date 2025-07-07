@@ -6,9 +6,10 @@
     <!-- 项目坐标信息 -->
     <groupId>com.ecommerce</groupId>
     <artifactId>ecommerce-platform</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>ecommerce-platform</name>
-    <description>E-commerce Platform API Service with Spring Boot and DDD</description>
+    <description>E-commerce Platform API Service with Spring Boot and DDD - Demo Project</description>
+    <url>https://github.com/chenlicong/ecommerce-platform</url>
     
     <!-- Spring Boot 父依赖 -->
     <parent>
@@ -22,6 +23,22 @@
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        
+        <!-- 项目版本标识 -->
+        <project.version.major>1</project.version.major>
+        <project.version.minor>0</project.version.minor>
+        <project.version.patch>0</project.version.patch>
+        <project.version.qualifier>SNAPSHOT</project.version.qualifier>
+        
+        <!-- 技术栈版本信息 -->
+        <spring.boot.version>3.2.0</spring.boot.version>
+        <java.target.version>21</java.target.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        
+        <!-- 构建时间戳 -->
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+        <project.build.timestamp>${maven.build.timestamp}</project.build.timestamp>
     </properties>
     
     <dependencies>
