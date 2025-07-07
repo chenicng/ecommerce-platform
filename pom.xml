@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     
     <!-- 项目坐标信息 -->
-    <groupId>com.calculator</groupId>
-    <artifactId>calculator-api</artifactId>
+    <groupId>com.trading</groupId>
+    <artifactId>trading-system</artifactId>
     <version>1.0.0</version>
-    <name>calculator-api</name>
-    <description>Calculator API Service with Spring Boot</description>
+    <name>trading-system</name>
+    <description>Trading System API Service with Spring Boot and DDD</description>
     
     <!-- Spring Boot 父依赖 -->
     <parent>
@@ -31,6 +31,19 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         
+        <!-- Spring Boot JPA 依赖，用于数据持久化 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        
+        <!-- H2 数据库，用于本地开发和测试 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        
         <!-- Spring Boot Validation 依赖，用于参数验证 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -43,10 +56,29 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         
+        <!-- Spring Boot Scheduler 依赖，用于定时任务 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+        </dependency>
+        
+        <!-- Spring Boot Transaction 依赖，用于事务管理 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        
         <!-- Spring Boot Test 依赖，用于单元测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- TestContainers for integration testing -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

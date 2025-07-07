@@ -1,394 +1,247 @@
-# Calculator API Service
+# 商品交易系统 (Trading System)
 
-## Project Overview
-Calculator API is a RESTful web service built with Spring Boot that provides basic arithmetic operations (addition, subtraction, multiplication, and division) with high precision. The calculator maintains up to 10 decimal places of precision in all calculations, making it suitable for financial and scientific applications requiring accurate results.
+基于Spring Boot和DDD（领域驱动设计）的完整商品交易系统，支持用户购买商品、商家管理库存、自动结算等功能。
 
-## Features
-- Four basic arithmetic operations:
-  - Addition
-  - Subtraction
-  - Multiplication
-  - Division
-- High-precision calculations with up to 10 decimal places
-- RESTful API interface
-- Robust error handling for invalid inputs and division by zero
-- Input validation with detailed error messages
-- Complete API documentation
-- Comprehensive test coverage
-- Health check endpoints for monitoring
-- Request ID tracking for better debugging
-- Unified response format for consistency
-- Spring Boot Actuator integration for monitoring
+## 系统特性
 
-## Technology Stack
-- Java 21
-- Spring Boot 3.2.0
-- Maven 3.x
-- Spring MVC for REST API
-- Spring Boot Actuator for monitoring
-- JUnit 5 for testing
-- JaCoCo for test coverage reporting
-- BigDecimal for high-precision arithmetic
-- Spring Boot Validation for input validation
-- SLF4J + Logback for logging with request tracking
+### 核心功能
+- **用户管理**: 用户注册、账户充值、余额查询
+- **商家管理**: 商家注册、商品管理、库存管理、收入查询
+- **商品交易**: 完整的购买流程，包括库存扣减、资金转移
+- **自动结算**: 定时任务每天进行商家结算，匹配收入与账户余额
 
-## Project Structure
-```
-calculator-api/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/calculator/api/
-│   │   │       ├── CalculatorApiApplication.java
-│   │   │       ├── controller/
-│   │   │       │   ├── CalculatorController.java
-│   │   │       │   └── HealthController.java
-│   │   │       ├── exception/
-│   │   │       │   ├── CalculatorException.java
-│   │   │       │   └── GlobalExceptionHandler.java
-│   │   │       ├── filter/
-│   │   │       │   └── RequestIdFilter.java
-│   │   │       ├── model/
-│   │   │       │   ├── ApiResponse.java
-│   │   │       │   ├── CalculationRequest.java
-│   │   │       │   ├── CalculationResponse.java
-│   │   │       │   └── ErrorResponse.java
-│   │   │       └── service/
-│   │   │           ├── CalculatorService.java
-│   │   │           └── CalculatorServiceImpl.java
-│   │   └── resources/
-│   │       ├── application.yml
-│   │       └── application.yml.example
-│   └── test/
-│       └── java/
-│           └── com/calculator/api/
-│               ├── controller/
-│               │   └── CalculatorControllerTest.java
-│               └── service/
-│                   └── CalculatorServiceImplTest.java
-├── target/
-│   └── site/jacoco/              # Test coverage reports
-├── pom.xml
-└── README.md
+### 技术架构
+- **领域驱动设计(DDD)**: 清晰的领域划分和聚合根设计
+- **Spring Boot 3.2**: 现代化的Spring框架
+- **内存存储**: 简化的数据存储，便于演示（生产环境应使用数据库）
+- **REST API**: 完整的RESTful接口设计
+- **定时任务**: 基于Spring Scheduler的结算任务
+
+## 快速开始
+
+### 环境要求
+- Java 21+
+- Maven 3.6+
+
+### 启动应用
+```bash
+mvn clean spring-boot:run
 ```
 
-## Building and Running the Application
+应用启动后访问：
+- 应用端口: http://localhost:8080
+- 健康检查: http://localhost:8080/actuator/health
+- H2控制台: http://localhost:8080/h2-console
 
-### Prerequisites
-- Java Development Kit (JDK) 21 or later
-- Maven 3.x
+## API 接口文档
 
-### Building the Project
-Clone the repository and build the project using Maven:
+### 用户管理
+
+#### 创建用户
+```bash
+POST /api/users
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "phone": "13800138000"
+}
+```
+
+#### 用户充值
+```bash
+POST /api/users/{userId}/recharge
+Content-Type: application/json
+
+{
+  "amount": 10000.00,
+  "currency": "CNY"
+}
+```
+
+#### 查询余额
+```bash
+GET /api/users/{userId}/balance
+```
+
+### 商家管理
+
+#### 创建商家
+```bash
+POST /api/merchants
+Content-Type: application/json
+
+{
+  "merchantName": "测试商家",
+  "businessLicense": "12345678",
+  "contactEmail": "merchant@example.com",
+  "contactPhone": "13900139000"
+}
+```
+
+#### 创建商品
+```bash
+POST /api/merchants/{merchantId}/products
+Content-Type: application/json
+
+{
+  "sku": "IPHONE15",
+  "name": "iPhone 15",
+  "description": "最新款iPhone",
+  "price": 6999.00,
+  "initialStock": 100
+}
+```
+
+#### 添加库存
+```bash
+POST /api/merchants/{merchantId}/products/{sku}/add-stock
+Content-Type: application/json
+
+{
+  "quantity": 50
+}
+```
+
+#### 查询收入
+```bash
+GET /api/merchants/{merchantId}/income
+```
+
+### 商品交易
+
+#### 购买商品
+```bash
+POST /api/trading/purchase
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "sku": "IPHONE15",
+  "quantity": 1
+}
+```
+
+## 完整测试流程
+
+以下是一个完整的测试流程示例：
 
 ```bash
-git clone https://github.com/yourusername/calculator-api.git
-cd calculator-api
-mvn clean install
-```
-
-### Running the Application
-After building, you can run the application using:
-
-```bash
-mvn spring-boot:run
-```
-
-Or you can run the generated JAR file:
-
-```bash
-java -jar target/calculator-api-1.0.0.jar
-```
-
-The application will start on port 8080 by default (configurable in `application.yml`).
-
-### Configuration
-
-The application uses YAML configuration. Copy `application.yml.example` to `application.yml` and modify as needed:
-
-```bash
-cp src/main/resources/application.yml.example src/main/resources/application.yml
-```
-
-Key configuration options:
-- `server.port`: Application port (default: 8080)
-- `logging.level.root`: Root logging level (default: INFO)
-- `management.endpoints.web.exposure.include`: Exposed actuator endpoints
-- For production, consider limiting actuator endpoints to only `health`
-
-## API Documentation
-
-### API Versioning and Grouping
-
-The Calculator API uses a versioned approach to ensure backward compatibility and clear API organization:
-
-**Version Control:**
-- All endpoints are prefixed with `/api/v1/` to support future API versions
-- Version 1 (`v1`) is the current stable version
-- Future versions (e.g., `v2`) can be introduced without breaking existing clients
-
-**Functional Groups:**
-- `/api/v1/calculator/` - All calculation operations (add, subtract, multiply, divide)
-- `/api/v1/health` - Health check endpoint
-- `/api/v1/system/` - System information and monitoring endpoints
-
-This design provides:
-- **Clear separation** between different functional areas
-- **Version compatibility** for client applications  
-- **Scalable architecture** for future feature additions
-- **Consistent URL patterns** following REST best practices
-
-### Endpoints
-
-#### Health Check Endpoints
-
-##### Application Health Check
-- **URL**: `/api/v1/health`
-- **Method**: GET
-- **Response**:
-```json
-{
-  "success": true,
-  "message": "Service is healthy",
-  "data": {
-    "status": "UP",
-    "service": "Calculator API",
-    "version": "1.0.0",
-    "timestamp": "2024-01-01T10:00:00"
-  },
-  "timestamp": "2024-01-01T10:00:00"
-}
-```
-
-##### Application Information
-- **URL**: `/api/v1/system/info`
-- **Method**: GET
-- **Response**: Returns detailed service information including Java and OS details
-
-##### Spring Actuator Health
-- **URL**: `/actuator/health`
-- **Method**: GET
-- **Response**: Standard Spring Boot health check
-
-#### Calculator Endpoints
-
-All calculation endpoints accept POST requests with a JSON request body containing two operands.
-
-#### Addition
-- **URL**: `/api/v1/calculator/add`
-- **Method**: POST
-- **Request Body**:
-```json
-{
-  "operand1": <first_number>,
-  "operand2": <second_number>
-}
-```
-- **Response**:
-```json
-{
-  "operation": "addition",
-  "result": <result_with_up_to_10_decimal_places>
-}
-```
-
-#### Subtraction
-- **URL**: `/api/v1/calculator/subtract`
-- **Method**: POST
-- **Request Body**:
-```json
-{
-  "operand1": <first_number>,
-  "operand2": <second_number>
-}
-```
-- **Response**:
-```json
-{
-  "operation": "subtraction",
-  "result": <result_with_up_to_10_decimal_places>
-}
-```
-
-#### Multiplication
-- **URL**: `/api/v1/calculator/multiply`
-- **Method**: POST
-- **Request Body**:
-```json
-{
-  "operand1": <first_number>,
-  "operand2": <second_number>
-}
-```
-- **Response**:
-```json
-{
-  "operation": "multiplication",
-  "result": <result_with_up_to_10_decimal_places>
-}
-```
-
-#### Division
-- **URL**: `/api/v1/calculator/divide`
-- **Method**: POST
-- **Request Body**:
-```json
-{
-  "operand1": <dividend>,
-  "operand2": <divisor>
-}
-```
-- **Response**:
-```json
-{
-  "operation": "division",
-  "result": <result_with_up_to_10_decimal_places>
-}
-```
-
-### API Usage Examples
-
-#### Example 1: Addition
-**Request**:
-```bash
-curl -X POST http://localhost:8080/api/v1/calculator/add \
+# 1. 创建用户
+curl -X POST http://localhost:8080/api/users \
   -H "Content-Type: application/json" \
-  -d '{"operand1": 10.5, "operand2": 5.25}'
-```
+  -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
 
-**Response**:
-```json
-{
-  "operation": "addition",
-  "result": 15.7500000000
-}
-```
-
-#### Example 2: Division
-**Request**:
-```bash
-curl -X POST http://localhost:8080/api/v1/calculator/divide \
+# 2. 创建商家
+curl -X POST http://localhost:8080/api/merchants \
   -H "Content-Type: application/json" \
-  -d '{"operand1": 10, "operand2": 3}'
-```
+  -d '{"merchantName":"测试商家","businessLicense":"12345678","contactEmail":"merchant@example.com","contactPhone":"13900139000"}'
 
-**Response**:
-```json
-{
-  "operation": "division",
-  "result": 3.3333333333
-}
-```
-
-## Request Tracking
-
-Each request is automatically assigned a unique request ID for tracking purposes:
-- Request ID is returned in the `X-Request-ID` response header
-- All log entries include the request ID for easier debugging
-- You can provide your own request ID by including it in the `X-Request-ID` request header
-
-Example with request tracking:
-```bash
-curl -X POST http://localhost:8080/api/v1/calculator/add \
+# 3. 创建商品
+curl -X POST http://localhost:8080/api/merchants/1/products \
   -H "Content-Type: application/json" \
-  -H "X-Request-ID: my-custom-id-123" \
-  -d '{"operand1": 10.5, "operand2": 5.25}'
+  -d '{"sku":"IPHONE15","name":"iPhone 15","description":"最新款iPhone","price":6999.00,"initialStock":100}'
+
+# 4. 用户充值
+curl -X POST http://localhost:8080/api/users/1/recharge \
+  -H "Content-Type: application/json" \
+  -d '{"amount":10000.00,"currency":"CNY"}'
+
+# 5. 购买商品
+curl -X POST http://localhost:8080/api/trading/purchase \
+  -H "Content-Type: application/json" \
+  -d '{"userId":1,"sku":"IPHONE15","quantity":1}'
+
+# 6. 查询用户余额（应该减少6999.00）
+curl http://localhost:8080/api/users/1/balance
+
+# 7. 查询商家收入（应该增加6999.00）
+curl http://localhost:8080/api/merchants/1/income
+
+# 8. 添加库存
+curl -X POST http://localhost:8080/api/merchants/1/products/IPHONE15/add-stock \
+  -H "Content-Type: application/json" \
+  -d '{"quantity":50}'
 ```
 
-## Error Handling
+## 系统设计
 
-The API handles various error conditions with appropriate HTTP status codes and error messages:
+### DDD领域划分
 
-### Common Errors
+1. **User Context（用户上下文）**
+   - User聚合根：管理用户信息和预存账户
+   - UserAccount值对象：封装账户余额操作
+   - UserStatus枚举：用户状态管理
 
-#### 1. Invalid Input
-- **Status Code**: 400 Bad Request
-- **Response Body**:
-```json
-{
-  "timestamp": "2023-10-30T14:25:30.123",
-  "status": 400,
-  "message": "Validation failed",
-  "path": "/api/v1/calculator/add"
-}
-```
+2. **Merchant Context（商家上下文）**
+   - Merchant聚合根：管理商家信息和收入账户
+   - MerchantAccount值对象：封装收入和余额管理
+   - MerchantStatus枚举：商家状态管理
 
-#### 2. Division by Zero
-- **Status Code**: 400 Bad Request
-- **Response Body**:
-```json
-{
-  "timestamp": "2023-10-30T14:25:30.123",
-  "status": 400,
-  "message": "Error performing division: Division by zero is not allowed",
-  "path": "/api/v1/calculator/divide"
-}
-```
+3. **Product Context（商品上下文）**
+   - Product聚合根：管理商品信息、价格和库存
+   - ProductInventory值对象：封装库存操作
+   - ProductStatus枚举：商品状态管理
 
-#### 3. Server Error
-- **Status Code**: 500 Internal Server Error
-- **Response Body**:
-```json
-{
-  "timestamp": "2023-10-30T14:25:30.123",
-  "status": 500,
-  "message": "An unexpected error occurred",
-  "path": "/api/v1/calculator/add"
-}
-```
+4. **Order Context（订单上下文）**
+   - Order聚合根：管理订单流程和状态
+   - OrderItem值对象：订单项明细
+   - OrderStatus枚举：订单状态流转
 
-## Running Tests
+5. **Settlement Context（结算上下文）**
+   - Settlement聚合根：管理结算记录和状态
+   - SettlementStatus枚举：结算状态管理
 
-The project includes comprehensive unit tests for both the service layer and REST controller with excellent test coverage.
+### 核心业务流程
 
-### Running All Tests
-```bash
-mvn clean test
-```
+#### 购买流程
+1. 验证用户、商品、商家状态
+2. 检查库存和余额充足性
+3. 创建订单并确认
+4. 扣减商品库存
+5. 扣减用户账户余额
+6. 增加商家收入
+7. 完成订单并返回结果
 
-### Running Specific Test Classes
-```bash
-mvn test -Dtest=CalculatorServiceImplTest
-mvn test -Dtest=CalculatorControllerTest
-```
+#### 结算流程
+1. 定时任务每天凌晨2点触发
+2. 计算商家预期收入（基于订单记录）
+3. 获取商家实际余额
+4. 对比并记录差异
+5. 生成结算报告
 
-### Test Coverage Report
-The project uses JaCoCo for test coverage analysis. To generate and view the coverage report:
+## 配置说明
 
-```bash
-mvn clean test jacoco:report
-```
+应用配置文件 `application.yml` 包含以下重要配置：
 
-After running the above command, you can view the detailed coverage report by opening:
-- **HTML Report**: `target/site/jacoco/index.html` (open in browser)
-- **CSV Report**: `target/site/jacoco/jacoco.csv`
-- **XML Report**: `target/site/jacoco/jacoco.xml`
+- **数据库配置**: H2内存数据库
+- **结算配置**: 定时任务cron表达式
+- **货币配置**: 默认货币和精度设置
+- **日志配置**: SQL日志和应用日志级别
 
-### Current Test Coverage Statistics
-- **Total Tests**: 31 (all passing)
-- **Instruction Coverage**: 63%
-- **Branch Coverage**: 16%
-- **Line Coverage**: 70%
-- **Method Coverage**: 77%
-- **Class Coverage**: 100%
+## 生产环境考虑
 
-### Test Coverage by Package
-| Package | Instruction Coverage | Line Coverage |
-|---------|---------------------|---------------|
-| `com.calculator.api.service` | 92% | 89% |
-| `com.calculator.api.controller` | 79% | 84% |
-| `com.calculator.api.model` | 53% | 66% |
-| `com.calculator.api.exception` | 44% | 64% |
-| `com.calculator.api` | 38% | 33% |
+当前系统为演示版本，生产环境部署需要考虑：
 
-### Test Coverage
-The comprehensive test suite covers:
-- **Basic arithmetic operations** with various inputs
-- **Decimal precision handling** (up to 10 decimal places)
-- **Edge cases**: large numbers, small numbers, negative numbers, zero values
-- **Division by zero handling** and error responses
-- **Input validation** for null and invalid values
-- **API response format** and HTTP status codes
-- **Exception handling** and error messages
-- **Service layer** business logic (21 tests)
-- **Controller layer** REST API endpoints (10 tests)
+1. **数据持久化**: 使用MySQL/PostgreSQL等关系型数据库
+2. **事务管理**: 确保数据一致性和并发安全
+3. **缓存**: 使用Redis等缓存热点数据
+4. **监控**: 集成监控和告警系统
+5. **安全**: 添加认证授权机制
+6. **性能**: 数据库索引优化和查询优化
+7. **扩展性**: 考虑微服务拆分和分布式部署
+
+## 扩展性
+
+系统采用DDD设计，具有良好的扩展性：
+
+- **新增支付方式**: 扩展支付领域
+- **多货币支持**: 扩展Money值对象
+- **促销活动**: 新增促销上下文
+- **库存预警**: 扩展库存管理功能
+- **数据报表**: 新增分析和报表功能
+
+## 许可证
+
+MIT License
