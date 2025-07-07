@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <!-- 项目坐标信息 -->
-    <groupId>com.trading</groupId>
+    <groupId>com.ecommerce</groupId>
     <artifactId>ecommerce-platform</artifactId>
     <version>1.0.0</version>
     <name>ecommerce-platform</name>
