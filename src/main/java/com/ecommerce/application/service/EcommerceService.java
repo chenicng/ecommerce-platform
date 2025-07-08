@@ -172,11 +172,9 @@ public class EcommerceService {
         User user = userService.getUserById(order.getUserId());
         Merchant merchant = merchantService.getMerchantById(order.getMerchantId());
         
-        // 2. Refund money to user
         Money refundAmount = order.getTotalAmount();
-        user.recharge(refundAmount);
         
-        // 3. Deduct money from merchant (reverse the income)
+        // 2. First deduct money from merchant (reverse the income)
         if (merchant.canWithdraw(refundAmount)) {
             merchant.withdrawIncome(refundAmount);
         } else {
@@ -184,6 +182,9 @@ public class EcommerceService {
             // e.g., create a debt record for the merchant
             throw new RuntimeException("Merchant has insufficient funds for refund");
         }
+        
+        // 3. Then refund money to user (only after merchant deduction succeeds)
+        user.recharge(refundAmount);
         
         // 4. Save changes
         userService.saveUser(user);

@@ -2,11 +2,9 @@ package com.ecommerce.application.service;
 
 import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.domain.Money;
+import com.ecommerce.infrastructure.repository.MerchantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Merchant Service
@@ -16,9 +14,11 @@ import java.util.concurrent.atomic.AtomicLong;
 @Transactional
 public class MerchantService {
     
-    // Simple in-memory storage, production should use database
-    private final Map<Long, Merchant> merchantStorage = new HashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final MerchantRepository merchantRepository;
+    
+    public MerchantService(MerchantRepository merchantRepository) {
+        this.merchantRepository = merchantRepository;
+    }
     
     /**
      * Create merchant
@@ -26,10 +26,7 @@ public class MerchantService {
     public Merchant createMerchant(String merchantName, String businessLicense,
                                  String contactEmail, String contactPhone) {
         Merchant merchant = new Merchant(merchantName, businessLicense, contactEmail, contactPhone);
-        Long id = idGenerator.getAndIncrement();
-        merchant.setId(id);
-        merchantStorage.put(id, merchant);
-        return merchant;
+        return merchantRepository.save(merchant);
     }
     
     /**
@@ -37,18 +34,15 @@ public class MerchantService {
      */
     @Transactional(readOnly = true)
     public Merchant getMerchantById(Long merchantId) {
-        Merchant merchant = merchantStorage.get(merchantId);
-        if (merchant == null) {
-            throw new RuntimeException("Merchant not found with id: " + merchantId);
-        }
-        return merchant;
+        return merchantRepository.findById(merchantId)
+                .orElseThrow(() -> new RuntimeException("Merchant not found with id: " + merchantId));
     }
     
     /**
      * Save merchant
      */
     public void saveMerchant(Merchant merchant) {
-        merchantStorage.put(merchant.getId(), merchant);
+        merchantRepository.save(merchant);
     }
     
     /**
@@ -74,6 +68,6 @@ public class MerchantService {
      */
     @Transactional(readOnly = true)
     public boolean merchantExists(Long merchantId) {
-        return merchantStorage.containsKey(merchantId);
+        return merchantRepository.existsById(merchantId);
     }
 } 

@@ -2,11 +2,10 @@ package com.ecommerce.application.service;
 
 import com.ecommerce.domain.user.User;
 import com.ecommerce.domain.Money;
+import com.ecommerce.infrastructure.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Set;
 
 /**
  * User Service
@@ -16,19 +15,18 @@ import java.util.concurrent.atomic.AtomicLong;
 @Transactional
 public class UserService {
     
-    // Simple in-memory storage, production should use database
-    private final Map<Long, User> userStorage = new HashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final UserRepository userRepository;
+    
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
     
     /**
      * Create user
      */
     public User createUser(String username, String email, String phone, String currency) {
         User user = new User(username, email, phone, currency);
-        Long id = idGenerator.getAndIncrement();
-        user.setId(id);
-        userStorage.put(id, user);
-        return user;
+        return userRepository.save(user);
     }
     
     /**
@@ -36,11 +34,8 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public User getUserById(Long userId) {
-        User user = userStorage.get(userId);
-        if (user == null) {
-            throw new RuntimeException("User not found with id: " + userId);
-        }
-        return user;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
     }
     
     /**
@@ -49,14 +44,14 @@ public class UserService {
     public void rechargeUser(Long userId, Money amount) {
         User user = getUserById(userId);
         user.recharge(amount);
-        saveUser(user);
+        userRepository.save(user);
     }
     
     /**
      * Save user
      */
     public void saveUser(User user) {
-        userStorage.put(user.getId(), user);
+        userRepository.save(user);
     }
     
     /**
@@ -73,15 +68,15 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public boolean userExists(Long userId) {
-        return userStorage.containsKey(userId);
+        return userRepository.existsById(userId);
     }
 
     /**
      * Get all existing user IDs (for debugging)
      */
     @Transactional(readOnly = true)
-    public java.util.Set<Long> getAllUserIds() {
-        return new java.util.HashSet<>(userStorage.keySet());
+    public Set<Long> getAllUserIds() {
+        return userRepository.getAllUserIds();
     }
 
     /**
@@ -89,6 +84,6 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public int getUserCount() {
-        return userStorage.size();
+        return userRepository.count();
     }
 } 

@@ -3,13 +3,11 @@ package com.ecommerce.application.service;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
+import com.ecommerce.infrastructure.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Product Service
@@ -19,26 +17,23 @@ import java.util.concurrent.atomic.AtomicLong;
 @Transactional
 public class ProductService {
     
-    // Simple in-memory storage, production should use database
-    private final Map<Long, Product> productStorage = new HashMap<>();
-    private final Map<String, Product> skuIndex = new HashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final ProductRepository productRepository;
+    
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
     
     /**
      * Create product
      */
     public Product createProduct(String sku, String name, String description, 
                                Money price, Long merchantId, int initialInventory) {
-        if (skuIndex.containsKey(sku)) {
+        if (productRepository.existsBySku(sku)) {
             throw new RuntimeException("Product with SKU " + sku + " already exists");
         }
         
         Product product = new Product(sku, name, description, price, merchantId, initialInventory);
-        Long id = idGenerator.getAndIncrement();
-        product.setId(id);
-        productStorage.put(id, product);
-        skuIndex.put(sku, product);
-        return product;
+        return productRepository.save(product);
     }
     
     /**
@@ -46,11 +41,8 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public Product getProductBySku(String sku) {
-        Product product = skuIndex.get(sku);
-        if (product == null) {
-            throw new RuntimeException("Product not found with SKU: " + sku);
-        }
-        return product;
+        return productRepository.findBySku(sku)
+                .orElseThrow(() -> new RuntimeException("Product not found with SKU: " + sku));
     }
     
     /**
@@ -58,53 +50,31 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public Product getProductById(Long productId) {
-        Product product = productStorage.get(productId);
-        if (product == null) {
-            throw new RuntimeException("Product not found with id: " + productId);
-        }
-        return product;
-    }
-    
-    /**
-     * Add product inventory
-     */
-    public void addProductInventory(String sku, int quantity) {
-        Product product = getProductBySku(sku);
-        product.addInventory(quantity);
-        saveProduct(product);
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
     }
     
     /**
      * Save product
      */
     public void saveProduct(Product product) {
-        productStorage.put(product.getId(), product);
-        skuIndex.put(product.getSku(), product);
+        productRepository.save(product);
     }
     
     /**
-     * Check if product exists
+     * Add product inventory
      */
-    @Transactional(readOnly = true)
-    public boolean productExists(String sku) {
-        return skuIndex.containsKey(sku);
+    public void addInventory(String sku, int quantity) {
+        Product product = getProductBySku(sku);
+        product.addInventory(quantity);
+        productRepository.save(product);
     }
     
     /**
-     * Get product inventory
+     * Add product inventory (alias for backward compatibility)
      */
-    @Transactional(readOnly = true)
-    public int getProductInventory(String sku) {
-        return getProductBySku(sku).getAvailableInventory();
-    }
-    
-    /**
-     * Get all products
-     */
-    @Transactional(readOnly = true)
-    public List<Product> getAllProducts() {
-        return productStorage.values().stream()
-                .collect(Collectors.toList());
+    public void addProductInventory(String sku, int quantity) {
+        addInventory(sku, quantity);
     }
     
     /**
@@ -112,19 +82,15 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public List<Product> getProductsByMerchant(Long merchantId) {
-        return productStorage.values().stream()
-                .filter(product -> product.getMerchantId().equals(merchantId))
-                .collect(Collectors.toList());
+        return productRepository.findByMerchantId(merchantId);
     }
     
     /**
-     * Get active products
+     * Get all products
      */
     @Transactional(readOnly = true)
-    public List<Product> getActiveProducts() {
-        return productStorage.values().stream()
-                .filter(Product::isActive)
-                .collect(Collectors.toList());
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
     }
     
     /**
@@ -132,19 +98,8 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public List<Product> getAvailableProducts() {
-        return productStorage.values().stream()
+        return productRepository.findAll().stream()
                 .filter(Product::isAvailable)
-                .collect(Collectors.toList());
-    }
-    
-    /**
-     * Get products by merchant and status
-     */
-    @Transactional(readOnly = true)
-    public List<Product> getProductsByMerchantAndStatus(Long merchantId, ProductStatus status) {
-        return productStorage.values().stream()
-                .filter(product -> product.getMerchantId().equals(merchantId))
-                .filter(product -> product.getStatus().equals(status))
                 .collect(Collectors.toList());
     }
     
@@ -158,9 +113,17 @@ public class ProductService {
         }
         
         String lowerSearchTerm = searchTerm.toLowerCase();
-        return productStorage.values().stream()
+        return productRepository.findAll().stream()
                 .filter(product -> product.getName().toLowerCase().contains(lowerSearchTerm) ||
                                  product.getDescription().toLowerCase().contains(lowerSearchTerm))
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Check if product exists by SKU
+     */
+    @Transactional(readOnly = true)
+    public boolean productExists(String sku) {
+        return productRepository.existsBySku(sku);
     }
 } 

@@ -5,31 +5,9 @@ spring:
   application:
     name: ecommerce-platform
   
-  # Data Source Configuration - H2 In-Memory Database
-  datasource:
-    url: jdbc:h2:mem:ecommerce_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
-    username: sa
-    password: password
-    
-  # H2 Console Configuration (Development Environment)
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: false
-  
-  # JPA Configuration
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: create-drop  # Auto-create table structure in development environment
-    show-sql: true  # Display SQL statements
-    properties:
-      hibernate:
-        format_sql: true  # Format SQL statements
-        use_sql_comments: true  # Display SQL comments
+  # Active Profile Configuration
+  profiles:
+    active: mock  # Default to mock mode for demo purposes
   
   # JSON Serialization Configuration
   jackson:
@@ -48,8 +26,6 @@ logging:
   level:
     root: INFO  # Root log level
     com.ecommerce: INFO  # Application log level
-    org.hibernate.SQL: DEBUG  # SQL log level
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Parameter binding log
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{requestId:-}] %logger{36} - %msg%n"
 
@@ -68,7 +44,7 @@ management:
 info:
   app:
     name: E-commerce Platform API
-    description: E-commerce Platform API Service with Spring Boot and DDD
+    description: E-commerce Platform API Service with Spring Boot and DDD - Demo Project
     version: 1.0.0
     encoding: UTF-8
     java:
@@ -90,8 +66,37 @@ ecommerce:
   order:
     timeout-minutes: 30  # Order timeout (minutes)
 
-# Production Environment Configuration Recommendations:
-# 1. Modify server.port to production environment port
-# 2. Set logging.level.root to WARN or ERROR
-# 3. Limit management.endpoints.web.exposure.include to only include health
-# 4. Configure appropriate security policies 
+---
+# Mock Profile Configuration - for demo purposes
+spring:
+  config:
+    activate:
+      on-profile: mock
+      
+# No database configuration needed for mock mode
+# All data is stored in memory with pre-loaded demo data
+
+---
+# MySQL Production Profile Configuration
+spring:
+  config:
+    activate:
+      on-profile: mysql
+      
+  # Data Source Configuration - MySQL Database
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    
+  # JPA Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update  # Auto-update table structure
+    show-sql: false  # Disable SQL logging in production
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false 

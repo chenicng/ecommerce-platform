@@ -1,11 +1,9 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.order.Order;
+import com.ecommerce.infrastructure.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Order Service
@@ -15,21 +13,17 @@ import java.util.concurrent.atomic.AtomicLong;
 @Transactional
 public class OrderService {
     
-    // Simple in-memory storage, production should use database
-    private final Map<Long, Order> orderStorage = new HashMap<>();
-    private final Map<String, Order> orderNumberIndex = new HashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final OrderRepository orderRepository;
+    
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
     
     /**
      * Save order
      */
     public void saveOrder(Order order) {
-        if (order.getId() == null) {
-            Long id = idGenerator.getAndIncrement();
-            order.setId(id);
-        }
-        orderStorage.put(order.getId(), order);
-        orderNumberIndex.put(order.getOrderNumber(), order);
+        orderRepository.save(order);
     }
     
     /**
@@ -37,11 +31,8 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public Order getOrderByNumber(String orderNumber) {
-        Order order = orderNumberIndex.get(orderNumber);
-        if (order == null) {
-            throw new RuntimeException("Order not found with number: " + orderNumber);
-        }
-        return order;
+        return orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new RuntimeException("Order not found with number: " + orderNumber));
     }
     
     /**
@@ -49,11 +40,8 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public Order getOrderById(Long orderId) {
-        Order order = orderStorage.get(orderId);
-        if (order == null) {
-            throw new RuntimeException("Order not found with id: " + orderId);
-        }
-        return order;
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
     }
     
     /**
@@ -61,6 +49,6 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public boolean orderExists(String orderNumber) {
-        return orderNumberIndex.containsKey(orderNumber);
+        return orderRepository.existsByOrderNumber(orderNumber);
     }
 } 
