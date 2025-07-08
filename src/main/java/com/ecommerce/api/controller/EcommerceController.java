@@ -94,8 +94,18 @@ public class EcommerceController {
     }
     
     /**
-     * Get all available products
+     * Get all available products (Public browsing interface)
      * GET /api/ecommerce/products
+     * 
+     * This endpoint is for public product browsing and purchasing.
+     * It only returns AVAILABLE products (active and in stock).
+     * 
+     * Supports:
+     * - Global search: ?search=iPhone
+     * - Merchant filtering: ?merchantId=1  
+     * - Combined search: ?search=iPhone&merchantId=1
+     * 
+     * For merchant product management, use /api/merchants/{merchantId}/products instead.
      */
     @GetMapping("/products")
     public ResponseEntity<ProductListResponse> getAvailableProducts(
@@ -106,20 +116,32 @@ public class EcommerceController {
             
             List<Product> products;
             
-            if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            // Support combined search and merchant filtering
+            if (searchTerm != null && !searchTerm.trim().isEmpty() && merchantId != null) {
+                // Search within specific merchant's products
+                products = productService.getProductsByMerchant(merchantId)
+                    .stream()
+                    .filter(Product::isAvailable)
+                    .filter(product -> product.getName().toLowerCase().contains(searchTerm.toLowerCase()) ||
+                                     product.getDescription().toLowerCase().contains(searchTerm.toLowerCase()))
+                    .collect(Collectors.toList());
+            } else if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+                // Global search across all merchants
                 products = productService.searchProductsByName(searchTerm)
                     .stream()
                     .filter(Product::isAvailable)
                     .collect(Collectors.toList());
             } else if (merchantId != null) {
+                // Get all available products from specific merchant
                 products = productService.getProductsByMerchant(merchantId)
                     .stream()
                     .filter(Product::isAvailable)
                     .collect(Collectors.toList());
             } else {
+                // Get all available products
                 products = productService.getAvailableProducts();
             }
-            
+
             List<ProductSummaryResponse> productSummaries = products.stream()
                 .map(product -> new ProductSummaryResponse(
                     product.getId(),

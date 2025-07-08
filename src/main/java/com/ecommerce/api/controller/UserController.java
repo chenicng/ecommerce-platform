@@ -1,7 +1,6 @@
 package com.ecommerce.api.controller;
 
 import com.ecommerce.application.service.UserService;
-import com.ecommerce.domain.user.User;
 import com.ecommerce.domain.Money;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

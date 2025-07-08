@@ -173,15 +173,26 @@ public class MerchantController {
     }
     
     /**
-     * Get merchant's products
+     * Get merchant's products (Merchant management interface)
      * GET /api/merchants/{merchantId}/products
+     * 
+     * This endpoint is for merchant product management.
+     * It returns ALL products (including inactive/deleted) for management purposes.
+     * 
+     * Supports:
+     * - Status filtering: ?status=ACTIVE
+     * - Search within merchant's products: ?search=iPhone
+     * - Combined filtering: ?search=iPhone&status=ACTIVE
+     * 
+     * For public product browsing, use /api/ecommerce/products?merchantId={merchantId} instead.
      */
     @GetMapping("/{merchantId}/products")
     public ResponseEntity<MerchantProductListResponse> getMerchantProducts(
             @PathVariable Long merchantId,
-            @RequestParam(value = "status", required = false) String status) {
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "search", required = false) String searchTerm) {
         try {
-            logger.info("Getting products for merchant {}, status: {}", merchantId, status);
+            logger.info("Getting products for merchant {}, status: {}, search: {}", merchantId, status, searchTerm);
             
             // Validate merchant exists
             if (!merchantService.merchantExists(merchantId)) {
@@ -190,11 +201,25 @@ public class MerchantController {
             
             List<Product> products;
             
+            // Get base products by merchant
+            products = productService.getProductsByMerchant(merchantId);
+            
+            // Apply status filter if specified
             if (status != null) {
                 ProductStatus productStatus = ProductStatus.valueOf(status.toUpperCase());
-                products = productService.getProductsByMerchantAndStatus(merchantId, productStatus);
-            } else {
-                products = productService.getProductsByMerchant(merchantId);
+                products = products.stream()
+                    .filter(product -> product.getStatus().equals(productStatus))
+                    .collect(Collectors.toList());
+            }
+            
+            // Apply search filter if specified
+            if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+                String lowerSearchTerm = searchTerm.toLowerCase();
+                products = products.stream()
+                    .filter(product -> product.getName().toLowerCase().contains(lowerSearchTerm) ||
+                                     product.getDescription().toLowerCase().contains(lowerSearchTerm) ||
+                                     product.getSku().toLowerCase().contains(lowerSearchTerm))
+                    .collect(Collectors.toList());
             }
             
             List<ProductResponse> productResponses = products.stream()
@@ -215,7 +240,8 @@ public class MerchantController {
                 merchantId,
                 productResponses,
                 productResponses.size(),
-                status
+                status,
+                searchTerm
             );
             
             return ResponseEntity.ok(response);
@@ -417,13 +443,15 @@ public class MerchantController {
         private List<ProductResponse> products;
         private int totalCount;
         private String statusFilter;
+        private String searchTerm;
         
         public MerchantProductListResponse(Long merchantId, List<ProductResponse> products, 
-                                         int totalCount, String statusFilter) {
+                                         int totalCount, String statusFilter, String searchTerm) {
             this.merchantId = merchantId;
             this.products = products;
             this.totalCount = totalCount;
             this.statusFilter = statusFilter;
+            this.searchTerm = searchTerm;
         }
         
         // Getters
@@ -431,5 +459,6 @@ public class MerchantController {
         public List<ProductResponse> getProducts() { return products; }
         public int getTotalCount() { return totalCount; }
         public String getStatusFilter() { return statusFilter; }
+        public String getSearchTerm() { return searchTerm; }
     }
 } 

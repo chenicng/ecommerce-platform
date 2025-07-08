@@ -116,14 +116,18 @@ GET /api/merchants/{merchantId}/income
 GET /api/ecommerce/products/{sku}
 ```
 
-#### Browse Available Products
+#### Browse Available Products (Public Interface)
 ```bash
 GET /api/ecommerce/products
+# This endpoint is for public product browsing and purchasing
+# Only returns AVAILABLE products (active and in stock)
 # Optional query parameters:
 # - search: Search products by name or description
 # - merchantId: Filter products by specific merchant
+# - Combined: Search within specific merchant's products
 GET /api/ecommerce/products?search=iPhone
 GET /api/ecommerce/products?merchantId=1
+GET /api/ecommerce/products?search=iPhone&merchantId=1
 ```
 
 #### Check Product Stock
@@ -131,12 +135,18 @@ GET /api/ecommerce/products?merchantId=1
 GET /api/ecommerce/products/{sku}/stock
 ```
 
-#### Get Merchant's Products (Merchant Management)
+#### Get Merchant's Products (Management Interface)
 ```bash
 GET /api/merchants/{merchantId}/products
+# This endpoint is for merchant product management
+# Returns ALL products (including inactive/deleted) for management purposes
 # Optional query parameters:
 # - status: Filter by product status (ACTIVE, INACTIVE, DELETED)
+# - search: Search within merchant's products (by name, description, or SKU)
+# - Combined: Search and filter by status
 GET /api/merchants/{merchantId}/products?status=ACTIVE
+GET /api/merchants/{merchantId}/products?search=iPhone
+GET /api/merchants/{merchantId}/products?search=iPhone&status=ACTIVE
 ```
 
 #### Get Single Product for Merchant
@@ -202,20 +212,32 @@ curl -X POST http://localhost:8080/api/merchants/1/products/IPHONE15/add-stock \
 # 9. Browse available products
 curl http://localhost:8080/api/ecommerce/products
 
-# 10. Search products by name
+# 10. Search products by name (global search)
 curl "http://localhost:8080/api/ecommerce/products?search=iPhone"
 
-# 11. Get product details
+# 11. Get products from specific merchant (public browsing)
+curl "http://localhost:8080/api/ecommerce/products?merchantId=1"
+
+# 12. Search within specific merchant's products (combined search)
+curl "http://localhost:8080/api/ecommerce/products?search=iPhone&merchantId=1"
+
+# 13. Get product details
 curl http://localhost:8080/api/ecommerce/products/IPHONE15
 
-# 12. Check product stock
+# 14. Check product stock
 curl http://localhost:8080/api/ecommerce/products/IPHONE15/stock
 
-# 13. Get merchant's products
+# 15. Get merchant's products (management interface - all products)
 curl http://localhost:8080/api/merchants/1/products
 
-# 14. Get merchant's active products only
+# 16. Get merchant's active products only
 curl "http://localhost:8080/api/merchants/1/products?status=ACTIVE"
+
+# 17. Search within merchant's products (management interface)
+curl "http://localhost:8080/api/merchants/1/products?search=iPhone"
+
+# 18. Combined search and status filter for merchant
+curl "http://localhost:8080/api/merchants/1/products?search=iPhone&status=ACTIVE"
 ```
 
 ## System Design
