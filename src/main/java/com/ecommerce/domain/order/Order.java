@@ -89,6 +89,8 @@ public class Order extends BaseEntity {
     
     /**
      * Cancel order
+     * Note: This method only changes the order status. 
+     * Refund processing should be handled by the application service layer.
      */
     public void cancel(String reason) {
         if (this.status == OrderStatus.COMPLETED) {
@@ -96,6 +98,24 @@ public class Order extends BaseEntity {
         }
         this.status = OrderStatus.CANCELLED;
         this.markAsUpdated();
+    }
+    
+    /**
+     * Check if order needs refund when cancelled
+     * Returns true if money has been deducted (status is PAID or higher)
+     */
+    public boolean needsRefund() {
+        return this.status == OrderStatus.PAID || this.status == OrderStatus.COMPLETED;
+    }
+    
+    /**
+     * Check if inventory needs to be restored when cancelled
+     * Returns true if inventory has been deducted (status is CONFIRMED or higher)
+     */
+    public boolean needsInventoryRestore() {
+        return this.status == OrderStatus.CONFIRMED || 
+               this.status == OrderStatus.PAID || 
+               this.status == OrderStatus.COMPLETED;
     }
     
     /**

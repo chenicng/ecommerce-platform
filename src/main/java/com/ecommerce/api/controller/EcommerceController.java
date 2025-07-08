@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +63,39 @@ public class EcommerceController {
         }
     }
     
+    /**
+     * Cancel order
+     * POST /api/ecommerce/orders/{orderNumber}/cancel
+     */
+    @PostMapping("/orders/{orderNumber}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable String orderNumber, 
+                                       @RequestBody CancelOrderRequest request) {
+        try {
+            logger.info("Cancelling order: {} with reason: {}", orderNumber, request.getReason());
+            
+            ecommerceService.cancelOrder(orderNumber, request.getReason());
+            
+            logger.info("Order cancelled successfully: {}", orderNumber);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "SUCCESS");
+            response.put("message", "Order cancelled successfully");
+            response.put("orderNumber", orderNumber);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Failed to cancel order {}: {}", orderNumber, e.getMessage(), e);
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "FAILED");
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("orderNumber", orderNumber);
+            
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
     /**
      * Get product details by SKU
      * GET /api/ecommerce/products/{sku}
@@ -326,5 +361,19 @@ public class EcommerceController {
         public int getAvailableStock() { return availableStock; }
         public boolean isAvailable() { return available; }
         public String getStatus() { return status; }
+    }
+    
+    public static class CancelOrderRequest {
+        private String reason;
+        
+        public CancelOrderRequest() {}
+        
+        public CancelOrderRequest(String reason) {
+            this.reason = reason;
+        }
+        
+        // Getters and Setters
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
     }
 } 

@@ -35,7 +35,7 @@ public class EcommerceService {
     
     /**
      * Process purchase request
-     * Complete business flow: validate -> deduct inventory -> deduct money -> add money -> create order
+     * Complete business flow: validate -> create order -> deduct inventory -> confirm order -> deduct money -> add money -> complete order
      */
     public PurchaseResponse processPurchase(PurchaseRequest request) {
         // 1. Get and validate related entities
@@ -66,28 +66,30 @@ public class EcommerceService {
             String orderNumber = generateOrderNumber();
             Order order = new Order(orderNumber, user.getId(), merchant.getId());
             order.addOrderItem(product.getSku(), product.getName(), product.getPrice(), request.getQuantity());
-            order.confirm();
             
-            // 7. Reduce inventory
+            // 7. Reduce inventory first (before confirming order)
             product.reduceStock(request.getQuantity());
             
-            // 8. Deduct user account
+            // 8. Confirm order (now that inventory is reserved)
+            order.confirm();
+            
+            // 9. Deduct user account
             user.deduct(totalPrice);
             
-            // 9. Add merchant income
+            // 10. Add merchant income
             merchant.receiveIncome(totalPrice);
             
-            // 10. Process payment and complete order
+            // 11. Process payment and complete order
             order.processPayment();
             order.complete();
             
-            // 11. Save all changes
+            // 12. Save all changes
             userService.saveUser(user);
             productService.saveProduct(product);
             merchantService.saveMerchant(merchant);
             orderService.saveOrder(order);
             
-            // 12. Return result
+            // 13. Return result
             return new PurchaseResponse(
                 order.getOrderNumber(),
                 user.getId(),
@@ -124,6 +126,81 @@ public class EcommerceService {
         }
     }
     
+    /**
+     * Cancel order with proper refund and inventory restore handling
+     */
+    public void cancelOrder(String orderNumber, String reason) {
+        try {
+            // 1. Get order
+            Order order = orderService.getOrderByNumber(orderNumber);
+            
+            // 2. Check if order can be cancelled
+            if (order.isCompleted()) {
+                throw new RuntimeException("Cannot cancel completed order");
+            }
+            
+            if (order.isCancelled()) {
+                throw new RuntimeException("Order is already cancelled");
+            }
+            
+            // 3. Handle refund if needed
+            if (order.needsRefund()) {
+                handleRefund(order);
+            }
+            
+            // 4. Handle inventory restore if needed  
+            if (order.needsInventoryRestore()) {
+                handleInventoryRestore(order);
+            }
+            
+            // 5. Cancel the order
+            order.cancel(reason);
+            
+            // 6. Save changes
+            orderService.saveOrder(order);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to cancel order: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Handle refund when cancelling paid order
+     */
+    private void handleRefund(Order order) {
+        // 1. Get user and merchant
+        User user = userService.getUserById(order.getUserId());
+        Merchant merchant = merchantService.getMerchantById(order.getMerchantId());
+        
+        // 2. Refund money to user
+        Money refundAmount = order.getTotalAmount();
+        user.recharge(refundAmount);
+        
+        // 3. Deduct money from merchant (reverse the income)
+        if (merchant.canWithdraw(refundAmount)) {
+            merchant.withdrawIncome(refundAmount);
+        } else {
+            // In real scenarios, this might need to be handled differently
+            // e.g., create a debt record for the merchant
+            throw new RuntimeException("Merchant has insufficient funds for refund");
+        }
+        
+        // 4. Save changes
+        userService.saveUser(user);
+        merchantService.saveMerchant(merchant);
+    }
+    
+    /**
+     * Handle inventory restore when cancelling confirmed order
+     */
+    private void handleInventoryRestore(Order order) {
+        for (var item : order.getItems()) {
+            Product product = productService.getProductBySku(item.getSku());
+            product.addStock(item.getQuantity());
+            productService.saveProduct(product);
+        }
+    }
+
     private String generateOrderNumber() {
         return "ORD-" + LocalDateTime.now().toString().replace(":", "").replace("-", "").replace(".", "") + 
                "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
