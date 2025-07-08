@@ -90,13 +90,13 @@ Content-Type: application/json
   "name": "iPhone 15",
   "description": "Latest iPhone model",
   "price": 6999.00,
-  "initialStock": 100
+  "initialInventory": 100
 }
 ```
 
-#### Add Stock
+#### Add Inventory
 ```bash
-POST /api/merchants/{merchantId}/products/{sku}/add-stock
+POST /api/merchants/{merchantId}/products/{sku}/add-inventory
 Content-Type: application/json
 
 {
@@ -120,7 +120,7 @@ GET /api/ecommerce/products/{sku}
 ```bash
 GET /api/ecommerce/products
 # This endpoint is for public product browsing and purchasing
-# Only returns AVAILABLE products (active and in stock)
+# Only returns AVAILABLE products (active and have inventory)
 # Optional query parameters:
 # - search: Search products by name or description
 # - merchantId: Filter products by specific merchant
@@ -130,9 +130,9 @@ GET /api/ecommerce/products?merchantId=1
 GET /api/ecommerce/products?search=iPhone&merchantId=1
 ```
 
-#### Check Product Stock
+#### Check Product Inventory
 ```bash
-GET /api/ecommerce/products/{sku}/stock
+GET /api/ecommerce/products/{sku}/inventory
 ```
 
 #### Get Merchant's Products (Management Interface)
@@ -186,7 +186,7 @@ curl -X POST http://localhost:8080/api/merchants \
 # 3. Create product
 curl -X POST http://localhost:8080/api/merchants/1/products \
   -H "Content-Type: application/json" \
-  -d '{"sku":"IPHONE15","name":"iPhone 15","description":"Latest iPhone model","price":6999.00,"initialStock":100}'
+  -d '{"sku":"IPHONE15","name":"iPhone 15","description":"Latest iPhone model","price":6999.00,"initialInventory":100}'
 
 # 4. User recharge
 curl -X POST http://localhost:8080/api/users/1/recharge \
@@ -204,8 +204,8 @@ curl http://localhost:8080/api/users/1/balance
 # 7. Query merchant income (should increase by 6999.00)
 curl http://localhost:8080/api/merchants/1/income
 
-# 8. Add stock
-curl -X POST http://localhost:8080/api/merchants/1/products/IPHONE15/add-stock \
+# 8. Add inventory
+curl -X POST http://localhost:8080/api/merchants/1/products/IPHONE15/add-inventory \
   -H "Content-Type: application/json" \
   -d '{"quantity":50}'
 
@@ -224,8 +224,8 @@ curl "http://localhost:8080/api/ecommerce/products?search=iPhone&merchantId=1"
 # 13. Get product details
 curl http://localhost:8080/api/ecommerce/products/IPHONE15
 
-# 14. Check product stock
-curl http://localhost:8080/api/ecommerce/products/IPHONE15/stock
+# 14. Check product inventory
+curl http://localhost:8080/api/ecommerce/products/IPHONE15/inventory
 
 # 15. Get merchant's products (management interface - all products)
 curl http://localhost:8080/api/merchants/1/products

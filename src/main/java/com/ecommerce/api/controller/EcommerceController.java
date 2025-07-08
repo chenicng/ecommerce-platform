@@ -115,7 +115,7 @@ public class EcommerceController {
                 product.getPrice().getAmount(),
                 product.getPrice().getCurrency(),
                 product.getMerchantId(),
-                product.getAvailableStock(),
+                product.getAvailableInventory(),
                 product.getStatus().toString(),
                 product.isAvailable()
             );
@@ -133,7 +133,7 @@ public class EcommerceController {
      * GET /api/ecommerce/products
      * 
      * This endpoint is for public product browsing and purchasing.
-     * It only returns AVAILABLE products (active and in stock).
+     * It only returns AVAILABLE products (active and have inventory).
      * 
      * Supports:
      * - Global search: ?search=iPhone
@@ -185,7 +185,7 @@ public class EcommerceController {
                     product.getPrice().getAmount(),
                     product.getPrice().getCurrency(),
                     product.getMerchantId(),
-                    product.getAvailableStock(),
+                    product.getAvailableInventory(),
                     product.isAvailable()
                 ))
                 .collect(Collectors.toList());
@@ -206,20 +206,20 @@ public class EcommerceController {
     }
     
     /**
-     * Check product stock
-     * GET /api/ecommerce/products/{sku}/stock
+     * Check product inventory
+     * GET /api/ecommerce/products/{sku}/inventory
      */
-    @GetMapping("/products/{sku}/stock")
-    public ResponseEntity<StockResponse> getProductStock(@PathVariable String sku) {
+    @GetMapping("/products/{sku}/inventory")
+    public ResponseEntity<InventoryResponse> getProductInventory(@PathVariable String sku) {
         try {
-            logger.info("Checking stock for product: {}", sku);
+            logger.info("Checking inventory for product: {}", sku);
             
             Product product = productService.getProductBySku(sku);
             
-            StockResponse response = new StockResponse(
+            InventoryResponse response = new InventoryResponse(
                 product.getSku(),
                 product.getName(),
-                product.getAvailableStock(),
+                product.getAvailableInventory(),
                 product.isAvailable(),
                 product.getStatus().toString()
             );
@@ -227,7 +227,7 @@ public class EcommerceController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("Failed to get stock for product {}: {}", sku, e.getMessage());
+            logger.error("Failed to get inventory for product {}: {}", sku, e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
@@ -253,13 +253,13 @@ public class EcommerceController {
         private BigDecimal price;
         private String currency;
         private Long merchantId;
-        private int availableStock;
+        private int availableInventory;
         private String status;
         private boolean available;
         
         public ProductDetailResponse(Long id, String sku, String name, String description,
                                    BigDecimal price, String currency, Long merchantId,
-                                   int availableStock, String status, boolean available) {
+                                   int availableInventory, String status, boolean available) {
             this.id = id;
             this.sku = sku;
             this.name = name;
@@ -267,7 +267,7 @@ public class EcommerceController {
             this.price = price;
             this.currency = currency;
             this.merchantId = merchantId;
-            this.availableStock = availableStock;
+            this.availableInventory = availableInventory;
             this.status = status;
             this.available = available;
         }
@@ -280,7 +280,7 @@ public class EcommerceController {
         public BigDecimal getPrice() { return price; }
         public String getCurrency() { return currency; }
         public Long getMerchantId() { return merchantId; }
-        public int getAvailableStock() { return availableStock; }
+        public int getAvailableInventory() { return availableInventory; }
         public String getStatus() { return status; }
         public boolean isAvailable() { return available; }
     }
@@ -292,18 +292,18 @@ public class EcommerceController {
         private BigDecimal price;
         private String currency;
         private Long merchantId;
-        private int availableStock;
+        private int availableInventory;
         private boolean available;
         
         public ProductSummaryResponse(Long id, String sku, String name, BigDecimal price,
-                                    String currency, Long merchantId, int availableStock, boolean available) {
+                                    String currency, Long merchantId, int availableInventory, boolean available) {
             this.id = id;
             this.sku = sku;
             this.name = name;
             this.price = price;
             this.currency = currency;
             this.merchantId = merchantId;
-            this.availableStock = availableStock;
+            this.availableInventory = availableInventory;
             this.available = available;
         }
         
@@ -314,7 +314,7 @@ public class EcommerceController {
         public BigDecimal getPrice() { return price; }
         public String getCurrency() { return currency; }
         public Long getMerchantId() { return merchantId; }
-        public int getAvailableStock() { return availableStock; }
+        public int getAvailableInventory() { return availableInventory; }
         public boolean isAvailable() { return available; }
     }
     
@@ -339,18 +339,18 @@ public class EcommerceController {
         public Long getMerchantId() { return merchantId; }
     }
     
-    public static class StockResponse {
+    public static class InventoryResponse {
         private String sku;
         private String productName;
-        private int availableStock;
+        private int availableInventory;
         private boolean available;
         private String status;
         
-        public StockResponse(String sku, String productName, int availableStock,
+        public InventoryResponse(String sku, String productName, int availableInventory,
                            boolean available, String status) {
             this.sku = sku;
             this.productName = productName;
-            this.availableStock = availableStock;
+            this.availableInventory = availableInventory;
             this.available = available;
             this.status = status;
         }
@@ -358,7 +358,7 @@ public class EcommerceController {
         // Getters
         public String getSku() { return sku; }
         public String getProductName() { return productName; }
-        public int getAvailableStock() { return availableStock; }
+        public int getAvailableInventory() { return availableInventory; }
         public boolean isAvailable() { return available; }
         public String getStatus() { return status; }
     }

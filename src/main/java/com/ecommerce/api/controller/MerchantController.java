@@ -2,21 +2,20 @@ package com.ecommerce.api.controller;
 
 import com.ecommerce.application.service.MerchantService;
 import com.ecommerce.application.service.ProductService;
-import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Merchant Controller
- * Handles merchant-related REST APIs
+ * Handles merchant registration, product management, and income inquiry
  */
 @RestController
 @RequestMapping("/api/merchants")
@@ -33,20 +32,23 @@ public class MerchantController {
     }
     
     /**
-     * Create merchant
+     * Register a new merchant
      * POST /api/merchants
      */
     @PostMapping
     public ResponseEntity<MerchantResponse> createMerchant(@RequestBody CreateMerchantRequest request) {
         try {
-            logger.info("Creating merchant: {}", request.getMerchantName());
+            logger.info("Creating merchant with name: {}", request.getMerchantName());
             
-            Merchant merchant = merchantService.createMerchant(
+            var merchant = merchantService.createMerchant(
                 request.getMerchantName(),
                 request.getBusinessLicense(),
                 request.getContactEmail(),
                 request.getContactPhone()
             );
+            
+            Money balance = merchantService.getMerchantBalance(merchant.getId());
+            Money totalIncome = merchantService.getMerchantTotalIncome(merchant.getId());
             
             MerchantResponse response = new MerchantResponse(
                 merchant.getId(),
@@ -54,13 +56,13 @@ public class MerchantController {
                 merchant.getBusinessLicense(),
                 merchant.getContactEmail(),
                 merchant.getContactPhone(),
-                merchant.getBalance().getAmount(),
-                merchant.getBalance().getCurrency(),
-                merchant.getTotalIncome().getAmount(),
+                balance.getAmount(),
+                balance.getCurrency(),
+                totalIncome.getAmount(),
                 merchant.getStatus().toString()
             );
             
-            logger.info("Merchant created successfully with ID: {}", merchant.getId());
+            logger.info("Merchant created successfully with id: {}", merchant.getId());
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
@@ -70,7 +72,7 @@ public class MerchantController {
     }
     
     /**
-     * Create product
+     * Create a new product for merchant
      * POST /api/merchants/{merchantId}/products
      */
     @PostMapping("/{merchantId}/products")
@@ -85,12 +87,12 @@ public class MerchantController {
             }
             
             Product product = productService.createProduct(
-                request.getSku(),
-                request.getName(),
+                request.getSku(), 
+                request.getName(), 
                 request.getDescription(),
                 Money.of(request.getPrice(), request.getCurrency()),
                 merchantId,
-                request.getInitialStock()
+                request.getInitialInventory()
             );
             
             ProductResponse response = new ProductResponse(
@@ -101,7 +103,7 @@ public class MerchantController {
                 product.getPrice().getAmount(),
                 product.getPrice().getCurrency(),
                 product.getMerchantId(),
-                product.getAvailableStock(),
+                product.getAvailableInventory(),
                 product.getStatus().toString()
             );
             
@@ -115,15 +117,15 @@ public class MerchantController {
     }
     
     /**
-     * Add product stock
-     * POST /api/merchants/{merchantId}/products/{sku}/add-stock
+     * Add product inventory
+     * POST /api/merchants/{merchantId}/products/{sku}/add-inventory
      */
-    @PostMapping("/{merchantId}/products/{sku}/add-stock")
-    public ResponseEntity<String> addProductStock(@PathVariable Long merchantId,
+    @PostMapping("/{merchantId}/products/{sku}/add-inventory")
+    public ResponseEntity<String> addProductInventory(@PathVariable Long merchantId,
                                                   @PathVariable String sku,
-                                                  @RequestBody AddStockRequest request) {
+                                                  @RequestBody AddInventoryRequest request) {
         try {
-            logger.info("Adding stock for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
+            logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
             
             // Validate merchant exists
             if (!merchantService.merchantExists(merchantId)) {
@@ -136,14 +138,14 @@ public class MerchantController {
                 throw new RuntimeException("Product does not belong to this merchant");
             }
             
-            productService.addProductStock(sku, request.getQuantity());
+            productService.addProductInventory(sku, request.getQuantity());
             
-            logger.info("Stock added successfully for product {}: quantity={}", sku, request.getQuantity());
-            return ResponseEntity.ok("Stock added successfully");
+            logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
+            return ResponseEntity.ok("Inventory added successfully");
             
         } catch (Exception e) {
-            logger.error("Failed to add stock for merchant {}, product {}: {}", merchantId, sku, e.getMessage());
-            return ResponseEntity.badRequest().body("Failed to add stock: " + e.getMessage());
+            logger.error("Failed to add inventory for merchant {}, product {}: {}", merchantId, sku, e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to add inventory: " + e.getMessage());
         }
     }
     
@@ -231,7 +233,7 @@ public class MerchantController {
                     product.getPrice().getAmount(),
                     product.getPrice().getCurrency(),
                     product.getMerchantId(),
-                    product.getAvailableStock(),
+                    product.getAvailableInventory(),
                     product.getStatus().toString()
                 ))
                 .collect(Collectors.toList());
@@ -282,7 +284,7 @@ public class MerchantController {
                 product.getPrice().getAmount(),
                 product.getPrice().getCurrency(),
                 product.getMerchantId(),
-                product.getAvailableStock(),
+                product.getAvailableInventory(),
                 product.getStatus().toString()
             );
             
@@ -355,7 +357,7 @@ public class MerchantController {
         private String description;
         private BigDecimal price;
         private String currency = "CNY";
-        private int initialStock;
+        private int initialInventory;
         
         // Getters and Setters
         public String getSku() { return sku; }
@@ -368,8 +370,8 @@ public class MerchantController {
         public void setPrice(BigDecimal price) { this.price = price; }
         public String getCurrency() { return currency; }
         public void setCurrency(String currency) { this.currency = currency; }
-        public int getInitialStock() { return initialStock; }
-        public void setInitialStock(int initialStock) { this.initialStock = initialStock; }
+        public int getInitialInventory() { return initialInventory; }
+        public void setInitialInventory(int initialInventory) { this.initialInventory = initialInventory; }
     }
     
     public static class ProductResponse {
@@ -380,12 +382,12 @@ public class MerchantController {
         private BigDecimal price;
         private String currency;
         private Long merchantId;
-        private int availableStock;
+        private int availableInventory;
         private String status;
         
         public ProductResponse(Long id, String sku, String name, String description,
                              BigDecimal price, String currency, Long merchantId,
-                             int availableStock, String status) {
+                             int availableInventory, String status) {
             this.id = id;
             this.sku = sku;
             this.name = name;
@@ -393,7 +395,7 @@ public class MerchantController {
             this.price = price;
             this.currency = currency;
             this.merchantId = merchantId;
-            this.availableStock = availableStock;
+            this.availableInventory = availableInventory;
             this.status = status;
         }
         
@@ -405,14 +407,15 @@ public class MerchantController {
         public BigDecimal getPrice() { return price; }
         public String getCurrency() { return currency; }
         public Long getMerchantId() { return merchantId; }
-        public int getAvailableStock() { return availableStock; }
+        public int getAvailableInventory() { return availableInventory; }
         public String getStatus() { return status; }
     }
     
-    public static class AddStockRequest {
+    public static class AddInventoryRequest {
         private int quantity;
         
-        // Getters and Setters
+        public AddInventoryRequest() {}
+        
         public int getQuantity() { return quantity; }
         public void setQuantity(int quantity) { this.quantity = quantity; }
     }

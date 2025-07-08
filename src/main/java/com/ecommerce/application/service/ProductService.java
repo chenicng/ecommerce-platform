@@ -28,12 +28,12 @@ public class ProductService {
      * Create product
      */
     public Product createProduct(String sku, String name, String description, 
-                               Money price, Long merchantId, int initialStock) {
+                               Money price, Long merchantId, int initialInventory) {
         if (skuIndex.containsKey(sku)) {
             throw new RuntimeException("Product with SKU " + sku + " already exists");
         }
         
-        Product product = new Product(sku, name, description, price, merchantId, initialStock);
+        Product product = new Product(sku, name, description, price, merchantId, initialInventory);
         Long id = idGenerator.getAndIncrement();
         product.setId(id);
         productStorage.put(id, product);
@@ -66,11 +66,11 @@ public class ProductService {
     }
     
     /**
-     * Add product stock
+     * Add product inventory
      */
-    public void addProductStock(String sku, int quantity) {
+    public void addProductInventory(String sku, int quantity) {
         Product product = getProductBySku(sku);
-        product.addStock(quantity);
+        product.addInventory(quantity);
         saveProduct(product);
     }
     
@@ -91,11 +91,11 @@ public class ProductService {
     }
     
     /**
-     * Get product stock
+     * Get product inventory
      */
     @Transactional(readOnly = true)
-    public int getProductStock(String sku) {
-        return getProductBySku(sku).getAvailableStock();
+    public int getProductInventory(String sku) {
+        return getProductBySku(sku).getAvailableInventory();
     }
     
     /**
@@ -128,7 +128,7 @@ public class ProductService {
     }
     
     /**
-     * Get available products (active and in stock)
+     * Get available products (active and have inventory)
      */
     @Transactional(readOnly = true)
     public List<Product> getAvailableProducts() {

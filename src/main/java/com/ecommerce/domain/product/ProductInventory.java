@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * Product Inventory Value Object
- * Manages product stock quantity
+ * Manages product inventory quantity
  */
 public final class ProductInventory {
     
@@ -35,22 +35,22 @@ public final class ProductInventory {
             throw new IllegalArgumentException("Reduce quantity must be positive");
         }
         if (reduceQuantity > this.quantity) {
-            throw new InsufficientStockException("Cannot reduce more than available stock");
+            throw new InsufficientInventoryException("Cannot reduce more than available inventory");
         }
         return new ProductInventory(this.quantity - reduceQuantity);
     }
     
     /**
-     * Check if has enough stock
+     * Check if has enough inventory
      */
-    public boolean hasEnoughStock(int requiredQuantity) {
+    public boolean hasEnoughInventory(int requiredQuantity) {
         return this.quantity >= requiredQuantity;
     }
     
     /**
-     * Check if has stock
+     * Check if has inventory
      */
-    public boolean hasStock() {
+    public boolean hasInventory() {
         return this.quantity > 0;
     }
     

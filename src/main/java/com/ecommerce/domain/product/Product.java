@@ -23,21 +23,21 @@ public class Product extends BaseEntity {
     }
     
     public Product(String sku, String name, String description, Money price, 
-                  Long merchantId, int initialStock) {
+                  Long merchantId, int initialInventory) {
         super();
         this.sku = sku;
         this.name = name;
         this.description = description;
         this.price = price;
         this.merchantId = merchantId;
-        this.inventory = new ProductInventory(initialStock);
+        this.inventory = new ProductInventory(initialInventory);
         this.status = ProductStatus.ACTIVE;
     }
     
     /**
-     * Add stock
+     * Add inventory
      */
-    public void addStock(int quantity) {
+    public void addInventory(int quantity) {
         validateActiveStatus();
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");
@@ -47,25 +47,25 @@ public class Product extends BaseEntity {
     }
     
     /**
-     * Reduce stock
+     * Reduce inventory
      */
-    public void reduceStock(int quantity) {
+    public void reduceInventory(int quantity) {
         validateActiveStatus();
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");
         }
-        if (!hasEnoughStock(quantity)) {
-            throw new InsufficientStockException("Insufficient stock for product: " + sku);
+        if (!hasEnoughInventory(quantity)) {
+            throw new InsufficientInventoryException("Insufficient inventory for product: " + sku);
         }
         this.inventory = this.inventory.reduce(quantity);
         this.markAsUpdated();
     }
     
     /**
-     * Check if has enough stock
+     * Check if has enough inventory
      */
-    public boolean hasEnoughStock(int quantity) {
-        return this.inventory.hasEnoughStock(quantity);
+    public boolean hasEnoughInventory(int quantity) {
+        return this.inventory.hasEnoughInventory(quantity);
     }
     
     /**
@@ -117,7 +117,7 @@ public class Product extends BaseEntity {
     }
     
     public boolean isAvailable() {
-        return isActive() && hasEnoughStock(1);
+        return isActive() && hasEnoughInventory(1);
     }
     
     // Getters
@@ -145,7 +145,7 @@ public class Product extends BaseEntity {
         return inventory;
     }
     
-    public int getAvailableStock() {
+    public int getAvailableInventory() {
         return inventory.getQuantity();
     }
     

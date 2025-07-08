@@ -56,9 +56,9 @@ public class EcommerceService {
         }
         
         // 5. Check product inventory
-        if (!product.hasEnoughStock(request.getQuantity())) {
-            throw new RuntimeException("Insufficient stock. Required: " + request.getQuantity() + 
-                                     ", Available: " + product.getAvailableStock());
+        if (!product.hasEnoughInventory(request.getQuantity())) {
+            throw new RuntimeException("Insufficient inventory. Required: " + request.getQuantity() + 
+                                     ", Available: " + product.getAvailableInventory());
         }
         
         try {
@@ -68,7 +68,7 @@ public class EcommerceService {
             order.addOrderItem(product.getSku(), product.getName(), product.getPrice(), request.getQuantity());
             
             // 7. Reduce inventory first (before confirming order)
-            product.reduceStock(request.getQuantity());
+            product.reduceInventory(request.getQuantity());
             
             // 8. Confirm order (now that inventory is reserved)
             order.confirm();
@@ -196,7 +196,7 @@ public class EcommerceService {
     private void handleInventoryRestore(Order order) {
         for (var item : order.getItems()) {
             Product product = productService.getProductBySku(item.getSku());
-            product.addStock(item.getQuantity());
+            product.addInventory(item.getQuantity());
             productService.saveProduct(product);
         }
     }
