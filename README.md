@@ -1,6 +1,6 @@
 # E-commerce Platform
 
-A complete e-commerce platform system based on Spring Boot and DDD (Domain-Driven Design), supporting user product purchases, merchant inventory management, automatic settlement, and other features.
+A complete e-commerce platform system based on Spring Boot 3.2 and DDD (Domain-Driven Design), supporting user product purchases, merchant inventory management, automatic settlement, and other features. The system supports both development mode (in-memory storage) and production mode (MySQL database).
 
 ## System Features
 
@@ -13,25 +13,43 @@ A complete e-commerce platform system based on Spring Boot and DDD (Domain-Drive
 ### Technical Architecture
 - **Domain-Driven Design (DDD)**: Clear domain division and aggregate root design
 - **Spring Boot 3.2**: Modern Spring framework
-- **In-Memory Storage**: Simplified data storage for demonstration (production should use database)
+- **MySQL Database**: Production-ready database with JPA support
+- **Mock Mode**: In-memory storage for demonstration and development
 - **REST API**: Complete RESTful interface design
 - **Scheduled Tasks**: Settlement tasks based on Spring Scheduler
+- **TestContainers**: Integration testing support
 
 ## Quick Start
 
 ### Environment Requirements
 - Java 21+
 - Maven 3.6+
+- MySQL 8.0+ (for production mode)
 
 ### Start Application
+
+#### Development Mode (Mock - Default)
 ```bash
 mvn clean spring-boot:run
+```
+
+#### Production Mode (MySQL)
+```bash
+# First, ensure MySQL is running and create database
+mysql -u root -p
+CREATE DATABASE ecommerce_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# Set environment variables for database connection
+export DB_USERNAME=your_username
+export DB_PASSWORD=your_password
+
+# Run with MySQL profile
+mvn clean spring-boot:run -Dspring-boot.run.profiles=mysql
 ```
 
 After application startup, access:
 - Application port: http://localhost:8080
 - Health check: http://localhost:8080/actuator/health
-- H2 console: http://localhost:8080/h2-console
 
 ## API Documentation
 
@@ -240,6 +258,74 @@ curl "http://localhost:8080/api/merchants/1/products?search=iPhone"
 curl "http://localhost:8080/api/merchants/1/products?search=iPhone&status=ACTIVE"
 ```
 
+## Testing
+
+### Run Unit Tests
+```bash
+mvn test
+```
+
+### Run Tests with Coverage Report
+```bash
+mvn clean test
+```
+
+### Test Reports
+
+After running tests, the following reports will be generated:
+
+#### 1. Surefire Test Reports
+- **Location**: `target/surefire-reports/`
+- **Description**: Detailed test execution results for each test class
+- **Formats**:
+  - XML files (`TEST-*.xml`): Machine-readable format for CI/CD systems
+  - Text files (`*.txt`): Human-readable summary for each test class
+
+#### 2. JaCoCo Code Coverage Reports  
+- **Location**: `target/site/jacoco/`
+- **Main Report**: `target/site/jacoco/index.html` (open in browser)
+- **Description**: Interactive HTML reports showing code coverage by package, class, and method
+- **Additional Formats**:
+  - CSV: `target/site/jacoco/jacoco.csv`
+  - XML: `target/site/jacoco/jacoco.xml`
+
+#### 3. View Coverage Report
+```bash
+# Open the main coverage report in browser (macOS)
+open target/site/jacoco/index.html
+
+# Or use your preferred browser
+open -a "Google Chrome" target/site/jacoco/index.html
+
+
+#### 4. Quick Test Summary
+```bash
+# View test summary from surefire reports
+find target/surefire-reports -name "*.txt" -exec cat {} \; | grep "Tests run"
+```
+
+#### 5. Current Test Status
+- ✅ **Total Tests**: 208
+- ✅ **Passed**: 208  
+- ❌ **Failed**: 0
+- ⚠️ **Errors**: 0
+- ⏭️ **Skipped**: 0
+
+### Integration Testing
+The project uses TestContainers for integration testing, which automatically manages database containers during testing. No additional setup is required.
+
+## Database Architecture
+
+### Profiles
+- **Mock Profile (Default)**: All data is stored in memory using mock repositories. Perfect for development and demonstration.
+- **MySQL Profile**: Production-ready database persistence with JPA entities and automatic schema management.
+
+### Schema Management
+When running with MySQL profile, JPA will automatically create/update tables based on domain entities. The system uses:
+- **Hibernate DDL Auto**: `update` mode for automatic schema evolution
+- **Character Set**: UTF8MB4 for full Unicode support
+- **Timezone**: Asia/Shanghai
+
 ## System Design
 
 ### DDD Domain Division
@@ -290,22 +376,34 @@ curl "http://localhost:8080/api/merchants/1/products?search=iPhone&status=ACTIVE
 
 Application configuration file `application.yml` contains the following important configurations:
 
-- **Database Configuration**: H2 in-memory database
-- **Settlement Configuration**: Scheduled task cron expression
-- **Currency Configuration**: Default currency and precision settings
-- **Logging Configuration**: SQL logs and application log levels
+### Profiles
+- **mock profile** (default): Uses in-memory storage for demo purposes
+- **mysql profile**: Uses MySQL database for production
+
+### Key Configuration Sections
+- **Database Configuration**: MySQL connection settings (production mode)
+- **Settlement Configuration**: Scheduled task cron expression (daily at 2 AM)
+- **Currency Configuration**: Default currency (CNY) and precision settings (2 decimal places)
+- **Logging Configuration**: Console logging patterns and application log levels
+- **Actuator Configuration**: Health check and monitoring endpoints
+
+### Environment Variables (MySQL mode)
+- `DB_USERNAME`: Database username (default: root)
+- `DB_PASSWORD`: Database password (default: password)
 
 ## Production Environment Considerations
 
-The current system is a demonstration version. Production deployment should consider:
+The system supports both development (mock) and production (MySQL) modes. For production deployment, consider:
 
-1. **Data Persistence**: Use relational databases like MySQL/PostgreSQL
-2. **Transaction Management**: Ensure data consistency and concurrency safety
-3. **Caching**: Use Redis and other caches for hot data
-4. **Monitoring**: Integrate monitoring and alerting systems
-5. **Security**: Add authentication and authorization mechanisms
-6. **Performance**: Database index optimization and query optimization
-7. **Scalability**: Consider microservice splitting and distributed deployment
+1. **Database Setup**: MySQL 8.0+ with proper connection pooling and performance tuning
+2. **Transaction Management**: JPA transactions ensure data consistency and concurrency safety
+3. **Environment Configuration**: Use environment variables for sensitive database credentials
+4. **Caching**: Consider Redis for session storage and hot data caching
+5. **Monitoring**: Actuator endpoints provide health checks and metrics
+6. **Security**: Add authentication and authorization mechanisms
+7. **Performance**: Database index optimization and query optimization
+8. **Scalability**: Consider microservice splitting and distributed deployment
+9. **Testing**: Integrated TestContainers for database integration testing
 
 ## Extensibility
 

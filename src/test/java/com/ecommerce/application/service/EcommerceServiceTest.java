@@ -8,11 +8,13 @@ import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.merchant.Merchant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class EcommerceServiceTest {
 
     @Mock
@@ -31,7 +33,6 @@ class EcommerceServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         ecommerceService = new EcommerceService(userService, merchantService, productService, orderService);
     }
 
@@ -43,12 +44,14 @@ class EcommerceServiceTest {
         int quantity = 2;
         
         User user = new User("john", "john@example.com", "123-456-7890", "USD");
+        user.setId(userId); // Set the user ID for testing
         user.recharge(Money.of("100.00", "USD"));
         
         Money productPrice = Money.of("20.00", "USD");
         Product product = new Product(productSku, "Test Product", "Description", productPrice, 1L, 10);
         
-        Merchant merchant = new Merchant("Test Merchant", "merchant@test.com", "555-1234", "USD");
+        Merchant merchant = new Merchant("Test Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
+        merchant.setId(1L); // Set the merchant ID for testing
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(productService.getProductBySku(productSku)).thenReturn(product);
@@ -126,7 +129,7 @@ class EcommerceServiceTest {
         Money productPrice = Money.of("50.00", "USD"); // Product costs $50
         Product product = new Product(productSku, "Expensive Product", "Description", productPrice, 1L, 10);
         
-        Merchant merchant = new Merchant("Test Merchant", "merchant@test.com", "555-1234", "USD");
+        Merchant merchant = new Merchant("Test Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(productService.getProductBySku(productSku)).thenReturn(product);
@@ -153,7 +156,7 @@ class EcommerceServiceTest {
         Money productPrice = Money.of("20.00", "USD");
         Product product = new Product(productSku, "Low Stock Product", "Description", productPrice, 1L, 5); // Only 5 in stock
         
-        Merchant merchant = new Merchant("Test Merchant", "merchant@test.com", "555-1234", "USD");
+        Merchant merchant = new Merchant("Test Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(productService.getProductBySku(productSku)).thenReturn(product);
@@ -180,7 +183,7 @@ class EcommerceServiceTest {
         Money productPrice = Money.of("20.00", "USD");
         Product product = new Product(productSku, "Test Product", "Description", productPrice, 1L, 10);
         
-        Merchant merchant = new Merchant("Test Merchant", "merchant@test.com", "555-1234", "USD");
+        Merchant merchant = new Merchant("Test Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(productService.getProductBySku(productSku)).thenReturn(product);

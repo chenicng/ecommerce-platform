@@ -100,6 +100,20 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <!-- Mockito Core for mocking in tests -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- Mockito JUnit Jupiter integration -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <build>
@@ -108,6 +122,15 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            
+            <!-- Maven Surefire plugin for running tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -Dnet.bytebuddy.experimental=true</argLine>
+                </configuration>
             </plugin>
             
             <!-- JaCoCo Maven plugin for test coverage reports -->

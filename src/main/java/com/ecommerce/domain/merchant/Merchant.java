@@ -23,12 +23,17 @@ public class Merchant extends BaseEntity {
     
     public Merchant(String merchantName, String businessLicense, 
                    String contactEmail, String contactPhone) {
+        this(merchantName, businessLicense, contactEmail, contactPhone, "CNY");
+    }
+    
+    public Merchant(String merchantName, String businessLicense, 
+                   String contactEmail, String contactPhone, String currency) {
         super();
         this.merchantName = merchantName;
         this.businessLicense = businessLicense;
         this.contactEmail = contactEmail;
         this.contactPhone = contactPhone;
-        this.account = new MerchantAccount(Money.zero("CNY"));
+        this.account = new MerchantAccount(Money.zero(currency));
         this.status = MerchantStatus.ACTIVE;
     }
     

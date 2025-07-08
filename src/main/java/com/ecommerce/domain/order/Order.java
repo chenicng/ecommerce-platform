@@ -33,7 +33,7 @@ public class Order extends BaseEntity {
         this.userId = userId;
         this.merchantId = merchantId;
         this.items = new ArrayList<>();
-        this.totalAmount = Money.zero("CNY"); // Default currency
+        this.totalAmount = null; // Will be set when first item is added
         this.status = OrderStatus.PENDING;
         this.orderTime = LocalDateTime.now();
     }
@@ -48,7 +48,13 @@ public class Order extends BaseEntity {
         
         OrderItem item = new OrderItem(sku, productName, unitPrice, quantity);
         this.items.add(item);
-        this.totalAmount = this.totalAmount.add(item.getTotalPrice());
+        
+        // Initialize totalAmount with first item's currency, or add to existing total
+        if (this.totalAmount == null) {
+            this.totalAmount = item.getTotalPrice();
+        } else {
+            this.totalAmount = this.totalAmount.add(item.getTotalPrice());
+        }
         this.markAsUpdated();
     }
     
@@ -172,7 +178,7 @@ public class Order extends BaseEntity {
     }
     
     public Money getTotalAmount() {
-        return totalAmount;
+        return totalAmount != null ? totalAmount : Money.zero("CNY"); // Default to CNY if no items added yet
     }
     
     public OrderStatus getStatus() {
