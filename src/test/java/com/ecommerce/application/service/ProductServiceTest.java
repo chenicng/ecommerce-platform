@@ -178,6 +178,60 @@ class ProductServiceTest {
     }
 
     @Test
+    void reduceInventory_Success() {
+        // Given
+        when(productRepository.findBySku("IPHONE15")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        // When
+        productService.reduceInventory("IPHONE15", 10);
+
+        // Then
+        verify(productRepository).findBySku("IPHONE15");
+        verify(productRepository).save(testProduct);
+    }
+
+    @Test
+    void reduceInventory_ProductNotFound() {
+        // Given
+        when(productRepository.findBySku("UNKNOWN")).thenReturn(Optional.empty());
+
+        // When & Then
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> productService.reduceInventory("UNKNOWN", 10));
+        assertEquals("Product not found with SKU: UNKNOWN", exception.getMessage());
+        verify(productRepository).findBySku("UNKNOWN");
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    void setInventory_Success() {
+        // Given
+        when(productRepository.findBySku("IPHONE15")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        // When
+        productService.setInventory("IPHONE15", 150);
+
+        // Then
+        verify(productRepository).findBySku("IPHONE15");
+        verify(productRepository).save(testProduct);
+    }
+
+    @Test
+    void setInventory_ProductNotFound() {
+        // Given
+        when(productRepository.findBySku("UNKNOWN")).thenReturn(Optional.empty());
+
+        // When & Then
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> productService.setInventory("UNKNOWN", 100));
+        assertEquals("Product not found with SKU: UNKNOWN", exception.getMessage());
+        verify(productRepository).findBySku("UNKNOWN");
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
     void getProductsByMerchant_Success() {
         // Given
         Long merchantId = 1L;

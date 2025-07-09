@@ -241,14 +241,16 @@ class MerchantControllerTest {
         doNothing().when(productService).addProductInventory("IPHONE15", 50);
 
         // When & Then
-        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "IPHONE15")
+        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/inventory/add", 1L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Added 50 units to product IPHONE15"));
+                .andExpect(jsonPath("$.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.message").value("Inventory added successfully"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).addProductInventory("IPHONE15", 50);
+        verify(productService, times(2)).getProductBySku("IPHONE15"); // Called twice: validation + response
     }
 
     @Test
@@ -260,7 +262,7 @@ class MerchantControllerTest {
         when(merchantService.merchantExists(999L)).thenReturn(false);
 
         // When & Then
-        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 999L, "IPHONE15")
+        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/inventory/add", 999L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isNotFound());
@@ -279,7 +281,7 @@ class MerchantControllerTest {
         when(productService.getProductBySku("UNKNOWN")).thenThrow(new RuntimeException("Product not found"));
 
         // When & Then
-        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "UNKNOWN")
+        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/inventory/add", 1L, "UNKNOWN")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isNotFound());
@@ -295,7 +297,7 @@ class MerchantControllerTest {
         addInventoryRequest.setQuantity(-10);
 
         // When & Then
-        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "IPHONE15")
+        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/inventory/add", 1L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isBadRequest());
@@ -318,7 +320,7 @@ class MerchantControllerTest {
         when(productService.getProductBySku("IPHONE15")).thenReturn(otherMerchantProduct);
 
         // When & Then
-        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "IPHONE15")
+        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/inventory/add", 1L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isBadRequest());
@@ -326,5 +328,51 @@ class MerchantControllerTest {
         verify(merchantService).merchantExists(1L);
         verify(productService).getProductBySku("IPHONE15");
         verify(productService, never()).addProductInventory(anyString(), anyInt());
+    }
+
+    @Test
+    void reduceInventory_Success() throws Exception {
+        // Given
+        MerchantController.ReduceInventoryRequest reduceInventoryRequest = new MerchantController.ReduceInventoryRequest();
+        reduceInventoryRequest.setQuantity(20);
+        
+        when(merchantService.merchantExists(1L)).thenReturn(true);
+        when(productService.getProductBySku("IPHONE15")).thenReturn(testProduct);
+        doNothing().when(productService).reduceInventory("IPHONE15", 20);
+
+        // When & Then
+        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/inventory/reduce", 1L, "IPHONE15")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reduceInventoryRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.message").value("Inventory reduced successfully"));
+
+        verify(merchantService).merchantExists(1L);
+        verify(productService).reduceInventory("IPHONE15", 20);
+        verify(productService, times(2)).getProductBySku("IPHONE15"); // Called twice: validation + response
+    }
+
+    @Test
+    void setInventory_Success() throws Exception {
+        // Given
+        MerchantController.SetInventoryRequest setInventoryRequest = new MerchantController.SetInventoryRequest();
+        setInventoryRequest.setQuantity(150);
+        
+        when(merchantService.merchantExists(1L)).thenReturn(true);
+        when(productService.getProductBySku("IPHONE15")).thenReturn(testProduct);
+        doNothing().when(productService).setInventory("IPHONE15", 150);
+
+        // When & Then
+        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "IPHONE15")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(setInventoryRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.message").value("Inventory set successfully"));
+
+        verify(merchantService).merchantExists(1L);
+        verify(productService).setInventory("IPHONE15", 150);
+        verify(productService, times(2)).getProductBySku("IPHONE15"); // Called twice: validation + response
     }
 }

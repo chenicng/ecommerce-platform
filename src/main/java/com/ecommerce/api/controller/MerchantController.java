@@ -110,15 +110,93 @@ public class MerchantController {
     }
     
     /**
-     * Update product inventory (add inventory)
+     * Add product inventory
+     * POST /api/merchants/{merchantId}/products/{sku}/inventory/add
+     */
+    @PostMapping("/{merchantId}/products/{sku}/inventory/add")
+    public ResponseEntity<InventoryResponse> addProductInventory(@PathVariable Long merchantId,
+                                                               @PathVariable String sku,
+                                                               @Valid @RequestBody AddInventoryRequest request) {
+        logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
+        
+        validateMerchantAndProduct(merchantId, sku);
+        
+        productService.addProductInventory(sku, request.getQuantity());
+        Product product = productService.getProductBySku(sku);
+        
+        InventoryResponse response = new InventoryResponse(
+            product.getSku(),
+            product.getName(),
+            product.getAvailableInventory(),
+            product.isAvailable(),
+            product.getStatus().toString(),
+            "Inventory added successfully"
+        );
+        
+        logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Reduce product inventory
+     * POST /api/merchants/{merchantId}/products/{sku}/inventory/reduce
+     */
+    @PostMapping("/{merchantId}/products/{sku}/inventory/reduce")
+    public ResponseEntity<InventoryResponse> reduceProductInventory(@PathVariable Long merchantId,
+                                                                  @PathVariable String sku,
+                                                                  @Valid @RequestBody ReduceInventoryRequest request) {
+        logger.info("Reducing inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
+        
+        validateMerchantAndProduct(merchantId, sku);
+        
+        productService.reduceInventory(sku, request.getQuantity());
+        Product product = productService.getProductBySku(sku);
+        
+        InventoryResponse response = new InventoryResponse(
+            product.getSku(),
+            product.getName(),
+            product.getAvailableInventory(),
+            product.isAvailable(),
+            product.getStatus().toString(),
+            "Inventory reduced successfully"
+        );
+        
+        logger.info("Inventory reduced successfully for product {}: quantity={}", sku, request.getQuantity());
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Set product inventory to absolute value
      * PUT /api/merchants/{merchantId}/products/{sku}/inventory
      */
     @PutMapping("/{merchantId}/products/{sku}/inventory")
-    public ResponseEntity<String> addProductInventory(@PathVariable Long merchantId,
-                                                            @PathVariable String sku,
-                                                            @Valid @RequestBody AddInventoryRequest request) {
-        logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
+    public ResponseEntity<InventoryResponse> setProductInventory(@PathVariable Long merchantId,
+                                                               @PathVariable String sku,
+                                                               @Valid @RequestBody SetInventoryRequest request) {
+        logger.info("Setting inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
         
+        validateMerchantAndProduct(merchantId, sku);
+        
+        productService.setInventory(sku, request.getQuantity());
+        Product product = productService.getProductBySku(sku);
+        
+        InventoryResponse response = new InventoryResponse(
+            product.getSku(),
+            product.getName(),
+            product.getAvailableInventory(),
+            product.isAvailable(),
+            product.getStatus().toString(),
+            "Inventory set successfully"
+        );
+        
+        logger.info("Inventory set successfully for product {}: quantity={}", sku, request.getQuantity());
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Helper method to validate merchant and product
+     */
+    private void validateMerchantAndProduct(Long merchantId, String sku) {
         // Validate merchant exists
         if (!merchantService.merchantExists(merchantId)) {
             throw new RuntimeException("Merchant not found with id: " + merchantId);
@@ -129,16 +207,6 @@ public class MerchantController {
         if (!product.getMerchantId().equals(merchantId)) {
             throw new RuntimeException("Product does not belong to this merchant");
         }
-        
-        // Validate quantity
-        if (request.getQuantity() <= 0) {
-            throw new RuntimeException("Quantity must be positive");
-        }
-        
-        productService.addProductInventory(sku, request.getQuantity());
-        
-        logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
-        return ResponseEntity.ok(String.format("Added %d units to product %s", request.getQuantity(), sku));
     }
     
     /**
@@ -412,6 +480,53 @@ public class MerchantController {
         
         public int getQuantity() { return quantity; }
         public void setQuantity(int quantity) { this.quantity = quantity; }
+    }
+    
+    public static class ReduceInventoryRequest {
+        @Min(value = 1, message = "Quantity must be positive")
+        private int quantity;
+        
+        public ReduceInventoryRequest() {}
+        
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+    }
+    
+    public static class SetInventoryRequest {
+        @Min(value = 0, message = "Quantity cannot be negative")
+        private int quantity;
+        
+        public SetInventoryRequest() {}
+        
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+    }
+    
+    public static class InventoryResponse {
+        private String sku;
+        private String productName;
+        private int availableInventory;
+        private boolean available;
+        private String status;
+        private String message;
+        
+        public InventoryResponse(String sku, String productName, int availableInventory,
+                               boolean available, String status, String message) {
+            this.sku = sku;
+            this.productName = productName;
+            this.availableInventory = availableInventory;
+            this.available = available;
+            this.status = status;
+            this.message = message;
+        }
+        
+        // Getters
+        public String getSku() { return sku; }
+        public String getProductName() { return productName; }
+        public int getAvailableInventory() { return availableInventory; }
+        public boolean isAvailable() { return available; }
+        public String getStatus() { return status; }
+        public String getMessage() { return message; }
     }
     
     public static class IncomeResponse {

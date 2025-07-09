@@ -78,6 +78,33 @@ public class ProductService {
     }
     
     /**
+     * Reduce product inventory
+     */
+    public void reduceInventory(String sku, int quantity) {
+        Product product = getProductBySku(sku);
+        product.reduceInventory(quantity);
+        productRepository.save(product);
+    }
+    
+    /**
+     * Set product inventory to absolute value
+     */
+    public void setInventory(String sku, int quantity) {
+        Product product = getProductBySku(sku);
+        // Calculate the difference and adjust accordingly
+        int currentInventory = product.getAvailableInventory();
+        if (quantity > currentInventory) {
+            // Need to add inventory
+            product.addInventory(quantity - currentInventory);
+        } else if (quantity < currentInventory) {
+            // Need to reduce inventory
+            product.reduceInventory(currentInventory - quantity);
+        }
+        // If quantity == currentInventory, no change needed
+        productRepository.save(product);
+    }
+    
+    /**
      * Get products by merchant
      */
     @Transactional(readOnly = true)
