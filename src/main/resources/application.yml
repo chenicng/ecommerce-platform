@@ -50,6 +50,33 @@ info:
     java:
       version: 21
 
+# Springdoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs  # OpenAPI JSON documentation path
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html  # Swagger UI access path
+    enabled: true
+    try-it-out-enabled: true  # Enable "Try it out" functionality
+    operations-sorter: method  # Sort operations by HTTP method
+    tags-sorter: alpha  # Sort tags alphabetically
+    default-models-expand-depth: 2  # Model expansion depth
+    default-model-expand-depth: 2
+    display-request-duration: true  # Show request duration
+    doc-expansion: none  # Default expansion state
+  show-actuator: false  # Hide actuator endpoints from documentation
+  group-configs:
+    - group: v1
+      paths-to-match: /api/v1/**
+      display-name: API Version 1
+    - group: v2
+      paths-to-match: /api/v2/**
+      display-name: API Version 2
+    - group: public
+      paths-to-match: /api/health, /api/healthz, /api/version/**
+      display-name: Public APIs
+
 # Business Configuration
 ecommerce:
   # Settlement Configuration

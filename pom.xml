@@ -75,6 +75,13 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         
+        <!-- Springdoc OpenAPI dependency for API documentation -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        
         <!-- Spring Boot Scheduler dependency for scheduled tasks -->
         <dependency>
             <groupId>org.springframework</groupId>

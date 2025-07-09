@@ -13,6 +13,15 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +35,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(ApiVersionConfig.API_V1 + "/ecommerce")
 @ApiVersion(value = "v1", since = "2025-01-01")
+@Tag(name = "Product & Purchase", description = "Product browsing, purchasing and order management")
 public class EcommerceController {
     
     private static final Logger logger = LoggerFactory.getLogger(EcommerceController.class);

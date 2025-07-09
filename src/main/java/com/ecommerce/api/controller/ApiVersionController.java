@@ -8,6 +8,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +26,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/version")
+@Tag(name = "API Version", description = "API version information and compatibility")
 public class ApiVersionController {
     
     /**
@@ -27,6 +34,11 @@ public class ApiVersionController {
      * GET /api/version/info
      */
     @GetMapping("/info")
+    @Operation(summary = "Get API Version Information", 
+               description = "Returns comprehensive API version information including supported versions, strategies, and compatibility settings")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Version information retrieved successfully")
+    })
     public ResponseEntity<Result<Map<String, Object>>> getVersionInfo() {
         Map<String, Object> versionInfo = new HashMap<>();
         
@@ -99,7 +111,14 @@ public class ApiVersionController {
      * GET /api/version/compatibility/{version}
      */
     @GetMapping("/compatibility/{version}")
-    public ResponseEntity<Result<Map<String, Object>>> checkVersionCompatibility(@PathVariable String version) {
+    @Operation(summary = "Check Version Compatibility", 
+               description = "Validates if a specific API version is supported and provides compatibility information")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Version compatibility information retrieved successfully")
+    })
+    public ResponseEntity<Result<Map<String, Object>>> checkVersionCompatibility(
+            @Parameter(description = "API version to check (e.g., 'v1', '1', 'v2')", required = true, example = "v1")
+            @PathVariable String version) {
         Map<String, Object> result = new HashMap<>();
         
         // Normalize version number
