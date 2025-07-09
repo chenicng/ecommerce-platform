@@ -6,6 +6,8 @@ import com.ecommerce.domain.Money;
 import com.ecommerce.domain.user.User;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.merchant.Merchant;
+import com.ecommerce.domain.order.Order;
+import com.ecommerce.domain.order.OrderStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -156,7 +158,7 @@ class EcommerceServiceTest {
         Money productPrice = Money.of("20.00", "USD");
         Product product = new Product(productSku, "Low Stock Product", "Description", productPrice, 1L, 5); // Only 5 in stock
         
-        Merchant merchant = new Merchant("Test Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
+        Merchant merchant = new Merchant("Test Merchant", "BL123.6", "merchant@test.com", "555-1234", "USD");
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(productService.getProductBySku(productSku)).thenReturn(product);
@@ -195,5 +197,153 @@ class EcommerceServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class, 
             () -> ecommerceService.processPurchase(request));
         assertTrue(exception.getMessage().contains("User is not active"));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenProductIsInactive() {
+        // Arrange
+        Long userId = 1L;
+        String productSku = "INACTIVE-PRODUCT";
+        int quantity = 1;
+        
+        User user = new User("john", "john@example.com", "123-456-7890", "USD");
+        user.recharge(Money.of("100.00", "USD"));
+        
+        Money productPrice = Money.of("20.00", "USD");
+        Product product = new Product(productSku, "Inactive Product", "Description", productPrice, 1L, 10);
+        product.deactivate(); // Deactivate product
+        
+        Merchant merchant = new Merchant("Test Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
+        
+        when(userService.getUserById(userId)).thenReturn(user);
+        when(productService.getProductBySku(productSku)).thenReturn(product);
+        when(merchantService.getMerchantById(1L)).thenReturn(merchant);
+        
+        PurchaseRequest request = new PurchaseRequest(userId, productSku, quantity);
+        
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> ecommerceService.processPurchase(request));
+        assertTrue(exception.getMessage().contains("Product is not active"));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenMerchantIsInactive() {
+        // Arrange
+        Long userId = 1L;
+        String productSku = "PRODUCT-001";
+        int quantity = 1;
+        
+        User user = new User("john", "john@example.com", "123-456-7890", "USD");
+        user.recharge(Money.of("100.00", "USD"));
+        
+        Money productPrice = Money.of("20.00", "USD");
+        Product product = new Product(productSku, "Test Product", "Description", productPrice, 1L, 10);
+        
+        Merchant merchant = new Merchant("Inactive Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
+        merchant.deactivate(); // Deactivate merchant
+        
+        when(userService.getUserById(userId)).thenReturn(user);
+        when(productService.getProductBySku(productSku)).thenReturn(product);
+        when(merchantService.getMerchantById(1L)).thenReturn(merchant);
+        
+        PurchaseRequest request = new PurchaseRequest(userId, productSku, quantity);
+        
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> ecommerceService.processPurchase(request));
+        assertTrue(exception.getMessage().contains("Merchant is not active"));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenQuantityIsZero() {
+        // Arrange
+        Long userId = 1L;
+        String productSku = "PRODUCT-001";
+        int quantity = 0; // Invalid quantity
+        
+        User user = new User("john", "john@example.com", "123-456-7890", "USD");
+        user.recharge(Money.of("100.00", "USD"));
+        
+        Money productPrice = Money.of("20.00", "USD");
+        Product product = new Product(productSku, "Test Product", "Description", productPrice, 1L, 10);
+        
+        Merchant merchant = new Merchant("Test Merchant", "BL123456", "merchant@test.com", "555-1234", "USD");
+        
+        when(userService.getUserById(userId)).thenReturn(user);
+        when(productService.getProductBySku(productSku)).thenReturn(product);
+        when(merchantService.getMerchantById(1L)).thenReturn(merchant);
+        
+        PurchaseRequest request = new PurchaseRequest(userId, productSku, quantity);
+        
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> ecommerceService.processPurchase(request));
+        assertTrue(exception.getMessage().contains("Quantity must be positive"));
+    }
+
+    @Test
+    void shouldSuccessfullyCancelOrder() {
+        // Arrange
+        String orderNumber = "ORDER-123";
+        String reason = "Customer request";
+        
+        Order order = new Order(orderNumber, 1L, 1L);
+        order.addOrderItem("PRODUCT-001", "Test Product", Money.of("20.00", "USD"), 1);
+        order.confirm(); // Set status to CONFIRMED
+        
+        // Mock the product for inventory restoration
+        Product product = new Product("PRODUCT-001", "Test Product", "Description", Money.of("20.00", "USD"), 1L, 10);
+        when(productService.getProductBySku("PRODUCT-001")).thenReturn(product);
+        
+        when(orderService.getOrderByNumber(orderNumber)).thenReturn(order);
+        
+        // Act
+        ecommerceService.cancelOrder(orderNumber, reason);
+        
+        // Assert
+        verify(orderService).getOrderByNumber(orderNumber);
+        verify(orderService).saveOrder(order);
+        verify(productService).getProductBySku("PRODUCT-001");
+        verify(productService).saveProduct(product);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCancellingCompletedOrder() {
+        // Arrange
+        String orderNumber = "ORDER-123";
+        String reason = "Customer request";
+        
+        Order order = new Order(orderNumber, 1L, 1L);
+        order.addOrderItem("PRODUCT-001", "Test Product", Money.of("20.00", "USD"), 1);
+        order.confirm();
+        order.processPayment();
+        order.complete(); // Set status to COMPLETED
+        
+        when(orderService.getOrderByNumber(orderNumber)).thenReturn(order);
+        
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> ecommerceService.cancelOrder(orderNumber, reason));
+        assertTrue(exception.getMessage().contains("Cannot cancel completed order"));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCancellingAlreadyCancelledOrder() {
+        // Arrange
+        String orderNumber = "ORDER-123";
+        String reason = "Customer request";
+        
+        Order order = new Order(orderNumber, 1L, 1L);
+        order.addOrderItem("PRODUCT-001", "Test Product", Money.of("20.00", "USD"), 1);
+        order.confirm();
+        order.cancel("Previous cancellation"); // Set status to CANCELLED
+        
+        when(orderService.getOrderByNumber(orderNumber)).thenReturn(order);
+        
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> ecommerceService.cancelOrder(orderNumber, reason));
+        assertTrue(exception.getMessage().contains("Order is already cancelled"));
     }
 }

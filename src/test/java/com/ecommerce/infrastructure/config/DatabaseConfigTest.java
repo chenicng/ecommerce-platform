@@ -18,4 +18,26 @@ class DatabaseConfigTest {
     void contextLoads() {
         assertNotNull(applicationContext);
     }
+
+    @Test
+    void databaseConfigNotLoadedInMockProfile() {
+        // DatabaseConfig should not be loaded when mock profile is active (default test profile)
+        assertFalse(applicationContext.containsBean("databaseConfig"));
+    }
+
+    @Test
+    void databaseConfigClassExists() {
+        // Test that the DatabaseConfig class can be instantiated
+        DatabaseConfig config = new DatabaseConfig();
+        assertNotNull(config);
+    }
+
+    @Test
+    void databaseConfigHasCorrectAnnotations() {
+        // Test that the DatabaseConfig class has the expected annotations
+        assertTrue(DatabaseConfig.class.isAnnotationPresent(org.springframework.context.annotation.Configuration.class));
+        assertTrue(DatabaseConfig.class.isAnnotationPresent(org.springframework.context.annotation.Profile.class));
+        assertTrue(DatabaseConfig.class.isAnnotationPresent(org.springframework.data.jpa.repository.config.EnableJpaRepositories.class));
+        assertTrue(DatabaseConfig.class.isAnnotationPresent(org.springframework.boot.autoconfigure.domain.EntityScan.class));
+    }
 } 
