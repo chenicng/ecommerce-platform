@@ -111,7 +111,7 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
             return true;
         }
         
-        // If backward compatibility is enabled
+        // If backward compatibility is enabled, check if requested version is supported
         if (ApiVersionConfig.VersionCompatibility.BACKWARD_COMPATIBLE) {
             return isVersionSupported(requestedVersion);
         }
