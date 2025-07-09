@@ -7,6 +7,7 @@ import com.ecommerce.application.dto.PurchaseResponse;
 import com.ecommerce.api.dto.Result;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.api.annotation.ApiVersion;
+import com.ecommerce.api.annotation.ApiTimeout;
 import com.ecommerce.api.config.ApiVersionConfig;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Ecommerce Controller
@@ -53,6 +55,13 @@ public class EcommerceController {
      * POST /api/ecommerce/purchase
      */
     @PostMapping("/purchase")
+    @ApiTimeout(value = 10, unit = TimeUnit.SECONDS, message = "Purchase operation timeout")
+    @Operation(summary = "Purchase Product", description = "Process product purchase with inventory and payment validation")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Purchase completed successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data or business validation failed"),
+        @ApiResponse(responseCode = "404", description = "User, product, or merchant not found")
+    })
     public ResponseEntity<Result<PurchaseResponse>> purchaseProduct(@Valid @RequestBody PurchaseRequest request) {
         logger.info("Processing purchase request: {}", request);
         

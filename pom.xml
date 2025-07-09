@@ -94,6 +94,12 @@
             <artifactId>spring-tx</artifactId>
         </dependency>
         
+        <!-- Spring Boot AOP dependency for aspect-oriented programming -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        
         <!-- Spring Boot Test dependency for unit testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
