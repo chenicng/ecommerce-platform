@@ -62,4 +62,76 @@ class ApiVersionControllerTest {
                 .andExpect(jsonPath("$.data.requestedVersion").value("v1"))
                 .andExpect(jsonPath("$.data.isSupported").value(true));
     }
+        
+    @Test
+    void testCheckVersionCompatibility_EmptyString() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/"))
+                .andExpect(status().isNotFound()); 
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_NonNumericVersion() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_NonNumericVersionWithVPrefix() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/vabc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_DecimalVersion() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/v1.0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_DecimalVersionWithoutVPrefix() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/1.0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_VersionWithSpecialChars() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/v1-rc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_VersionWithSpecialCharsWithoutVPrefix() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/1-rc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_SupportedVersionV2() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/v2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requestedVersion").value("v2"))
+                .andExpect(jsonPath("$.data.isSupported").value(true))
+                .andExpect(jsonPath("$.data.currentVersion").value(ApiVersionConfig.DEFAULT_VERSION));
+    }
+    
+    @Test
+    void testCheckVersionCompatibility_SupportedVersionV2WithoutVPrefix() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requestedVersion").value("v2"))
+                .andExpect(jsonPath("$.data.isSupported").value(true))
+                .andExpect(jsonPath("$.data.currentVersion").value(ApiVersionConfig.DEFAULT_VERSION));
+    }
 } 

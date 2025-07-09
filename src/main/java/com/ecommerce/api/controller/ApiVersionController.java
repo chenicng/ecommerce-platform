@@ -114,20 +114,40 @@ public class ApiVersionController {
     @Operation(summary = "Check Version Compatibility", 
                description = "Validates if a specific API version is supported and provides compatibility information")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Version compatibility information retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Version compatibility information retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid version format")
     })
     public ResponseEntity<Result<Map<String, Object>>> checkVersionCompatibility(
             @Parameter(description = "API version to check (e.g., 'v1', '1', 'v2')", required = true, example = "v1")
             @PathVariable String version) {
-        Map<String, Object> result = new HashMap<>();
+        
+        // Validate version format
+        if (version == null || version.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Result.error(
+                com.ecommerce.api.dto.ErrorCode.VALIDATION_ERROR,
+                "Version parameter cannot be null or empty"
+            ));
+        }
         
         // Normalize version number
         String normalizedVersion = version.startsWith("v") ? version : "v" + version;
         
+        // Extract version number (remove 'v' prefix)
+        String versionNumber = normalizedVersion.substring(1);
+        
+        // Validate version number format (should be a positive integer)
+        if (!versionNumber.matches("^\\d+$")) {
+            return ResponseEntity.badRequest().body(Result.error(
+                com.ecommerce.api.dto.ErrorCode.VALIDATION_ERROR,
+                "Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"
+            ));
+        }
+        
         // Check if supported
         boolean isSupported = Arrays.asList(ApiVersionConfig.SUPPORTED_VERSIONS)
-            .contains(normalizedVersion.substring(1));
+            .contains(versionNumber);
         
+        Map<String, Object> result = new HashMap<>();
         result.put("requestedVersion", normalizedVersion);
         result.put("isSupported", isSupported);
         result.put("currentVersion", ApiVersionConfig.DEFAULT_VERSION);
