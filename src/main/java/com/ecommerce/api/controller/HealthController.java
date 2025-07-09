@@ -40,7 +40,7 @@ public class HealthController {
         healthInfo.put("service", "ecommerce-platform");
         healthInfo.put("version", "1.0.0");
         
-        return ResponseEntity.ok(Result.success("System is healthy", healthInfo));
+        return ResponseEntity.ok(Result.successWithMessage("System is healthy", healthInfo));
     }
     
     /**
@@ -57,6 +57,6 @@ public class HealthController {
         healthInfo.put("status", "OK");
         healthInfo.put("timestamp", LocalDateTime.now());
         
-        return ResponseEntity.ok(Result.success("Service is ready", healthInfo));
+        return ResponseEntity.ok(Result.successWithMessage("Service is ready", healthInfo));
     }
 } 

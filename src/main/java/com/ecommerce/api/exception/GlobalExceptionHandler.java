@@ -131,12 +131,18 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<String>> handleUnexpectedException(Exception e, WebRequest request) {
+        if (e == null) {
+            logger.error("Unexpected error: null exception");
+            Result<String> result = Result.error(ErrorCode.INTERNAL_ERROR, "Internal server error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+        
         logger.error("Unexpected error: {}", e.getMessage(), e);
         
         Result<String> result = Result.error(
             ErrorCode.INTERNAL_ERROR, 
             "Internal server error occurred",
-            request.getDescription(false)
+            request != null ? request.getDescription(false) : "Unknown request"
         );
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);

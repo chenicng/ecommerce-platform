@@ -69,7 +69,7 @@ public class EcommerceController {
         PurchaseResponse response = ecommerceService.processPurchase(request);
         
         logger.info("Purchase completed successfully: {}", response.getOrderNumber());
-        return ResponseEntity.ok(Result.success("Purchase completed successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("Purchase completed successfully", response));
     }
     
     /**
@@ -89,7 +89,7 @@ public class EcommerceController {
         response.put("orderNumber", orderNumber);
         response.put("reason", request.getReason());
         
-        return ResponseEntity.ok(Result.success("Order cancelled successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("Order cancelled successfully", response));
     }
 
     /**

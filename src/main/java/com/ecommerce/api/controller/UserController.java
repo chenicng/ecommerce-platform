@@ -76,7 +76,7 @@ public class UserController {
         );
         
         logger.info("User created successfully with ID: {}", user.getId());
-        return ResponseEntity.ok(Result.success("User created successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("User created successfully", response));
     }
     
     /**
@@ -110,7 +110,7 @@ public class UserController {
         );
         
         logger.info("Recharge completed for user {}: new balance={}", userId, balance);
-        return ResponseEntity.ok(Result.success("Recharge completed successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("Recharge completed successfully", response));
     }
     
     /**
@@ -153,7 +153,7 @@ public class UserController {
         response.put("timestamp", java.time.LocalDateTime.now());
         
         logger.info("Debug: Current system has {} users with IDs: {}", userCount, userIds);
-        return ResponseEntity.ok(Result.success("Debug information retrieved successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("Debug information retrieved successfully", response));
     }
     
     // DTO classes

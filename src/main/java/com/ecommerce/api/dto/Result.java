@@ -31,7 +31,7 @@ public class Result<T> {
     /**
      * Create success response with custom message
      */
-    public static <T> Result<T> success(String message, T data) {
+    public static <T> Result<T> successWithMessage(String message, T data) {
         return new Result<>(ErrorCode.SUCCESS.getCode(), message, data);
     }
     

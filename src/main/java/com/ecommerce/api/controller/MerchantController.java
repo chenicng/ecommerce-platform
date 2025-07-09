@@ -70,7 +70,7 @@ public class MerchantController {
         );
         
         logger.info("Merchant created successfully with id: {}", merchant.getId());
-        return ResponseEntity.ok(Result.success("Merchant created successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("Merchant created successfully", response));
     }
     
     /**
@@ -109,7 +109,7 @@ public class MerchantController {
         );
         
         logger.info("Product created successfully: {}", product.getSku());
-        return ResponseEntity.ok(Result.success("Product created successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("Product created successfully", response));
     }
     
     /**
@@ -137,7 +137,7 @@ public class MerchantController {
         );
         
         logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
-        return ResponseEntity.ok(Result.success("Inventory added successfully", response));
+        return ResponseEntity.ok(Result.successWithMessage("Inventory added successfully", response));
     }
     
     /**
