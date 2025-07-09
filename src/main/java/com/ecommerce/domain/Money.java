@@ -36,6 +36,9 @@ public final class Money {
     }
     
     public static Money of(String amount, String currency) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount cannot be null or negative");
+        }
         return of(new BigDecimal(amount), currency);
     }
     

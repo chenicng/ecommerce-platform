@@ -23,6 +23,9 @@ public final class MerchantAccount {
         if (totalIncome == null) {
             throw new IllegalArgumentException("Total income cannot be null");
         }
+        if (!balance.getCurrency().equals(totalIncome.getCurrency())) {
+            throw new IllegalArgumentException("Balance and total income must have the same currency");
+        }
         this.balance = balance;
         this.totalIncome = totalIncome;
     }
