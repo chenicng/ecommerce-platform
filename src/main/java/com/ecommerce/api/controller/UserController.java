@@ -2,11 +2,18 @@ package com.ecommerce.api.controller;
 
 import com.ecommerce.application.service.UserService;
 import com.ecommerce.domain.Money;
+import com.ecommerce.api.dto.Result;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.Valid;
+import org.springframework.context.annotation.Profile;
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * User Controller
@@ -29,41 +36,28 @@ public class UserController {
      * POST /api/users
      */
     @PostMapping
-    public ResponseEntity<Object> createUser(@RequestBody CreateUserRequest request) {
-        try {
-            logger.info("Creating user: {}", request.getUsername());
-            
-            var user = userService.createUser(
-                request.getUsername(),
-                request.getEmail(),
-                request.getPhone(),
-                "CNY" // Default currency
-            );
-            
-            UserResponse response = new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getBalance().getAmount(),
-                user.getBalance().getCurrency(),
-                user.getStatus().toString()
-            );
-            
-            logger.info("User created successfully with ID: {}", user.getId());
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to create user: {}", e.getMessage());
-            
-            ErrorResponse errorResponse = new ErrorResponse(
-                "USER_CREATION_FAILED",
-                e.getMessage(),
-                "/api/users"
-            );
-            
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+        logger.info("Creating user: {}", request.getUsername());
+        
+        var user = userService.createUser(
+            request.getUsername(),
+            request.getEmail(),
+            request.getPhone(),
+            "CNY" // Default currency
+        );
+        
+        UserResponse response = new UserResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getBalance().getAmount(),
+            user.getBalance().getCurrency(),
+            user.getStatus().toString()
+        );
+        
+        logger.info("User created successfully with ID: {}", user.getId());
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -71,58 +65,25 @@ public class UserController {
      * POST /api/users/{userId}/recharge
      */
     @PostMapping("/{userId}/recharge")
-    public ResponseEntity<Object> rechargeUser(@PathVariable Long userId, 
-                                             @RequestBody RechargeRequest request) {
-        try {
-            logger.info("Processing recharge for user {}: amount={}", userId, request.getAmount());
-            
-            // Validate request parameters
-            if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Recharge amount must be positive");
-            }
-            
-            // Recharge
-            Money rechargeAmount = Money.of(request.getAmount(), request.getCurrency());
-            userService.rechargeUser(userId, rechargeAmount);
-            
-            // Get balance after recharge
-            Money balance = userService.getUserBalance(userId);
-            
-            BalanceResponse response = new BalanceResponse(
-                userId,
-                balance.getAmount(),
-                balance.getCurrency()
-            );
-            
-            logger.info("Recharge completed for user {}: new balance={}", userId, balance);
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to recharge user {}: {}", userId, e.getMessage());
-            
-            // Provide more specific error messages
-            String errorCode;
-            String errorMessage;
-            if (e.getMessage().contains("User not found")) {
-                errorCode = "USER_NOT_FOUND";
-                errorMessage = String.format("User with ID %d does not exist. Please verify the user ID or create the user first.", userId);
-                
-                // Log existing users for debugging
-                var existingUsers = userService.getAllUserIds();
-                logger.warn("Available user IDs: {}", existingUsers);
-            } else {
-                errorCode = "RECHARGE_FAILED";
-                errorMessage = e.getMessage();
-            }
-            
-            ErrorResponse errorResponse = new ErrorResponse(
-                errorCode,
-                errorMessage,
-                "/api/users/" + userId + "/recharge"
-            );
-            
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
+    public ResponseEntity<BalanceResponse> rechargeUser(@PathVariable Long userId, 
+                                                              @Valid @RequestBody RechargeRequest request) {
+        logger.info("Processing recharge for user {}: amount={}", userId, request.getAmount());
+        
+        // Recharge - validation is handled by @Valid annotation
+        Money rechargeAmount = Money.of(request.getAmount(), request.getCurrency());
+        userService.rechargeUser(userId, rechargeAmount);
+        
+        // Get balance after recharge
+        Money balance = userService.getUserBalance(userId);
+        
+        BalanceResponse response = new BalanceResponse(
+            userId,
+            balance.getAmount(),
+            balance.getCurrency()
+        );
+        
+        logger.info("Recharge completed for user {}: new balance={}", userId, balance);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -130,66 +91,47 @@ public class UserController {
      * GET /api/users/{userId}/balance
      */
     @GetMapping("/{userId}/balance")
-    public ResponseEntity<Object> getUserBalance(@PathVariable Long userId) {
-        try {
-            Money balance = userService.getUserBalance(userId);
-            
-            BalanceResponse response = new BalanceResponse(
-                userId,
-                balance.getAmount(),
-                balance.getCurrency()
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get balance for user {}: {}", userId, e.getMessage());
-            
-            ErrorResponse errorResponse = new ErrorResponse(
-                "BALANCE_QUERY_FAILED",
-                e.getMessage(),
-                "/api/users/" + userId + "/balance"
-            );
-            
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
+    public ResponseEntity<BalanceResponse> getUserBalance(@PathVariable Long userId) {
+        Money balance = userService.getUserBalance(userId);
+        
+        BalanceResponse response = new BalanceResponse(
+            userId,
+            balance.getAmount(),
+            balance.getCurrency()
+        );
+        
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * Get all existing user IDs (for debugging)
+     * Get all existing user IDs (for debugging - only available in dev/test environments)
      * GET /api/users/debug/all-ids
      */
     @GetMapping("/debug/all-ids")
-    public ResponseEntity<Object> getAllUserIds() {
-        try {
-            var userIds = userService.getAllUserIds();
-            int userCount = userService.getUserCount();
-            
-            var response = new java.util.HashMap<String, Object>();
-            response.put("totalUsers", userCount);
-            response.put("existingUserIds", userIds);
-            response.put("timestamp", java.time.LocalDateTime.now());
-            
-            logger.info("Debug: Current system has {} users with IDs: {}", userCount, userIds);
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get user IDs: {}", e.getMessage());
-            
-            ErrorResponse errorResponse = new ErrorResponse(
-                "DEBUG_FAILED",
-                e.getMessage(),
-                "/api/users/debug/all-ids"
-            );
-            
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
+    @Profile({"dev", "test"})
+    public ResponseEntity<Map<String, Object>> getAllUserIds() {
+        var userIds = userService.getAllUserIds();
+        int userCount = userService.getUserCount();
+        
+        var response = new java.util.HashMap<String, Object>();
+        response.put("totalUsers", userCount);
+        response.put("existingUserIds", userIds);
+        response.put("timestamp", java.time.LocalDateTime.now());
+        
+        logger.info("Debug: Current system has {} users with IDs: {}", userCount, userIds);
+        return ResponseEntity.ok(response);
     }
     
     // DTO classes
     public static class CreateUserRequest {
+        @NotBlank(message = "Username is required")
         private String username;
+        
+        @NotBlank(message = "Email is required")
+        @Email(message = "Invalid email format")
         private String email;
+        
+        @NotBlank(message = "Phone is required")
         private String phone;
         
         // Getters and Setters
@@ -232,7 +174,10 @@ public class UserController {
     }
     
     public static class RechargeRequest {
+        @DecimalMin(value = "0.01", message = "Recharge amount must be positive")
         private BigDecimal amount;
+        
+        @NotBlank(message = "Currency is required")
         private String currency = "CNY";
         
         // Getters and Setters

@@ -4,11 +4,13 @@ import com.ecommerce.application.service.EcommerceService;
 import com.ecommerce.application.service.ProductService;
 import com.ecommerce.application.dto.PurchaseRequest;
 import com.ecommerce.application.dto.PurchaseResponse;
+import com.ecommerce.api.dto.Result;
 import com.ecommerce.domain.product.Product;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -38,29 +40,14 @@ public class EcommerceController {
      * POST /api/ecommerce/purchase
      */
     @PostMapping("/purchase")
-    public ResponseEntity<PurchaseResponse> purchaseProduct(@RequestBody PurchaseRequest request) {
-        try {
-            logger.info("Processing purchase request: {}", request);
-            
-            // Validate request parameters
-            validatePurchaseRequest(request);
-            
-            // Process purchase
-            PurchaseResponse response = ecommerceService.processPurchase(request);
-            
-            logger.info("Purchase completed successfully: {}", response.getOrderNumber());
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Purchase failed: {}", e.getMessage(), e);
-            
-            // Return error response
-            PurchaseResponse errorResponse = new PurchaseResponse();
-            errorResponse.setStatus("FAILED");
-            errorResponse.setMessage(e.getMessage());
-            
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
+    public ResponseEntity<PurchaseResponse> purchaseProduct(@Valid @RequestBody PurchaseRequest request) {
+        logger.info("Processing purchase request: {}", request);
+        
+        // Process purchase - exceptions will be handled by GlobalExceptionHandler
+        PurchaseResponse response = ecommerceService.processPurchase(request);
+        
+        logger.info("Purchase completed successfully: {}", response.getOrderNumber());
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -68,32 +55,19 @@ public class EcommerceController {
      * POST /api/ecommerce/orders/{orderNumber}/cancel
      */
     @PostMapping("/orders/{orderNumber}/cancel")
-    public ResponseEntity<?> cancelOrder(@PathVariable String orderNumber, 
-                                       @RequestBody CancelOrderRequest request) {
-        try {
-            logger.info("Cancelling order: {} with reason: {}", orderNumber, request.getReason());
-            
-            ecommerceService.cancelOrder(orderNumber, request.getReason());
-            
-            logger.info("Order cancelled successfully: {}", orderNumber);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "SUCCESS");
-            response.put("message", "Order cancelled successfully");
-            response.put("orderNumber", orderNumber);
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to cancel order {}: {}", orderNumber, e.getMessage(), e);
-            
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", "FAILED");
-            errorResponse.put("message", e.getMessage());
-            errorResponse.put("orderNumber", orderNumber);
-            
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
+    public ResponseEntity<Result<Map<String, Object>>> cancelOrder(@PathVariable String orderNumber, 
+                                                                 @RequestBody CancelOrderRequest request) {
+        logger.info("Cancelling order: {} with reason: {}", orderNumber, request.getReason());
+        
+        ecommerceService.cancelOrder(orderNumber, request.getReason());
+        
+        logger.info("Order cancelled successfully: {}", orderNumber);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("orderNumber", orderNumber);
+        response.put("reason", request.getReason());
+        
+        return ResponseEntity.ok(Result.success("Order cancelled successfully", response));
     }
 
     /**
@@ -102,30 +76,24 @@ public class EcommerceController {
      */
     @GetMapping("/products/{sku}")
     public ResponseEntity<ProductDetailResponse> getProductBySku(@PathVariable String sku) {
-        try {
-            logger.info("Getting product details for SKU: {}", sku);
-            
-            Product product = productService.getProductBySku(sku);
-            
-            ProductDetailResponse response = new ProductDetailResponse(
-                product.getId(),
-                product.getSku(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice().getAmount(),
-                product.getPrice().getCurrency(),
-                product.getMerchantId(),
-                product.getAvailableInventory(),
-                product.getStatus().toString(),
-                product.isAvailable()
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get product with SKU {}: {}", sku, e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        logger.info("Getting product details for SKU: {}", sku);
+        
+        Product product = productService.getProductBySku(sku);
+        
+        ProductDetailResponse response = new ProductDetailResponse(
+            product.getId(),
+            product.getSku(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice().getAmount(),
+            product.getPrice().getCurrency(),
+            product.getMerchantId(),
+            product.getAvailableInventory(),
+            product.getStatus().toString(),
+            product.isAvailable()
+        );
+        
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -146,60 +114,54 @@ public class EcommerceController {
     public ResponseEntity<ProductListResponse> getAvailableProducts(
             @RequestParam(value = "search", required = false) String searchTerm,
             @RequestParam(value = "merchantId", required = false) Long merchantId) {
-        try {
-            logger.info("Getting available products with search: {}, merchantId: {}", searchTerm, merchantId);
-            
-            List<Product> products;
-            
-            // Support combined search and merchant filtering
-            if (searchTerm != null && !searchTerm.trim().isEmpty() && merchantId != null) {
-                // Search within specific merchant's products
-                products = productService.getProductsByMerchant(merchantId)
-                    .stream()
-                    .filter(Product::isAvailable)
-                    .filter(product -> product.getName().toLowerCase().contains(searchTerm.toLowerCase()) ||
-                                     product.getDescription().toLowerCase().contains(searchTerm.toLowerCase()))
-                    .collect(Collectors.toList());
-            } else if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-                // Global search across all merchants
-                products = productService.searchAvailableProducts(searchTerm);
-            } else if (merchantId != null) {
-                // Get all available products from specific merchant
-                products = productService.getProductsByMerchant(merchantId)
-                    .stream()
-                    .filter(Product::isAvailable)
-                    .collect(Collectors.toList());
-            } else {
-                // Get all available products
-                products = productService.getAllAvailableProducts();
-            }
-
-            List<ProductSummaryResponse> productSummaries = products.stream()
-                .map(product -> new ProductSummaryResponse(
-                    product.getId(),
-                    product.getSku(),
-                    product.getName(),
-                    product.getPrice().getAmount(),
-                    product.getPrice().getCurrency(),
-                    product.getMerchantId(),
-                    product.getAvailableInventory(),
-                    product.isAvailable()
-                ))
+        logger.info("Getting available products with search: {}, merchantId: {}", searchTerm, merchantId);
+        
+        List<Product> products;
+        
+        // Support combined search and merchant filtering
+        if (searchTerm != null && !searchTerm.trim().isEmpty() && merchantId != null) {
+            // Search within specific merchant's products
+            products = productService.getProductsByMerchant(merchantId)
+                .stream()
+                .filter(Product::isAvailable)
+                .filter(product -> product.getName().toLowerCase().contains(searchTerm.toLowerCase()) ||
+                                 product.getDescription().toLowerCase().contains(searchTerm.toLowerCase()))
                 .collect(Collectors.toList());
-            
-            ProductListResponse response = new ProductListResponse(
-                productSummaries,
-                productSummaries.size(),
-                searchTerm,
-                merchantId
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get products: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+        } else if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            // Global search across all merchants
+            products = productService.searchAvailableProducts(searchTerm);
+        } else if (merchantId != null) {
+            // Get all available products from specific merchant
+            products = productService.getProductsByMerchant(merchantId)
+                .stream()
+                .filter(Product::isAvailable)
+                .collect(Collectors.toList());
+        } else {
+            // Get all available products
+            products = productService.getAllAvailableProducts();
         }
+
+        List<ProductSummaryResponse> productSummaries = products.stream()
+            .map(product -> new ProductSummaryResponse(
+                product.getId(),
+                product.getSku(),
+                product.getName(),
+                product.getPrice().getAmount(),
+                product.getPrice().getCurrency(),
+                product.getMerchantId(),
+                product.getAvailableInventory(),
+                product.isAvailable()
+            ))
+            .collect(Collectors.toList());
+        
+        ProductListResponse response = new ProductListResponse(
+            productSummaries,
+            productSummaries.size(),
+            searchTerm,
+            merchantId
+        );
+        
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -208,38 +170,21 @@ public class EcommerceController {
      */
     @GetMapping("/products/{sku}/inventory")
     public ResponseEntity<InventoryResponse> getProductInventory(@PathVariable String sku) {
-        try {
-            logger.info("Checking inventory for product: {}", sku);
-            
-            Product product = productService.getProductBySku(sku);
-            
-            InventoryResponse response = new InventoryResponse(
-                product.getSku(),
-                product.getName(),
-                product.getAvailableInventory(),
-                product.isAvailable(),
-                product.getStatus().toString()
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get inventory for product {}: {}", sku, e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        logger.info("Checking inventory for product: {}", sku);
+        
+        Product product = productService.getProductBySku(sku);
+        
+        InventoryResponse response = new InventoryResponse(
+            product.getSku(),
+            product.getName(),
+            product.getAvailableInventory(),
+            product.isAvailable(),
+            product.getStatus().toString()
+        );
+        
+        return ResponseEntity.ok(response);
     }
-    
-    private void validatePurchaseRequest(PurchaseRequest request) {
-        if (request.getUserId() == null) {
-            throw new IllegalArgumentException("User ID is required");
-        }
-        if (request.getSku() == null || request.getSku().trim().isEmpty()) {
-            throw new IllegalArgumentException("SKU is required");
-        }
-        if (request.getQuantity() <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
-        }
-    }
+
     
     // DTO classes for product queries
     public static class ProductDetailResponse {

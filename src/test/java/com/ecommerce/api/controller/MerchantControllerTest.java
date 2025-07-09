@@ -177,7 +177,7 @@ class MerchantControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/merchants/{merchantId}/products", 999L))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(merchantService).merchantExists(999L);
         verify(productService, never()).getProductsByMerchant(anyLong());
@@ -225,7 +225,7 @@ class MerchantControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/merchants/{merchantId}/income", 1L))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(merchantService).getMerchantBalance(1L);
     }
@@ -241,11 +241,11 @@ class MerchantControllerTest {
         doNothing().when(productService).addProductInventory("IPHONE15", 50);
 
         // When & Then
-        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/add-inventory", 1L, "IPHONE15")
+        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Inventory added successfully"));
+                .andExpect(content().string("Added 50 units to product IPHONE15"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).addProductInventory("IPHONE15", 50);
@@ -260,10 +260,10 @@ class MerchantControllerTest {
         when(merchantService.merchantExists(999L)).thenReturn(false);
 
         // When & Then
-        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/add-inventory", 999L, "IPHONE15")
+        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 999L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(merchantService).merchantExists(999L);
         verify(productService, never()).addProductInventory(anyString(), anyInt());
@@ -279,10 +279,10 @@ class MerchantControllerTest {
         when(productService.getProductBySku("UNKNOWN")).thenThrow(new RuntimeException("Product not found"));
 
         // When & Then
-        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/add-inventory", 1L, "UNKNOWN")
+        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "UNKNOWN")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(merchantService).merchantExists(1L);
         verify(productService).getProductBySku("UNKNOWN");
@@ -293,16 +293,15 @@ class MerchantControllerTest {
         // Given
         MerchantController.AddInventoryRequest addInventoryRequest = new MerchantController.AddInventoryRequest();
         addInventoryRequest.setQuantity(-10);
-        
-        when(merchantService.merchantExists(1L)).thenReturn(true);
 
         // When & Then
-        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/add-inventory", 1L, "IPHONE15")
+        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isBadRequest());
 
-        verify(merchantService).merchantExists(1L);
+        // Note: When Bean Validation fails, the controller method is never called,
+        // so we don't verify merchantService.merchantExists() or productService interactions
         verify(productService, never()).addProductInventory(anyString(), anyInt());
     }
 
@@ -319,7 +318,7 @@ class MerchantControllerTest {
         when(productService.getProductBySku("IPHONE15")).thenReturn(otherMerchantProduct);
 
         // When & Then
-        mockMvc.perform(post("/api/merchants/{merchantId}/products/{sku}/add-inventory", 1L, "IPHONE15")
+        mockMvc.perform(put("/api/merchants/{merchantId}/products/{sku}/inventory", 1L, "IPHONE15")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isBadRequest());

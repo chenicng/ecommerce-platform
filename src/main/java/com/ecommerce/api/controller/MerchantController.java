@@ -5,10 +5,15 @@ import com.ecommerce.application.service.ProductService;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
+import com.ecommerce.api.dto.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,39 +41,33 @@ public class MerchantController {
      * POST /api/merchants
      */
     @PostMapping
-    public ResponseEntity<MerchantResponse> createMerchant(@RequestBody CreateMerchantRequest request) {
-        try {
-            logger.info("Creating merchant with name: {}", request.getMerchantName());
-            
-            var merchant = merchantService.createMerchant(
-                request.getMerchantName(),
-                request.getBusinessLicense(),
-                request.getContactEmail(),
-                request.getContactPhone()
-            );
-            
-            Money balance = merchantService.getMerchantBalance(merchant.getId());
-            Money totalIncome = merchantService.getMerchantTotalIncome(merchant.getId());
-            
-            MerchantResponse response = new MerchantResponse(
-                merchant.getId(),
-                merchant.getMerchantName(),
-                merchant.getBusinessLicense(),
-                merchant.getContactEmail(),
-                merchant.getContactPhone(),
-                balance.getAmount(),
-                balance.getCurrency(),
-                totalIncome.getAmount(),
-                merchant.getStatus().toString()
-            );
-            
-            logger.info("Merchant created successfully with id: {}", merchant.getId());
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to create merchant: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<MerchantResponse> createMerchant(@Valid @RequestBody CreateMerchantRequest request) {
+        logger.info("Creating merchant with name: {}", request.getMerchantName());
+        
+        var merchant = merchantService.createMerchant(
+            request.getMerchantName(),
+            request.getBusinessLicense(),
+            request.getContactEmail(),
+            request.getContactPhone()
+        );
+        
+        Money balance = merchantService.getMerchantBalance(merchant.getId());
+        Money totalIncome = merchantService.getMerchantTotalIncome(merchant.getId());
+        
+        MerchantResponse response = new MerchantResponse(
+            merchant.getId(),
+            merchant.getMerchantName(),
+            merchant.getBusinessLicense(),
+            merchant.getContactEmail(),
+            merchant.getContactPhone(),
+            balance.getAmount(),
+            balance.getCurrency(),
+            totalIncome.getAmount(),
+            merchant.getStatus().toString()
+        );
+        
+        logger.info("Merchant created successfully with id: {}", merchant.getId());
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -76,77 +75,70 @@ public class MerchantController {
      * POST /api/merchants/{merchantId}/products
      */
     @PostMapping("/{merchantId}/products")
-    public ResponseEntity<ProductResponse> createProduct(@PathVariable Long merchantId,
-                                                        @RequestBody CreateProductRequest request) {
-        try {
-            logger.info("Creating product for merchant {}: {}", merchantId, request.getSku());
-            
-            // Validate merchant exists
-            if (!merchantService.merchantExists(merchantId)) {
-                throw new RuntimeException("Merchant not found with id: " + merchantId);
-            }
-            
-            Product product = productService.createProduct(
-                request.getSku(), 
-                request.getName(), 
-                request.getDescription(),
-                Money.of(request.getPrice(), request.getCurrency()),
-                merchantId,
-                request.getInitialInventory()
-            );
-            
-            ProductResponse response = new ProductResponse(
-                product.getId(),
-                product.getSku(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice().getAmount(),
-                product.getPrice().getCurrency(),
-                product.getMerchantId(),
-                product.getAvailableInventory(),
-                product.getStatus().toString()
-            );
-            
-            logger.info("Product created successfully: {}", product.getSku());
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to create product for merchant {}: {}", merchantId, e.getMessage());
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<Result<ProductResponse>> createProduct(@PathVariable Long merchantId,
+                                                               @Valid @RequestBody CreateProductRequest request) {
+        logger.info("Creating product for merchant {}: {}", merchantId, request.getSku());
+        
+        // Validate merchant exists
+        if (!merchantService.merchantExists(merchantId)) {
+            throw new RuntimeException("Merchant not found with id: " + merchantId);
         }
+        
+        Product product = productService.createProduct(
+            request.getSku(), 
+            request.getName(), 
+            request.getDescription(),
+            Money.of(request.getPrice(), request.getCurrency()),
+            merchantId,
+            request.getInitialInventory()
+        );
+        
+        ProductResponse response = new ProductResponse(
+            product.getId(),
+            product.getSku(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice().getAmount(),
+            product.getPrice().getCurrency(),
+            product.getMerchantId(),
+            product.getAvailableInventory(),
+            product.getStatus().toString()
+        );
+        
+        logger.info("Product created successfully: {}", product.getSku());
+        return ResponseEntity.ok(Result.success("Product created successfully", response));
     }
     
     /**
-     * Add product inventory
-     * POST /api/merchants/{merchantId}/products/{sku}/add-inventory
+     * Update product inventory (add inventory)
+     * PUT /api/merchants/{merchantId}/products/{sku}/inventory
      */
-    @PostMapping("/{merchantId}/products/{sku}/add-inventory")
+    @PutMapping("/{merchantId}/products/{sku}/inventory")
     public ResponseEntity<String> addProductInventory(@PathVariable Long merchantId,
-                                                  @PathVariable String sku,
-                                                  @RequestBody AddInventoryRequest request) {
-        try {
-            logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
-            
-            // Validate merchant exists
-            if (!merchantService.merchantExists(merchantId)) {
-                throw new RuntimeException("Merchant not found with id: " + merchantId);
-            }
-            
-            // Validate product exists and belongs to this merchant
-            Product product = productService.getProductBySku(sku);
-            if (!product.getMerchantId().equals(merchantId)) {
-                throw new RuntimeException("Product does not belong to this merchant");
-            }
-            
-            productService.addProductInventory(sku, request.getQuantity());
-            
-            logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
-            return ResponseEntity.ok("Inventory added successfully");
-            
-        } catch (Exception e) {
-            logger.error("Failed to add inventory for merchant {}, product {}: {}", merchantId, sku, e.getMessage());
-            return ResponseEntity.badRequest().body("Failed to add inventory: " + e.getMessage());
+                                                            @PathVariable String sku,
+                                                            @Valid @RequestBody AddInventoryRequest request) {
+        logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
+        
+        // Validate merchant exists
+        if (!merchantService.merchantExists(merchantId)) {
+            throw new RuntimeException("Merchant not found with id: " + merchantId);
         }
+        
+        // Validate product exists and belongs to this merchant
+        Product product = productService.getProductBySku(sku);
+        if (!product.getMerchantId().equals(merchantId)) {
+            throw new RuntimeException("Product does not belong to this merchant");
+        }
+        
+        // Validate quantity
+        if (request.getQuantity() <= 0) {
+            throw new RuntimeException("Quantity must be positive");
+        }
+        
+        productService.addProductInventory(sku, request.getQuantity());
+        
+        logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
+        return ResponseEntity.ok(String.format("Added %d units to product %s", request.getQuantity(), sku));
     }
     
     /**
@@ -155,23 +147,19 @@ public class MerchantController {
      */
     @GetMapping("/{merchantId}/income")
     public ResponseEntity<IncomeResponse> getMerchantIncome(@PathVariable Long merchantId) {
-        try {
-            Money balance = merchantService.getMerchantBalance(merchantId);
-            Money totalIncome = merchantService.getMerchantTotalIncome(merchantId);
-            
-            IncomeResponse response = new IncomeResponse(
-                merchantId,
-                balance.getAmount(),
-                totalIncome.getAmount(),
-                balance.getCurrency()
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get income for merchant {}: {}", merchantId, e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        logger.info("Getting income for merchant: {}", merchantId);
+        
+        Money balance = merchantService.getMerchantBalance(merchantId);
+        Money totalIncome = merchantService.getMerchantTotalIncome(merchantId);
+        
+        IncomeResponse response = new IncomeResponse(
+            merchantId,
+            balance.getAmount(),
+            totalIncome.getAmount(),
+            balance.getCurrency()
+        );
+        
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -193,90 +181,38 @@ public class MerchantController {
             @PathVariable Long merchantId,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "search", required = false) String searchTerm) {
-        try {
-            logger.info("Getting products for merchant {}, status: {}, search: {}", merchantId, status, searchTerm);
-            
-            // Validate merchant exists
-            if (!merchantService.merchantExists(merchantId)) {
-                throw new RuntimeException("Merchant not found with id: " + merchantId);
-            }
-            
-            List<Product> products;
-            
-            // Get base products by merchant
-            products = productService.getProductsByMerchant(merchantId);
-            
-            // Apply status filter if specified
-            if (status != null) {
-                ProductStatus productStatus = ProductStatus.valueOf(status.toUpperCase());
-                products = products.stream()
-                    .filter(product -> product.getStatus().equals(productStatus))
-                    .collect(Collectors.toList());
-            }
-            
-            // Apply search filter if specified
-            if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-                String lowerSearchTerm = searchTerm.toLowerCase();
-                products = products.stream()
-                    .filter(product -> product.getName().toLowerCase().contains(lowerSearchTerm) ||
-                                     product.getDescription().toLowerCase().contains(lowerSearchTerm) ||
-                                     product.getSku().toLowerCase().contains(lowerSearchTerm))
-                    .collect(Collectors.toList());
-            }
-            
-            List<ProductResponse> productResponses = products.stream()
-                .map(product -> new ProductResponse(
-                    product.getId(),
-                    product.getSku(),
-                    product.getName(),
-                    product.getDescription(),
-                    product.getPrice().getAmount(),
-                    product.getPrice().getCurrency(),
-                    product.getMerchantId(),
-                    product.getAvailableInventory(),
-                    product.getStatus().toString()
-                ))
-                .collect(Collectors.toList());
-            
-            MerchantProductListResponse response = new MerchantProductListResponse(
-                merchantId,
-                productResponses,
-                productResponses.size(),
-                status,
-                searchTerm
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get products for merchant {}: {}", merchantId, e.getMessage());
-            return ResponseEntity.badRequest().build();
+        logger.info("Getting products for merchant {}, status: {}, search: {}", merchantId, status, searchTerm);
+        
+        // Validate merchant exists
+        if (!merchantService.merchantExists(merchantId)) {
+            throw new RuntimeException("Merchant not found with id: " + merchantId);
         }
-    }
-    
-    /**
-     * Get single product details for merchant
-     * GET /api/merchants/{merchantId}/products/{sku}
-     */
-    @GetMapping("/{merchantId}/products/{sku}")
-    public ResponseEntity<ProductResponse> getMerchantProduct(@PathVariable Long merchantId,
-                                                             @PathVariable String sku) {
-        try {
-            logger.info("Getting product {} for merchant {}", sku, merchantId);
-            
-            // Validate merchant exists
-            if (!merchantService.merchantExists(merchantId)) {
-                throw new RuntimeException("Merchant not found with id: " + merchantId);
-            }
-            
-            Product product = productService.getProductBySku(sku);
-            
-            // Validate product belongs to this merchant
-            if (!product.getMerchantId().equals(merchantId)) {
-                throw new RuntimeException("Product does not belong to this merchant");
-            }
-            
-            ProductResponse response = new ProductResponse(
+        
+        List<Product> products;
+        
+        // Get base products by merchant
+        products = productService.getProductsByMerchant(merchantId);
+        
+        // Apply status filter if specified
+        if (status != null) {
+            ProductStatus productStatus = ProductStatus.valueOf(status.toUpperCase());
+            products = products.stream()
+                .filter(product -> product.getStatus().equals(productStatus))
+                .collect(Collectors.toList());
+        }
+        
+        // Apply search filter if specified
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            String lowerSearchTerm = searchTerm.toLowerCase();
+            products = products.stream()
+                .filter(product -> product.getName().toLowerCase().contains(lowerSearchTerm) ||
+                                 product.getDescription().toLowerCase().contains(lowerSearchTerm) ||
+                                 product.getSku().toLowerCase().contains(lowerSearchTerm))
+                .collect(Collectors.toList());
+        }
+        
+        List<ProductResponse> productResponses = products.stream()
+            .map(product -> new ProductResponse(
                 product.getId(),
                 product.getSku(),
                 product.getName(),
@@ -286,21 +222,68 @@ public class MerchantController {
                 product.getMerchantId(),
                 product.getAvailableInventory(),
                 product.getStatus().toString()
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Failed to get product {} for merchant {}: {}", sku, merchantId, e.getMessage());
-            return ResponseEntity.notFound().build();
+            ))
+            .collect(Collectors.toList());
+        
+        MerchantProductListResponse response = new MerchantProductListResponse(
+            merchantId,
+            productResponses,
+            productResponses.size(),
+            status,
+            searchTerm
+        );
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Get single product details for merchant
+     * GET /api/merchants/{merchantId}/products/{sku}
+     */
+    @GetMapping("/{merchantId}/products/{sku}")
+    public ResponseEntity<Result<ProductResponse>> getMerchantProduct(@PathVariable Long merchantId,
+                                                                    @PathVariable String sku) {
+        logger.info("Getting product {} for merchant {}", sku, merchantId);
+        
+        // Validate merchant exists
+        if (!merchantService.merchantExists(merchantId)) {
+            throw new RuntimeException("Merchant not found with id: " + merchantId);
         }
+        
+        Product product = productService.getProductBySku(sku);
+        
+        // Validate product belongs to this merchant
+        if (!product.getMerchantId().equals(merchantId)) {
+            throw new RuntimeException("Product does not belong to this merchant");
+        }
+        
+        ProductResponse response = new ProductResponse(
+            product.getId(),
+            product.getSku(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice().getAmount(),
+            product.getPrice().getCurrency(),
+            product.getMerchantId(),
+            product.getAvailableInventory(),
+            product.getStatus().toString()
+        );
+        
+        return ResponseEntity.ok(Result.success(response));
     }
     
     // DTO classes
     public static class CreateMerchantRequest {
+        @NotBlank(message = "Merchant name is required")
         private String merchantName;
+        
+        @NotBlank(message = "Business license is required")
         private String businessLicense;
+        
+        @NotBlank(message = "Contact email is required")
         private String contactEmail;
+        
+        @NotBlank(message = "Contact phone is required")
         private String contactPhone;
         
         // Getters and Setters
@@ -352,11 +335,21 @@ public class MerchantController {
     }
     
     public static class CreateProductRequest {
+        @NotBlank(message = "SKU is required")
         private String sku;
+        
+        @NotBlank(message = "Product name is required")
         private String name;
+        
         private String description;
+        
+        @DecimalMin(value = "0.01", message = "Price must be positive")
         private BigDecimal price;
+        
+        @NotBlank(message = "Currency is required")
         private String currency = "CNY";
+        
+        @Min(value = 0, message = "Initial inventory cannot be negative")
         private int initialInventory;
         
         // Getters and Setters
@@ -412,6 +405,7 @@ public class MerchantController {
     }
     
     public static class AddInventoryRequest {
+        @Min(value = 1, message = "Quantity must be positive")
         private int quantity;
         
         public AddInventoryRequest() {}

@@ -1,12 +1,21 @@
 package com.ecommerce.application.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 /**
  * Purchase Request DTO
  */
 public class PurchaseRequest {
     
+    @NotNull(message = "User ID is required")
     private Long userId;
+    
+    @NotBlank(message = "SKU is required")
     private String sku;
+    
+    @Min(value = 1, message = "Quantity must be positive")
     private int quantity;
     
     // Constructor
