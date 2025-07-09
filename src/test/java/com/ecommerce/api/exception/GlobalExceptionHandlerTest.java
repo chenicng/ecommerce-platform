@@ -16,6 +16,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 class GlobalExceptionHandlerTest {
     
@@ -412,5 +413,39 @@ class GlobalExceptionHandlerTest {
             ResponseEntity<Result<String>> response = handler.handleUnexpectedException(exception, mockRequest);
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         });
+    }
+    
+    @Test
+    void handleNoHandlerFoundException_ShouldReturn404() {
+        // Arrange
+        NoHandlerFoundException exception = new NoHandlerFoundException(
+            "GET", "/api/health1", new org.springframework.http.HttpHeaders()
+        );
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleNoHandlerFoundException(exception, mockRequest);
+        
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), response.getBody().getCode());
+        assertEquals("Endpoint 'GET /api/health1' not found", response.getBody().getMessage());
+    }
+    
+    @Test
+    void handleNoHandlerFoundException_WithDifferentMethodAndPath_ShouldReturnCorrectMessage() {
+        // Arrange
+        NoHandlerFoundException exception = new NoHandlerFoundException(
+            "POST", "/api/v1/users/999/orders", new org.springframework.http.HttpHeaders()
+        );
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleNoHandlerFoundException(exception, mockRequest);
+        
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), response.getBody().getCode());
+        assertEquals("Endpoint 'POST /api/v1/users/999/orders' not found", response.getBody().getMessage());
     }
 } 

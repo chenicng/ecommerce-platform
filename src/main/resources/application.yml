@@ -16,6 +16,11 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss  # Date format
     time-zone: Asia/Shanghai  # Timezone setting
     default-property-inclusion: non-null  # Ignore null values
+  
+  # MVC Configuration for proper 404 error handling
+  mvc:
+    throw-exception-if-no-handler-found: true  # Enable NoHandlerFoundException
+    static-path-pattern: /static/**  # Configure static resource path
 
 # Server Configuration
 server:

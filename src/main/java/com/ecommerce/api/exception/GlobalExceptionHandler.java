@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 /**
  * Global Exception Handler
@@ -21,6 +22,20 @@ import org.springframework.web.context.request.WebRequest;
 public class GlobalExceptionHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
+    /**
+     * Handle 404 Not Found exceptions (NoHandlerFoundException)
+     * This occurs when a request is made to a non-existent endpoint
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<Result<Void>> handleNoHandlerFoundException(NoHandlerFoundException e, WebRequest request) {
+        logger.warn("Endpoint not found: {} {}", e.getHttpMethod(), e.getRequestURL());
+        
+        String message = String.format("Endpoint '%s %s' not found", e.getHttpMethod(), e.getRequestURL());
+        Result<Void> result = Result.error(ErrorCode.RESOURCE_NOT_FOUND, message);
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
     
     /**
      * Handle validation exceptions from @Valid annotations

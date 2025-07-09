@@ -182,6 +182,12 @@ springdoc:
 - Don't expose sensitive information in examples
 - Properly configure authentication and authorization
 
+### 4. Error Handling Best Practices
+- Use appropriate HTTP status codes (404 for not found, 400 for bad request, etc.)
+- Provide descriptive error messages
+- Maintain consistent error response format
+- Log errors appropriately for debugging
+
 ## Technical Advantages
 
 ### ✅ Why Choose Springdoc
