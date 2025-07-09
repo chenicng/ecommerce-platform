@@ -87,8 +87,8 @@ class MerchantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createMerchantRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.merchantName").value("Test Store"))
-                .andExpect(jsonPath("$.businessLicense").value("BL12345678"));
+                .andExpect(jsonPath("$.data.merchantName").value("Test Store"))
+                .andExpect(jsonPath("$.data.businessLicense").value("BL12345678"));
 
         verify(merchantService).createMerchant("Test Store", "BL12345678", "merchant@test.com", "13900139000");
     }
@@ -134,8 +134,8 @@ class MerchantControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/{merchantId}/products", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.merchantId").value(1))
-                .andExpect(jsonPath("$.totalCount").value(1));
+                .andExpect(jsonPath("$.data.merchantId").value(1))
+                .andExpect(jsonPath("$.data.totalCount").value(1));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).getProductsByMerchant(1L);
@@ -151,7 +151,7 @@ class MerchantControllerTest {
         mockMvc.perform(get(API_BASE_PATH + "/{merchantId}/products", 1L)
                 .param("status", "ACTIVE"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.merchantId").value(1));
+                .andExpect(jsonPath("$.data.merchantId").value(1));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).getProductsByMerchant(1L);
@@ -167,7 +167,7 @@ class MerchantControllerTest {
         mockMvc.perform(get(API_BASE_PATH + "/{merchantId}/products", 1L)
                 .param("search", "iPhone"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.merchantId").value(1));
+                .andExpect(jsonPath("$.data.merchantId").value(1));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).getProductsByMerchant(1L);
@@ -195,8 +195,8 @@ class MerchantControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/{merchantId}/products", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.merchantId").value(1))
-                .andExpect(jsonPath("$.totalCount").value(0));
+                .andExpect(jsonPath("$.data.merchantId").value(1))
+                .andExpect(jsonPath("$.data.totalCount").value(0));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).getProductsByMerchant(1L);
@@ -213,9 +213,9 @@ class MerchantControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/{merchantId}/income", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.merchantId").value(1))
-                .andExpect(jsonPath("$.currentBalance").value(15000.00))
-                .andExpect(jsonPath("$.totalIncome").value(25000.00));
+                .andExpect(jsonPath("$.data.merchantId").value(1))
+                .andExpect(jsonPath("$.data.currentBalance").value(15000.00))
+                .andExpect(jsonPath("$.data.totalIncome").value(25000.00));
 
         verify(merchantService).getMerchantBalance(1L);
         verify(merchantService).getMerchantTotalIncome(1L);
@@ -248,8 +248,8 @@ class MerchantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.message").value("Inventory added successfully"));
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.data.message").value("Inventory added successfully"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).addProductInventory("IPHONE15", 50);
@@ -348,8 +348,8 @@ class MerchantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reduceInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.message").value("Inventory reduced successfully"));
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.data.message").value("Inventory reduced successfully"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).reduceInventory("IPHONE15", 20);
@@ -371,8 +371,8 @@ class MerchantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(setInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.message").value("Inventory set successfully"));
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.data.message").value("Inventory set successfully"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).setInventory("IPHONE15", 150);

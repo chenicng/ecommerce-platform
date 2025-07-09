@@ -1,6 +1,7 @@
 package com.ecommerce.api.controller;
 
 import com.ecommerce.api.config.ApiVersionConfig;
+import com.ecommerce.api.dto.Result;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +27,7 @@ public class ApiVersionController {
      * GET /api/version/info
      */
     @GetMapping("/info")
-    public ResponseEntity<Map<String, Object>> getVersionInfo() {
+    public ResponseEntity<Result<Map<String, Object>>> getVersionInfo() {
         Map<String, Object> versionInfo = new HashMap<>();
         
         // Basic version information
@@ -54,7 +55,7 @@ public class ApiVersionController {
         compatibility.put("versionLifecycleMonths", ApiVersionConfig.VersionCompatibility.VERSION_LIFECYCLE_MONTHS);
         versionInfo.put("compatibility", compatibility);
         
-        return ResponseEntity.ok(versionInfo);
+        return ResponseEntity.ok(Result.success(versionInfo));
     }
     
     /**
@@ -62,7 +63,7 @@ public class ApiVersionController {
      * GET /api/version/examples
      */
     @GetMapping("/examples")
-    public ResponseEntity<Map<String, Object>> getVersionExamples() {
+    public ResponseEntity<Result<Map<String, Object>>> getVersionExamples() {
         Map<String, Object> examples = new HashMap<>();
         
         // URL path version control examples
@@ -90,7 +91,7 @@ public class ApiVersionController {
             examples.put("queryParamVersioning", paramExamples);
         }
         
-        return ResponseEntity.ok(examples);
+        return ResponseEntity.ok(Result.success(examples));
     }
     
     /**
@@ -98,7 +99,7 @@ public class ApiVersionController {
      * GET /api/version/compatibility/{version}
      */
     @GetMapping("/compatibility/{version}")
-    public ResponseEntity<Map<String, Object>> checkVersionCompatibility(@PathVariable String version) {
+    public ResponseEntity<Result<Map<String, Object>>> checkVersionCompatibility(@PathVariable String version) {
         Map<String, Object> result = new HashMap<>();
         
         // Normalize version number
@@ -120,6 +121,6 @@ public class ApiVersionController {
         
         result.put("timestamp", LocalDateTime.now());
         
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(Result.success(result));
     }
 } 

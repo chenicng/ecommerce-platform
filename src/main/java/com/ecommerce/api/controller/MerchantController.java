@@ -44,7 +44,7 @@ public class MerchantController {
      * POST /api/merchants
      */
     @PostMapping
-    public ResponseEntity<MerchantResponse> createMerchant(@Valid @RequestBody CreateMerchantRequest request) {
+    public ResponseEntity<Result<MerchantResponse>> createMerchant(@Valid @RequestBody CreateMerchantRequest request) {
         logger.info("Creating merchant with name: {}", request.getMerchantName());
         
         var merchant = merchantService.createMerchant(
@@ -70,7 +70,7 @@ public class MerchantController {
         );
         
         logger.info("Merchant created successfully with id: {}", merchant.getId());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success("Merchant created successfully", response));
     }
     
     /**
@@ -117,7 +117,7 @@ public class MerchantController {
      * POST /api/merchants/{merchantId}/products/{sku}/inventory/add
      */
     @PostMapping("/{merchantId}/products/{sku}/inventory/add")
-    public ResponseEntity<InventoryResponse> addProductInventory(@PathVariable Long merchantId,
+    public ResponseEntity<Result<InventoryResponse>> addProductInventory(@PathVariable Long merchantId,
                                                                @PathVariable String sku,
                                                                @Valid @RequestBody AddInventoryRequest request) {
         logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
@@ -137,7 +137,7 @@ public class MerchantController {
         );
         
         logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success("Inventory added successfully", response));
     }
     
     /**
@@ -145,7 +145,7 @@ public class MerchantController {
      * POST /api/merchants/{merchantId}/products/{sku}/inventory/reduce
      */
     @PostMapping("/{merchantId}/products/{sku}/inventory/reduce")
-    public ResponseEntity<InventoryResponse> reduceProductInventory(@PathVariable Long merchantId,
+    public ResponseEntity<Result<InventoryResponse>> reduceProductInventory(@PathVariable Long merchantId,
                                                                   @PathVariable String sku,
                                                                   @Valid @RequestBody ReduceInventoryRequest request) {
         logger.info("Reducing inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
@@ -165,7 +165,7 @@ public class MerchantController {
         );
         
         logger.info("Inventory reduced successfully for product {}: quantity={}", sku, request.getQuantity());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**
@@ -173,7 +173,7 @@ public class MerchantController {
      * PUT /api/merchants/{merchantId}/products/{sku}/inventory
      */
     @PutMapping("/{merchantId}/products/{sku}/inventory")
-    public ResponseEntity<InventoryResponse> setProductInventory(@PathVariable Long merchantId,
+    public ResponseEntity<Result<InventoryResponse>> setProductInventory(@PathVariable Long merchantId,
                                                                @PathVariable String sku,
                                                                @Valid @RequestBody SetInventoryRequest request) {
         logger.info("Setting inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
@@ -193,7 +193,7 @@ public class MerchantController {
         );
         
         logger.info("Inventory set successfully for product {}: quantity={}", sku, request.getQuantity());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**
@@ -217,7 +217,7 @@ public class MerchantController {
      * GET /api/merchants/{merchantId}/income
      */
     @GetMapping("/{merchantId}/income")
-    public ResponseEntity<IncomeResponse> getMerchantIncome(@PathVariable Long merchantId) {
+    public ResponseEntity<Result<IncomeResponse>> getMerchantIncome(@PathVariable Long merchantId) {
         logger.info("Getting income for merchant: {}", merchantId);
         
         Money balance = merchantService.getMerchantBalance(merchantId);
@@ -230,7 +230,7 @@ public class MerchantController {
             balance.getCurrency()
         );
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**
@@ -248,7 +248,7 @@ public class MerchantController {
      * For public product browsing, use /api/ecommerce/products?merchantId={merchantId} instead.
      */
     @GetMapping("/{merchantId}/products")
-    public ResponseEntity<MerchantProductListResponse> getMerchantProducts(
+    public ResponseEntity<Result<MerchantProductListResponse>> getMerchantProducts(
             @PathVariable Long merchantId,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "search", required = false) String searchTerm) {
@@ -304,7 +304,7 @@ public class MerchantController {
             searchTerm
         );
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**

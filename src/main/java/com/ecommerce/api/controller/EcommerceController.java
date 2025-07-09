@@ -43,14 +43,14 @@ public class EcommerceController {
      * POST /api/ecommerce/purchase
      */
     @PostMapping("/purchase")
-    public ResponseEntity<PurchaseResponse> purchaseProduct(@Valid @RequestBody PurchaseRequest request) {
+    public ResponseEntity<Result<PurchaseResponse>> purchaseProduct(@Valid @RequestBody PurchaseRequest request) {
         logger.info("Processing purchase request: {}", request);
         
         // Process purchase - exceptions will be handled by GlobalExceptionHandler
         PurchaseResponse response = ecommerceService.processPurchase(request);
         
         logger.info("Purchase completed successfully: {}", response.getOrderNumber());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success("Purchase completed successfully", response));
     }
     
     /**
@@ -78,7 +78,7 @@ public class EcommerceController {
      * GET /api/ecommerce/products/{sku}
      */
     @GetMapping("/products/{sku}")
-    public ResponseEntity<ProductDetailResponse> getProductBySku(@PathVariable String sku) {
+    public ResponseEntity<Result<ProductDetailResponse>> getProductBySku(@PathVariable String sku) {
         logger.info("Getting product details for SKU: {}", sku);
         
         Product product = productService.getProductBySku(sku);
@@ -96,7 +96,7 @@ public class EcommerceController {
             product.isAvailable()
         );
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**
@@ -114,7 +114,7 @@ public class EcommerceController {
      * For merchant product management, use /api/merchants/{merchantId}/products instead.
      */
     @GetMapping("/products")
-    public ResponseEntity<ProductListResponse> getAvailableProducts(
+    public ResponseEntity<Result<ProductListResponse>> getAvailableProducts(
             @RequestParam(value = "search", required = false) String searchTerm,
             @RequestParam(value = "merchantId", required = false) Long merchantId) {
         logger.info("Getting available products with search: {}, merchantId: {}", searchTerm, merchantId);
@@ -164,7 +164,7 @@ public class EcommerceController {
             merchantId
         );
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**
@@ -172,7 +172,7 @@ public class EcommerceController {
      * GET /api/ecommerce/products/{sku}/inventory
      */
     @GetMapping("/products/{sku}/inventory")
-    public ResponseEntity<InventoryResponse> getProductInventory(@PathVariable String sku) {
+    public ResponseEntity<Result<InventoryResponse>> getProductInventory(@PathVariable String sku) {
         logger.info("Checking inventory for product: {}", sku);
         
         Product product = productService.getProductBySku(sku);
@@ -185,7 +185,7 @@ public class EcommerceController {
             product.getStatus().toString()
         );
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
 
     

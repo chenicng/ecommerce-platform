@@ -48,7 +48,7 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
             response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write(String.format(
-                "{\"errorCode\":\"UNSUPPORTED_API_VERSION\",\"message\":\"API version '%s' is not supported. Current version: '%s'\",\"timestamp\":\"%s\"}",
+                "{\"code\":\"UNSUPPORTED_API_VERSION\",\"message\":\"API version '%s' is not supported. Current version: '%s'\",\"data\":null,\"timestamp\":\"%s\"}",
                 requestedVersion, methodVersion.value(), java.time.LocalDateTime.now()
             ));
             return false;

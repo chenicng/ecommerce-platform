@@ -1,5 +1,7 @@
 package com.ecommerce.api.exception;
 
+import com.ecommerce.api.dto.ErrorCode;
+import com.ecommerce.api.dto.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -10,10 +12,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Global Exception Handler
@@ -28,7 +26,7 @@ public class GlobalExceptionHandler {
      * Handle validation exceptions from @Valid annotations
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException e) {
+    public ResponseEntity<Result<Void>> handleValidationException(MethodArgumentNotValidException e) {
         logger.warn("Validation error: {}", e.getMessage());
         
         StringBuilder errorMessage = new StringBuilder();
@@ -49,72 +47,82 @@ public class GlobalExceptionHandler {
             }
         });
         
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("status", "FAILED");
-        errorResponse.put("message", errorMessage.toString());
-        
-        return ResponseEntity.badRequest().body(errorResponse);
+        Result<Void> result = Result.error(ErrorCode.VALIDATION_ERROR, errorMessage.toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
     
     /**
      * Handle bind exceptions
      */
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<ErrorResponse> handleBindException(BindException e) {
+    public ResponseEntity<Result<String>> handleBindException(BindException e) {
         logger.warn("Bind error: {}", e.getMessage());
         
-        Map<String, String> errors = new HashMap<>();
+        StringBuilder errors = new StringBuilder();
         e.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            if (errors.length() > 0) {
+                errors.append(", ");
+            }
+            errors.append(fieldName).append(": ").append(errorMessage);
         });
         
-        ErrorResponse errorResponse = new ErrorResponse(
-            "BIND_ERROR",
-            "Request binding failed",
-            errors.toString(),
-            LocalDateTime.now()
-        );
-        
-        return ResponseEntity.badRequest().body(errorResponse);
+        Result<String> result = Result.error(ErrorCode.BIND_ERROR, "Request binding failed: " + errors.toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
     
     /**
      * Handle illegal argument exceptions (validation errors)
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<Result<Void>> handleIllegalArgumentException(IllegalArgumentException e) {
         logger.warn("Validation error: {}", e.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
-            "VALIDATION_ERROR",
-            e.getMessage(),
-            null,
-            LocalDateTime.now()
-        );
-        
-        return ResponseEntity.badRequest().body(errorResponse);
+        Result<Void> result = Result.error(ErrorCode.VALIDATION_ERROR, e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
     
     /**
      * Handle business logic exceptions
      */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleBusinessException(RuntimeException e, WebRequest request) {
+    public ResponseEntity<Result<Void>> handleBusinessException(RuntimeException e, WebRequest request) {
         logger.error("Business error: {}", e.getMessage(), e);
         
         String message = e.getMessage();
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("status", "FAILED");
-        errorResponse.put("message", message);
+        ErrorCode errorCode = ErrorCode.fromMessage(message);
+        Result<Void> result = Result.error(errorCode, message);
         
-        // Return 404 for "not found" errors (resource lookup failures)
-        // Return 400 for business validation errors (insufficient funds, invalid operations, etc.)
-        if (message != null && message.toLowerCase().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-        } else {
-            return ResponseEntity.badRequest().body(errorResponse);
+        // Use appropriate HTTP status codes
+        HttpStatus status = determineHttpStatus(errorCode);
+        return ResponseEntity.status(status).body(result);
+    }
+    
+    /**
+     * Determine appropriate HTTP status code based on error type
+     */
+    private HttpStatus determineHttpStatus(ErrorCode errorCode) {
+        switch (errorCode) {
+            case RESOURCE_NOT_FOUND:
+                return HttpStatus.NOT_FOUND; // 404
+            case VALIDATION_ERROR:
+            case BIND_ERROR:
+            case INSUFFICIENT_BALANCE:
+            case INSUFFICIENT_INVENTORY:
+            case INSUFFICIENT_FUNDS:
+            case OPERATION_NOT_ALLOWED:
+                return HttpStatus.BAD_REQUEST; // 400
+            case RESOURCE_ALREADY_EXISTS:
+                return HttpStatus.CONFLICT; // 409
+            case RESOURCE_INACTIVE:
+                return HttpStatus.FORBIDDEN; // 403
+            case INTERNAL_ERROR:
+                return HttpStatus.INTERNAL_SERVER_ERROR; // 500
+            case UNSUPPORTED_API_VERSION:
+                return HttpStatus.NOT_ACCEPTABLE; // 406
+            default:
+                return HttpStatus.BAD_REQUEST; // 400
         }
     }
     
@@ -122,67 +130,15 @@ public class GlobalExceptionHandler {
      * Handle unexpected exceptions
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception e, WebRequest request) {
+    public ResponseEntity<Result<String>> handleUnexpectedException(Exception e, WebRequest request) {
         logger.error("Unexpected error: {}", e.getMessage(), e);
         
-        ErrorResponse errorResponse = new ErrorResponse(
-            "INTERNAL_ERROR",
+        Result<String> result = Result.error(
+            ErrorCode.INTERNAL_ERROR, 
             "Internal server error occurred",
-            request.getDescription(false),
-            LocalDateTime.now()
+            request.getDescription(false)
         );
         
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-    }
-    
-    /**
-     * Determine error code based on exception message
-     */
-    private String determineErrorCode(String message) {
-        if (message == null) {
-            return "BUSINESS_ERROR";
-        }
-        
-        String lowerMessage = message.toLowerCase();
-        if (lowerMessage.contains("not found")) {
-            return "RESOURCE_NOT_FOUND";
-        } else if (lowerMessage.contains("insufficient balance")) {
-            return "INSUFFICIENT_BALANCE";
-        } else if (lowerMessage.contains("insufficient inventory")) {
-            return "INSUFFICIENT_INVENTORY";
-        } else if (lowerMessage.contains("insufficient funds")) {
-            return "INSUFFICIENT_FUNDS";
-        } else if (lowerMessage.contains("already exists")) {
-            return "RESOURCE_ALREADY_EXISTS";
-        } else if (lowerMessage.contains("not active")) {
-            return "RESOURCE_INACTIVE";
-        } else if (lowerMessage.contains("cannot cancel")) {
-            return "OPERATION_NOT_ALLOWED";
-        } else {
-            return "BUSINESS_ERROR";
-        }
-    }
-    
-    /**
-     * Error Response DTO
-     */
-    public static class ErrorResponse {
-        private String errorCode;
-        private String message;
-        private String details;
-        private LocalDateTime timestamp;
-        
-        public ErrorResponse(String errorCode, String message, String details, LocalDateTime timestamp) {
-            this.errorCode = errorCode;
-            this.message = message;
-            this.details = details;
-            this.timestamp = timestamp;
-        }
-        
-        // Getters
-        public String getErrorCode() { return errorCode; }
-        public String getMessage() { return message; }
-        public String getDetails() { return details; }
-        public LocalDateTime getTimestamp() { return timestamp; }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 } 

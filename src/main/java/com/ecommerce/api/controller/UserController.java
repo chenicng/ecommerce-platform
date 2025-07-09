@@ -39,7 +39,7 @@ public class UserController {
      * POST /api/users
      */
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<Result<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
         logger.info("Creating user: {}", request.getUsername());
         
         var user = userService.createUser(
@@ -60,7 +60,7 @@ public class UserController {
         );
         
         logger.info("User created successfully with ID: {}", user.getId());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success("User created successfully", response));
     }
     
     /**
@@ -68,7 +68,7 @@ public class UserController {
      * POST /api/users/{userId}/recharge
      */
     @PostMapping("/{userId}/recharge")
-    public ResponseEntity<BalanceResponse> rechargeUser(@PathVariable Long userId, 
+    public ResponseEntity<Result<BalanceResponse>> rechargeUser(@PathVariable Long userId, 
                                                               @Valid @RequestBody RechargeRequest request) {
         logger.info("Processing recharge for user {}: amount={}", userId, request.getAmount());
         
@@ -86,7 +86,7 @@ public class UserController {
         );
         
         logger.info("Recharge completed for user {}: new balance={}", userId, balance);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success("Recharge completed successfully", response));
     }
     
     /**
@@ -94,7 +94,7 @@ public class UserController {
      * GET /api/users/{userId}/balance
      */
     @GetMapping("/{userId}/balance")
-    public ResponseEntity<BalanceResponse> getUserBalance(@PathVariable Long userId) {
+    public ResponseEntity<Result<BalanceResponse>> getUserBalance(@PathVariable Long userId) {
         Money balance = userService.getUserBalance(userId);
         
         BalanceResponse response = new BalanceResponse(
@@ -103,7 +103,7 @@ public class UserController {
             balance.getCurrency()
         );
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
 
     /**
@@ -112,7 +112,7 @@ public class UserController {
      */
     @GetMapping("/debug/all-ids")
     @Profile({"dev", "test"})
-    public ResponseEntity<Map<String, Object>> getAllUserIds() {
+    public ResponseEntity<Result<Map<String, Object>>> getAllUserIds() {
         var userIds = userService.getAllUserIds();
         int userCount = userService.getUserCount();
         
@@ -122,7 +122,7 @@ public class UserController {
         response.put("timestamp", java.time.LocalDateTime.now());
         
         logger.info("Debug: Current system has {} users with IDs: {}", userCount, userIds);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success("Debug information retrieved successfully", response));
     }
     
     // DTO classes

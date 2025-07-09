@@ -91,16 +91,18 @@ class EcommerceControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testPurchaseRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderNumber").value("ORD123"))
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.merchantId").value(1))
-                .andExpect(jsonPath("$.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.productName").value("iPhone 15"))
-                .andExpect(jsonPath("$.quantity").value(2))
-                .andExpect(jsonPath("$.totalAmount.amount").value(1999.98))
-                .andExpect(jsonPath("$.totalAmount.currency").value("CNY"))
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("Purchase completed successfully"));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("Purchase completed successfully"))
+                .andExpect(jsonPath("$.data.orderNumber").value("ORD123"))
+                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.merchantId").value(1))
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.data.productName").value("iPhone 15"))
+                .andExpect(jsonPath("$.data.quantity").value(2))
+                .andExpect(jsonPath("$.data.totalAmount.amount").value(1999.98))
+                .andExpect(jsonPath("$.data.totalAmount.currency").value("CNY"))
+                .andExpect(jsonPath("$.data.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.message").value("Purchase completed successfully"));
 
         verify(ecommerceService).processPurchase(any(PurchaseRequest.class));
     }
@@ -115,7 +117,7 @@ class EcommerceControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value("User ID is required"));
 
         verify(ecommerceService, never()).processPurchase(any());
@@ -131,7 +133,7 @@ class EcommerceControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value("SKU is required"));
 
         verify(ecommerceService, never()).processPurchase(any());
@@ -147,7 +149,7 @@ class EcommerceControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value("Quantity must be positive"));
 
         verify(ecommerceService, never()).processPurchase(any());
@@ -164,7 +166,7 @@ class EcommerceControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testPurchaseRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.code").value("INSUFFICIENT_INVENTORY"))
                 .andExpect(jsonPath("$.message").value("Insufficient inventory"));
 
         verify(ecommerceService).processPurchase(any(PurchaseRequest.class));
@@ -178,16 +180,17 @@ class EcommerceControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/products/{sku}", "IPHONE15"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.name").value("iPhone 15"))
-                .andExpect(jsonPath("$.description").value("Latest iPhone model"))
-                .andExpect(jsonPath("$.price").value(999.99))
-                .andExpect(jsonPath("$.currency").value("CNY"))
-                .andExpect(jsonPath("$.merchantId").value(1))
-                .andExpect(jsonPath("$.availableInventory").value(100))
-                .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.available").value(true));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.data.name").value("iPhone 15"))
+                .andExpect(jsonPath("$.data.description").value("Latest iPhone model"))
+                .andExpect(jsonPath("$.data.price").value(999.99))
+                .andExpect(jsonPath("$.data.currency").value("CNY"))
+                .andExpect(jsonPath("$.data.merchantId").value(1))
+                .andExpect(jsonPath("$.data.availableInventory").value(100))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.available").value(true));
 
         verify(productService).getProductBySku("IPHONE15");
     }
@@ -222,10 +225,11 @@ class EcommerceControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/products"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.products", hasSize(2)))
-                .andExpect(jsonPath("$.totalCount").value(2))
-                .andExpect(jsonPath("$.products[0].sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.products[1].sku").value("SAMSUNG_S24"));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.products", hasSize(2)))
+                .andExpect(jsonPath("$.data.totalCount").value(2))
+                .andExpect(jsonPath("$.data.products[0].sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.data.products[1].sku").value("SAMSUNG_S24"));
 
         verify(productService).getAllAvailableProducts();
     }
@@ -239,10 +243,11 @@ class EcommerceControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/products").param("search", "iPhone"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.products", hasSize(1)))
-                .andExpect(jsonPath("$.totalCount").value(1))
-                .andExpect(jsonPath("$.searchTerm").value("iPhone"))
-                .andExpect(jsonPath("$.products[0].sku").value("IPHONE15"));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.products", hasSize(1)))
+                .andExpect(jsonPath("$.data.totalCount").value(1))
+                .andExpect(jsonPath("$.data.searchTerm").value("iPhone"))
+                .andExpect(jsonPath("$.data.products[0].sku").value("IPHONE15"));
 
         verify(productService).searchAvailableProducts("iPhone");
     }
@@ -255,11 +260,12 @@ class EcommerceControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/products/{sku}/inventory", "IPHONE15"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.productName").value("iPhone 15"))
-                .andExpect(jsonPath("$.availableInventory").value(100))
-                .andExpect(jsonPath("$.available").value(true))
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
+                .andExpect(jsonPath("$.data.productName").value("iPhone 15"))
+                .andExpect(jsonPath("$.data.availableInventory").value(100))
+                .andExpect(jsonPath("$.data.available").value(true))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
 
         verify(productService).getProductBySku("IPHONE15");
     }

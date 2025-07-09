@@ -25,49 +25,57 @@ public class Result<T> {
      * Create success response with data
      */
     public static <T> Result<T> success(T data) {
-        return new Result<>("SUCCESS", "Operation completed successfully", data);
+        return new Result<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getDefaultMessage(), data);
     }
     
     /**
      * Create success response with custom message
      */
     public static <T> Result<T> success(String message, T data) {
-        return new Result<>("SUCCESS", message, data);
+        return new Result<>(ErrorCode.SUCCESS.getCode(), message, data);
     }
     
     /**
      * Create success response without data
      */
     public static <Void> Result<Void> success() {
-        return new Result<>("SUCCESS", "Operation completed successfully", null);
+        return new Result<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getDefaultMessage(), null);
     }
     
     /**
      * Create success response with custom message and no data
      */
     public static <Void> Result<Void> success(String message) {
-        return new Result<>("SUCCESS", message, null);
+        return new Result<>(ErrorCode.SUCCESS.getCode(), message, null);
     }
     
     /**
-     * Create error response with error code and message
+     * Create error response with error code enum and message
      */
-    public static <T> Result<T> error(String code, String message) {
-        return new Result<>(code, message, null);
+    public static <T> Result<T> error(ErrorCode errorCode, String message) {
+        return new Result<>(errorCode.getCode(), message, null);
     }
     
     /**
-     * Create error response with data (for detailed error information)
+     * Create error response with error code enum and data
      */
-    public static <T> Result<T> error(String code, String message, T data) {
-        return new Result<>(code, message, data);
+    public static <T> Result<T> error(ErrorCode errorCode, String message, T data) {
+        return new Result<>(errorCode.getCode(), message, data);
     }
     
     /**
-     * Create generic error response
+     * Create error response with error code enum (using default message)
+     */
+    public static <T> Result<T> error(ErrorCode errorCode) {
+        return new Result<>(errorCode.getCode(), errorCode.getDefaultMessage(), null);
+    }
+    
+    /**
+     * Create error response from exception message
      */
     public static <T> Result<T> error(String message) {
-        return new Result<>("ERROR", message, null);
+        ErrorCode errorCode = ErrorCode.fromMessage(message);
+        return new Result<>(errorCode.getCode(), message, null);
     }
     
     // Getters
@@ -89,7 +97,7 @@ public class Result<T> {
     
     // Utility methods
     public boolean isSuccess() {
-        return "SUCCESS".equals(code);
+        return ErrorCode.SUCCESS.getCode().equals(code);
     }
     
     public boolean isError() {

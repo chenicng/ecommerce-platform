@@ -72,8 +72,8 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createUserRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.email").value("test@example.com"));
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"));
 
         verify(userService).createUser("testuser", "test@example.com", "13800138000", "CNY");
     }
@@ -106,8 +106,8 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(rechargeRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.balance").value(1500.00));
+                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.balance").value(1500.00));
 
         verify(userService).rechargeUser(eq(1L), any(Money.class));
     }
@@ -121,8 +121,8 @@ class UserControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/{userId}/balance", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.balance").value(1000.00));
+                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.balance").value(1000.00));
 
         verify(userService).getUserBalance(1L);
     }
@@ -136,7 +136,7 @@ class UserControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/debug/all-ids"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalUsers").value(3));
+                .andExpect(jsonPath("$.data.totalUsers").value(3));
 
         verify(userService).getAllUserIds();
         verify(userService).getUserCount();
