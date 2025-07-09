@@ -2,6 +2,7 @@ package com.ecommerce.api.controller;
 
 import com.ecommerce.application.service.UserService;
 import com.ecommerce.domain.Money;
+import com.ecommerce.domain.user.User;
 import com.ecommerce.api.dto.Result;
 import com.ecommerce.api.annotation.ApiVersion;
 import com.ecommerce.api.config.ApiVersionConfig;
@@ -77,6 +78,36 @@ public class UserController {
         
         logger.info("User created successfully with ID: {}", user.getId());
         return ResponseEntity.ok(Result.successWithMessage("User created successfully", response));
+    }
+    
+    /**
+     * Get user by ID
+     * GET /api/v1/users/{userId}
+     */
+    @GetMapping("/{userId}")
+    @Operation(summary = "Get User", description = "Retrieve user information by ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<Result<UserResponse>> getUserById(
+            @Parameter(description = "User ID", required = true, example = "1")
+            @PathVariable Long userId) {
+        logger.info("Getting user by ID: {}", userId);
+        
+        User user = userService.getUserById(userId);
+        
+        UserResponse response = new UserResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getBalance().getAmount(),
+            user.getBalance().getCurrency(),
+            user.getStatus().toString()
+        );
+        
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**

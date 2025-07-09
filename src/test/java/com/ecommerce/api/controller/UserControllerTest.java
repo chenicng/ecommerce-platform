@@ -141,4 +141,46 @@ class UserControllerTest {
         verify(userService).getAllUserIds();
         verify(userService).getUserCount();
     }
+
+    @Test
+    void getUserById_Success() throws Exception {
+        // Given
+        Long userId = 1L;
+        User mockUser = new User("alice", "alice@example.com", "13800001111", "CNY");
+        mockUser.setId(userId);
+        mockUser.recharge(Money.of("1000.00", "CNY"));
+        
+        when(userService.getUserById(userId)).thenReturn(mockUser);
+        
+        // When & Then
+        mockMvc.perform(get("/api/v1/users/{userId}", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.id").value(userId))
+                .andExpect(jsonPath("$.data.username").value("alice"))
+                .andExpect(jsonPath("$.data.email").value("alice@example.com"))
+                .andExpect(jsonPath("$.data.phone").value("13800001111"))
+                .andExpect(jsonPath("$.data.balance").value(1000.00))
+                .andExpect(jsonPath("$.data.currency").value("CNY"))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
+        
+        verify(userService).getUserById(userId);
+    }
+    
+    @Test
+    void getUserById_UserNotFound() throws Exception {
+        // Given
+        Long userId = 999L;
+        when(userService.getUserById(userId)).thenThrow(new RuntimeException("User not found with id: " + userId));
+        
+        // When & Then
+        mockMvc.perform(get("/api/v1/users/{userId}", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("User not found with id: " + userId));
+        
+        verify(userService).getUserById(userId);
+    }
 }
