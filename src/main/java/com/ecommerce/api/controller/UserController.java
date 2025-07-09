@@ -311,23 +311,5 @@ public class UserController {
         public String getCurrency() { return currency; }
     }
     
-    public static class ErrorResponse {
-        private String error;
-        private String message;
-        private String path;
-        private long timestamp;
-        
-        public ErrorResponse(String error, String message, String path) {
-            this.error = error;
-            this.message = message;
-            this.path = path;
-            this.timestamp = System.currentTimeMillis();
-        }
-        
-        // Getters
-        public String getError() { return error; }
-        public String getMessage() { return message; }
-        public String getPath() { return path; }
-        public long getTimestamp() { return timestamp; }
-    }
+
 } 

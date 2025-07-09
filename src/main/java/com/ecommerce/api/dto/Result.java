@@ -1,5 +1,6 @@
 package com.ecommerce.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 /**
@@ -96,10 +97,12 @@ public class Result<T> {
     }
     
     // Utility methods
+    @JsonIgnore
     public boolean isSuccess() {
         return ErrorCode.SUCCESS.getCode().equals(code);
     }
     
+    @JsonIgnore
     public boolean isError() {
         return !isSuccess();
     }
