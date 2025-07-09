@@ -4,10 +4,10 @@ import com.ecommerce.application.service.EcommerceService;
 import com.ecommerce.application.service.ProductService;
 import com.ecommerce.application.dto.PurchaseRequest;
 import com.ecommerce.application.dto.PurchaseResponse;
-import com.ecommerce.domain.Money;
+import com.ecommerce.api.dto.Result;
 import com.ecommerce.domain.product.Product;
-import com.ecommerce.domain.product.ProductInventory;
-import com.ecommerce.domain.product.ProductStatus;
+import com.ecommerce.domain.Money;
+import com.ecommerce.api.config.ApiVersionConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,14 +20,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.hasSize;
 
+/**
+ * Test class for EcommerceController
+ */
 @WebMvcTest(EcommerceController.class)
 class EcommerceControllerTest {
+
+    private static final String API_BASE_PATH = ApiVersionConfig.API_V1 + "/ecommerce";
 
     @Autowired
     private MockMvc mockMvc;
@@ -82,7 +87,7 @@ class EcommerceControllerTest {
             .thenReturn(testPurchaseResponse);
 
         // When & Then
-        mockMvc.perform(post("/api/ecommerce/purchase")
+        mockMvc.perform(post(API_BASE_PATH + "/purchase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testPurchaseRequest)))
                 .andExpect(status().isOk())
@@ -106,7 +111,7 @@ class EcommerceControllerTest {
         PurchaseRequest invalidRequest = new PurchaseRequest(null, "IPHONE15", 2);
 
         // When & Then
-        mockMvc.perform(post("/api/ecommerce/purchase")
+        mockMvc.perform(post(API_BASE_PATH + "/purchase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -122,7 +127,7 @@ class EcommerceControllerTest {
         PurchaseRequest invalidRequest = new PurchaseRequest(1L, "", 2);
 
         // When & Then
-        mockMvc.perform(post("/api/ecommerce/purchase")
+        mockMvc.perform(post(API_BASE_PATH + "/purchase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -138,7 +143,7 @@ class EcommerceControllerTest {
         PurchaseRequest invalidRequest = new PurchaseRequest(1L, "IPHONE15", 0);
 
         // When & Then
-        mockMvc.perform(post("/api/ecommerce/purchase")
+        mockMvc.perform(post(API_BASE_PATH + "/purchase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -155,7 +160,7 @@ class EcommerceControllerTest {
             .thenThrow(new RuntimeException("Insufficient inventory"));
 
         // When & Then
-        mockMvc.perform(post("/api/ecommerce/purchase")
+        mockMvc.perform(post(API_BASE_PATH + "/purchase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testPurchaseRequest)))
                 .andExpect(status().isBadRequest())
@@ -171,7 +176,7 @@ class EcommerceControllerTest {
         when(productService.getProductBySku("IPHONE15")).thenReturn(testProduct);
 
         // When & Then
-        mockMvc.perform(get("/api/ecommerce/products/{sku}", "IPHONE15"))
+        mockMvc.perform(get(API_BASE_PATH + "/products/{sku}", "IPHONE15"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.sku").value("IPHONE15"))
@@ -193,7 +198,7 @@ class EcommerceControllerTest {
         when(productService.getProductBySku("UNKNOWN")).thenThrow(new RuntimeException("Product not found"));
 
         // When & Then
-        mockMvc.perform(get("/api/ecommerce/products/{sku}", "UNKNOWN"))
+        mockMvc.perform(get(API_BASE_PATH + "/products/{sku}", "UNKNOWN"))
                 .andExpect(status().isNotFound());
 
         verify(productService).getProductBySku("UNKNOWN");
@@ -215,7 +220,7 @@ class EcommerceControllerTest {
         when(productService.getAllAvailableProducts()).thenReturn(products);
 
         // When & Then
-        mockMvc.perform(get("/api/ecommerce/products"))
+        mockMvc.perform(get(API_BASE_PATH + "/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.products", hasSize(2)))
                 .andExpect(jsonPath("$.totalCount").value(2))
@@ -232,7 +237,7 @@ class EcommerceControllerTest {
         when(productService.searchAvailableProducts("iPhone")).thenReturn(products);
 
         // When & Then
-        mockMvc.perform(get("/api/ecommerce/products").param("search", "iPhone"))
+        mockMvc.perform(get(API_BASE_PATH + "/products").param("search", "iPhone"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.products", hasSize(1)))
                 .andExpect(jsonPath("$.totalCount").value(1))
@@ -248,7 +253,7 @@ class EcommerceControllerTest {
         when(productService.getProductBySku("IPHONE15")).thenReturn(testProduct);
 
         // When & Then
-        mockMvc.perform(get("/api/ecommerce/products/{sku}/inventory", "IPHONE15"))
+        mockMvc.perform(get(API_BASE_PATH + "/products/{sku}/inventory", "IPHONE15"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sku").value("IPHONE15"))
                 .andExpect(jsonPath("$.productName").value("iPhone 15"))
@@ -265,7 +270,7 @@ class EcommerceControllerTest {
         when(productService.getProductBySku("UNKNOWN")).thenThrow(new RuntimeException("Product not found"));
 
         // When & Then
-        mockMvc.perform(get("/api/ecommerce/products/{sku}/inventory", "UNKNOWN"))
+        mockMvc.perform(get(API_BASE_PATH + "/products/{sku}/inventory", "UNKNOWN"))
                 .andExpect(status().isNotFound());
 
         verify(productService).getProductBySku("UNKNOWN");

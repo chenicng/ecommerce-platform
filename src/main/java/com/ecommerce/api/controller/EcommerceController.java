@@ -6,6 +6,8 @@ import com.ecommerce.application.dto.PurchaseRequest;
 import com.ecommerce.application.dto.PurchaseResponse;
 import com.ecommerce.api.dto.Result;
 import com.ecommerce.domain.product.Product;
+import com.ecommerce.api.annotation.ApiVersion;
+import com.ecommerce.api.config.ApiVersionConfig;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
@@ -22,7 +24,8 @@ import java.util.stream.Collectors;
  * Handles REST API related to product purchasing and product browsing
  */
 @RestController
-@RequestMapping("/api/ecommerce")
+@RequestMapping(ApiVersionConfig.API_V1 + "/ecommerce")
+@ApiVersion(value = "v1", since = "2025-01-01")
 public class EcommerceController {
     
     private static final Logger logger = LoggerFactory.getLogger(EcommerceController.class);

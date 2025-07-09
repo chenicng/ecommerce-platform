@@ -6,6 +6,8 @@ import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
 import com.ecommerce.api.dto.Result;
+import com.ecommerce.api.annotation.ApiVersion;
+import com.ecommerce.api.config.ApiVersionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +25,8 @@ import java.util.stream.Collectors;
  * Handles merchant registration, product management, and income inquiry
  */
 @RestController
-@RequestMapping("/api/merchants")
+@RequestMapping(ApiVersionConfig.API_V1 + "/merchants")
+@ApiVersion(value = "v1", since = "2025-01-01")
 public class MerchantController {
     
     private static final Logger logger = LoggerFactory.getLogger(MerchantController.class);

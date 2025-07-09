@@ -3,6 +3,7 @@ package com.ecommerce.api.controller;
 import com.ecommerce.application.service.UserService;
 import com.ecommerce.domain.Money;
 import com.ecommerce.domain.user.User;
+import com.ecommerce.api.config.ApiVersionConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
+
+    private static final String API_BASE_PATH = ApiVersionConfig.API_V1 + "/users";
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,7 +68,7 @@ class UserControllerTest {
             .thenReturn(testUser);
 
         // When & Then
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post(API_BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createUserRequest)))
                 .andExpect(status().isOk())
@@ -83,7 +86,7 @@ class UserControllerTest {
         invalidRequest.setPhone("13800138000");
 
         // When & Then
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post(API_BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -99,7 +102,7 @@ class UserControllerTest {
         doNothing().when(userService).rechargeUser(eq(1L), any(Money.class));
 
         // When & Then
-        mockMvc.perform(post("/api/users/{userId}/recharge", 1L)
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(rechargeRequest)))
                 .andExpect(status().isOk())
@@ -116,7 +119,7 @@ class UserControllerTest {
         when(userService.getUserBalance(1L)).thenReturn(balance);
 
         // When & Then
-        mockMvc.perform(get("/api/users/{userId}/balance", 1L))
+        mockMvc.perform(get(API_BASE_PATH + "/{userId}/balance", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1))
                 .andExpect(jsonPath("$.balance").value(1000.00));
@@ -131,7 +134,7 @@ class UserControllerTest {
         when(userService.getUserCount()).thenReturn(3);
 
         // When & Then
-        mockMvc.perform(get("/api/users/debug/all-ids"))
+        mockMvc.perform(get(API_BASE_PATH + "/debug/all-ids"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalUsers").value(3));
 

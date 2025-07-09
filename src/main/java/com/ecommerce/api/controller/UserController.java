@@ -3,6 +3,8 @@ package com.ecommerce.api.controller;
 import com.ecommerce.application.service.UserService;
 import com.ecommerce.domain.Money;
 import com.ecommerce.api.dto.Result;
+import com.ecommerce.api.annotation.ApiVersion;
+import com.ecommerce.api.config.ApiVersionConfig;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
@@ -20,7 +22,8 @@ import java.util.Map;
  * Handles user-related REST APIs
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping(ApiVersionConfig.API_V1 + "/users")
+@ApiVersion(value = "v1", since = "2025-01-01")
 public class UserController {
     
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
