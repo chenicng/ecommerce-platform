@@ -162,10 +162,7 @@ public class EcommerceController {
                     .collect(Collectors.toList());
             } else if (searchTerm != null && !searchTerm.trim().isEmpty()) {
                 // Global search across all merchants
-                products = productService.searchProductsByName(searchTerm)
-                    .stream()
-                    .filter(Product::isAvailable)
-                    .collect(Collectors.toList());
+                products = productService.searchAvailableProducts(searchTerm);
             } else if (merchantId != null) {
                 // Get all available products from specific merchant
                 products = productService.getProductsByMerchant(merchantId)
@@ -174,7 +171,7 @@ public class EcommerceController {
                     .collect(Collectors.toList());
             } else {
                 // Get all available products
-                products = productService.getAvailableProducts();
+                products = productService.getAllAvailableProducts();
             }
 
             List<ProductSummaryResponse> productSummaries = products.stream()

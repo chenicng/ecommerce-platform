@@ -126,4 +126,30 @@ public class ProductService {
     public boolean productExists(String sku) {
         return productRepository.existsBySku(sku);
     }
+    
+    /**
+     * Get all available products (alias for getAvailableProducts)
+     */
+    @Transactional(readOnly = true)
+    public List<Product> getAllAvailableProducts() {
+        return getAvailableProducts();
+    }
+    
+    /**
+     * Search available products by name (case-insensitive)
+     * Only returns products that are available (active and have inventory)
+     */
+    @Transactional(readOnly = true)
+    public List<Product> searchAvailableProducts(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAvailableProducts();
+        }
+        
+        String lowerSearchTerm = searchTerm.toLowerCase();
+        return productRepository.findAll().stream()
+                .filter(Product::isAvailable)
+                .filter(product -> product.getName().toLowerCase().contains(lowerSearchTerm) ||
+                                 product.getDescription().toLowerCase().contains(lowerSearchTerm))
+                .collect(Collectors.toList());
+    }
 } 
