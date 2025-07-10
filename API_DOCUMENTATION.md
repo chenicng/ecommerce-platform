@@ -26,13 +26,13 @@ This document provides comprehensive API documentation through **Springdoc OpenA
 
 ### 🏥 Health Check APIs
 **Description**: System health monitoring and status endpoints
-- **Endpoints**: `/api/health`, `/api/healthz`
+- **Endpoints**: `/api/health`
 - **Purpose**: Service health checks, load balancer integration, monitoring
 
 ### 📋 API Version Management
 **Description**: API version information and compatibility checking
 - **Endpoints**: `/api/version/*`
-- **Purpose**: Version discovery, compatibility verification, client SDK generation
+- **Purpose**: Version discovery, compatibility verification
 
 ### 👤 User Management (V1)
 **Description**: Core user operations and account management
@@ -111,7 +111,7 @@ All API responses follow a consistent format:
 - `INSUFFICIENT_BALANCE` - Insufficient user balance
 - `INSUFFICIENT_INVENTORY` - Insufficient product inventory
 - `BUSINESS_ERROR` - General business logic error
-- `SYSTEM_ERROR` - Internal system error
+- `INTERNAL_ERROR` - Internal server error
 
 ## 🎯 API Examples
 
@@ -154,7 +154,7 @@ curl -X POST http://localhost:8080/api/v1/merchants/1/products \
 
 #### Add Inventory
 ```bash
-curl -X POST http://localhost:8080/api/v1/merchants/1/products/PRODUCT1/add-inventory \
+curl -X POST http://localhost:8080/api/v1/merchants/1/products/PRODUCT1/inventory/add \
   -H "Content-Type: application/json" \
   -d '{"quantity":50}'
 ```
@@ -212,16 +212,6 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
   show-actuator: false
-  group-configs:
-    - group: v1
-      paths-to-match: /api/v1/**
-      display-name: API Version 1
-    - group: v2
-      paths-to-match: /api/v2/**
-      display-name: API Version 2
-    - group: public
-      paths-to-match: /api/health, /api/healthz, /api/version/**
-      display-name: Public APIs
 ```
 
 ### Maven Dependency
@@ -337,14 +327,6 @@ curl http://localhost:8080/api/v1/users/1/balance
 - Check token expiration
 - Ensure token has required permissions
 
-### Debug Mode
-```bash
-# Enable debug logging for springdoc
-export LOGGING_LEVEL_ORG_SPRINGDOC=DEBUG
-
-# Start application with debug profile
-mvn spring-boot:run -Dspring-boot.run.profiles=debug
-```
 
 ## 📈 Advanced Features
 

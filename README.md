@@ -68,6 +68,8 @@ mvn clean spring-boot:run -Dspring-boot.run.profiles=mysql
 - ✅ **API Versioning**: Support for multiple API versions (v1, v2)
 - ✅ **Comprehensive Testing**: Full unit and integration test coverage
 - ✅ **Interactive Documentation**: Swagger UI with live testing capabilities
+- ✅ **Performance Monitoring**: Request logging, execution time tracking, and metrics
+- ✅ **Security Features**: Input validation, rate limiting, and sensitive data masking
 
 ## 🏛️ Architecture
 
@@ -214,20 +216,6 @@ open target/site/jacoco/index.html
 - **Surefire Reports**: `target/surefire-reports/`
 - **JaCoCo Coverage**: `target/site/jacoco/index.html`
 
-### Quick Test Example
-
-For complete API testing examples, see [API Documentation](API_DOCUMENTATION.md).
-
-```bash
-# Create user and purchase product
-curl -X POST http://localhost:8080/api/v1/users \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
-
-curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
-  -H "Content-Type: application/json" \
-  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
-```
 
 ## ⚙️ Configuration
 
@@ -379,14 +367,6 @@ echo $DB_PASSWORD
 - Check if Swagger UI is enabled in configuration
 - Ensure no firewall blocking access
 
-### Debug Mode
-```bash
-# Enable debug logging
-export LOGGING_LEVEL_COM_ECOMMERCE=DEBUG
-
-# Start with debug profile
-mvn spring-boot:run -Dspring-boot.run.profiles=debug
-```
 
 ## 📈 Extensibility
 
