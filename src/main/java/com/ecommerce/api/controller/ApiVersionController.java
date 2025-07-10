@@ -81,7 +81,7 @@ public class ApiVersionController {
         @ApiResponse(responseCode = "400", description = "Invalid version format")
     })
     public ResponseEntity<Result<Map<String, Object>>> checkVersionCompatibility(
-            @Parameter(description = "API version to check (e.g., 'v1', '1', 'v2')", required = true, example = "v1")
+            @Parameter(description = "API version to check (e.g., 'v1', 'v2')", required = true, example = "v1")
             @PathVariable String version) {
         
         // Validate version format
@@ -102,13 +102,13 @@ public class ApiVersionController {
         if (!versionNumber.matches("^\\d+$")) {
             return ResponseEntity.badRequest().body(Result.error(
                 com.ecommerce.api.dto.ErrorCode.VALIDATION_ERROR,
-                "Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"
+                "Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"
             ));
         }
         
         // Check if supported
         boolean isSupported = Arrays.asList(ApiVersionConfig.SUPPORTED_VERSIONS)
-            .contains(versionNumber);
+            .contains(normalizedVersion);
         
         Map<String, Object> result = new HashMap<>();
         result.put("requestedVersion", normalizedVersion);

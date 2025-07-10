@@ -65,7 +65,7 @@ class ApiVersionControllerTest {
         mockMvc.perform(get("/api/version/compatibility/abc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"));
     }
     
     @Test
@@ -73,7 +73,7 @@ class ApiVersionControllerTest {
         mockMvc.perform(get("/api/version/compatibility/vabc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"));
     }
     
     @Test
@@ -81,7 +81,7 @@ class ApiVersionControllerTest {
         mockMvc.perform(get("/api/version/compatibility/v1.0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"));
     }
     
     @Test
@@ -89,7 +89,7 @@ class ApiVersionControllerTest {
         mockMvc.perform(get("/api/version/compatibility/1.0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"));
     }
     
     @Test
@@ -97,7 +97,7 @@ class ApiVersionControllerTest {
         mockMvc.perform(get("/api/version/compatibility/v1-rc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"));
     }
     
     @Test
@@ -105,7 +105,7 @@ class ApiVersionControllerTest {
         mockMvc.perform(get("/api/version/compatibility/1-rc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., '1', '2', 'v1', 'v2')"));
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"));
     }
     
     @Test

@@ -99,7 +99,7 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
         }
         
         // 4. Return default version
-        return "v" + ApiVersionConfig.DEFAULT_VERSION;
+        return ApiVersionConfig.DEFAULT_VERSION;
     }
     
     /**
@@ -123,9 +123,10 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
      * Check if version is supported
      */
     private boolean isVersionSupported(String version) {
-        String versionNumber = version.startsWith("v") ? version.substring(1) : version;
+        // Ensure version has 'v' prefix for comparison
+        String normalizedVersion = version.startsWith("v") ? version : "v" + version;
         for (String supportedVersion : ApiVersionConfig.SUPPORTED_VERSIONS) {
-            if (supportedVersion.equals(versionNumber)) {
+            if (supportedVersion.equals(normalizedVersion)) {
                 return true;
             }
         }

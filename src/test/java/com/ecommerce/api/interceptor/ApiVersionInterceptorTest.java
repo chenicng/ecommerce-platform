@@ -148,7 +148,7 @@ class ApiVersionInterceptorTest {
         when(apiVersion.deprecated()).thenReturn(false);
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/users");
-        when(request.getParameter("version")).thenReturn("2");
+        when(request.getParameter("version")).thenReturn("v2");
         
         // When
         boolean result = interceptor.preHandle(request, response, handlerMethod);
@@ -166,7 +166,7 @@ class ApiVersionInterceptorTest {
         when(apiVersion.deprecated()).thenReturn(false);
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/users");
-        when(request.getHeader("API-Version")).thenReturn("2");
+        when(request.getHeader("API-Version")).thenReturn("v2");
         
         // When
         boolean result = interceptor.preHandle(request, response, handlerMethod);
@@ -181,7 +181,6 @@ class ApiVersionInterceptorTest {
         // Given
         ApiVersion apiVersion = mock(ApiVersion.class);
         when(apiVersion.value()).thenReturn("v1");
-        when(apiVersion.deprecated()).thenReturn(false);
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/users");
         
@@ -382,7 +381,6 @@ class ApiVersionInterceptorTest {
         // Given
         ApiVersion apiVersion = mock(ApiVersion.class);
         when(apiVersion.value()).thenReturn("v1");
-        when(apiVersion.deprecated()).thenReturn(false);
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/V1/users");
         
@@ -399,7 +397,6 @@ class ApiVersionInterceptorTest {
         // Given
         ApiVersion apiVersion = mock(ApiVersion.class);
         when(apiVersion.value()).thenReturn("v1");
-        when(apiVersion.deprecated()).thenReturn(false);
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/V1/users");
         
@@ -416,7 +413,6 @@ class ApiVersionInterceptorTest {
         // Given
         ApiVersion apiVersion = mock(ApiVersion.class);
         when(apiVersion.value()).thenReturn("v1");
-        when(apiVersion.deprecated()).thenReturn(false);
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/123/users");
         
@@ -433,7 +429,6 @@ class ApiVersionInterceptorTest {
         // Given
         ApiVersion apiVersion = mock(ApiVersion.class);
         when(apiVersion.value()).thenReturn("v1");
-        when(apiVersion.deprecated()).thenReturn(false);
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/v/users");
         

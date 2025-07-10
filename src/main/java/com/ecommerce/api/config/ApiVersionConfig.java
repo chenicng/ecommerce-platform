@@ -19,12 +19,12 @@ public class ApiVersionConfig {
     /**
      * Currently supported versions list
      */
-    public static final String[] SUPPORTED_VERSIONS = {"1", "2"};
+    public static final String[] SUPPORTED_VERSIONS = {"v1", "v2"};
     
     /**
      * Default version (used when version is not specified in request header)
      */
-    public static final String DEFAULT_VERSION = "1";
+    public static final String DEFAULT_VERSION = "v1";
     
     /**
      * Version control strategy configuration
