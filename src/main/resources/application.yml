@@ -77,16 +77,6 @@ springdoc:
     display-request-duration: true  # Show request duration
     doc-expansion: none  # Default expansion state
   show-actuator: false  # Hide actuator endpoints from documentation
-  group-configs:
-    - group: v1
-      paths-to-match: /api/v1/**
-      display-name: API Version 1
-    - group: v2
-      paths-to-match: /api/v2/**
-      display-name: API Version 2
-    - group: public
-      paths-to-match: /api/health, /api/healthz, /api/version/**
-      display-name: Public APIs
 
 # Business Configuration
 ecommerce:

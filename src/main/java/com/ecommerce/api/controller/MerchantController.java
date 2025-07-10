@@ -20,6 +20,14 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Merchant Controller
  * Handles merchant registration, product management, and income inquiry
@@ -27,6 +35,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(ApiVersionConfig.API_V1 + "/merchants")
 @ApiVersion(value = "v1", since = "2025-01-01")
+@Tag(name = "Merchant Management", description = "Merchant registration, product management and income tracking")
 public class MerchantController {
     
     private static final Logger logger = LoggerFactory.getLogger(MerchantController.class);
@@ -44,6 +53,12 @@ public class MerchantController {
      * POST /api/merchants
      */
     @PostMapping
+    @Operation(summary = "Create Merchant", description = "Register a new merchant with business information")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Merchant created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data", 
+                    content = @Content(schema = @Schema(implementation = Result.class)))
+    })
     public ResponseEntity<Result<MerchantResponse>> createMerchant(@Valid @RequestBody CreateMerchantRequest request) {
         logger.info("Creating merchant with name: {}", request.getMerchantName());
         
@@ -78,8 +93,16 @@ public class MerchantController {
      * POST /api/merchants/{merchantId}/products
      */
     @PostMapping("/{merchantId}/products")
-    public ResponseEntity<Result<ProductResponse>> createProduct(@PathVariable Long merchantId,
-                                                               @Valid @RequestBody CreateProductRequest request) {
+    @Operation(summary = "Create Product", description = "Create a new product for a specific merchant")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Product created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "Merchant not found")
+    })
+    public ResponseEntity<Result<ProductResponse>> createProduct(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
+            @PathVariable Long merchantId,
+            @Valid @RequestBody CreateProductRequest request) {
         logger.info("Creating product for merchant {}: {}", merchantId, request.getSku());
         
         // Validate merchant exists
@@ -117,9 +140,18 @@ public class MerchantController {
      * POST /api/merchants/{merchantId}/products/{sku}/inventory/add
      */
     @PostMapping("/{merchantId}/products/{sku}/inventory/add")
-    public ResponseEntity<Result<InventoryResponse>> addProductInventory(@PathVariable Long merchantId,
-                                                               @PathVariable String sku,
-                                                               @Valid @RequestBody AddInventoryRequest request) {
+    @Operation(summary = "Add Product Inventory", description = "Add inventory quantity to a specific product")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Inventory added successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+    })
+    public ResponseEntity<Result<InventoryResponse>> addProductInventory(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
+            @PathVariable Long merchantId,
+            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @PathVariable String sku,
+            @Valid @RequestBody AddInventoryRequest request) {
         logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
         
         validateMerchantAndProduct(merchantId, sku);
@@ -145,9 +177,18 @@ public class MerchantController {
      * POST /api/merchants/{merchantId}/products/{sku}/inventory/reduce
      */
     @PostMapping("/{merchantId}/products/{sku}/inventory/reduce")
-    public ResponseEntity<Result<InventoryResponse>> reduceProductInventory(@PathVariable Long merchantId,
-                                                                  @PathVariable String sku,
-                                                                  @Valid @RequestBody ReduceInventoryRequest request) {
+    @Operation(summary = "Reduce Product Inventory", description = "Reduce inventory quantity for a specific product")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Inventory reduced successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data or insufficient inventory"),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+    })
+    public ResponseEntity<Result<InventoryResponse>> reduceProductInventory(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
+            @PathVariable Long merchantId,
+            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @PathVariable String sku,
+            @Valid @RequestBody ReduceInventoryRequest request) {
         logger.info("Reducing inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
         
         validateMerchantAndProduct(merchantId, sku);
@@ -173,9 +214,18 @@ public class MerchantController {
      * PUT /api/merchants/{merchantId}/products/{sku}/inventory
      */
     @PutMapping("/{merchantId}/products/{sku}/inventory")
-    public ResponseEntity<Result<InventoryResponse>> setProductInventory(@PathVariable Long merchantId,
-                                                               @PathVariable String sku,
-                                                               @Valid @RequestBody SetInventoryRequest request) {
+    @Operation(summary = "Set Product Inventory", description = "Set inventory quantity to absolute value for a specific product")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Inventory set successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+    })
+    public ResponseEntity<Result<InventoryResponse>> setProductInventory(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
+            @PathVariable Long merchantId,
+            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @PathVariable String sku,
+            @Valid @RequestBody SetInventoryRequest request) {
         logger.info("Setting inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
         
         validateMerchantAndProduct(merchantId, sku);
@@ -217,7 +267,14 @@ public class MerchantController {
      * GET /api/merchants/{merchantId}/income
      */
     @GetMapping("/{merchantId}/income")
-    public ResponseEntity<Result<IncomeResponse>> getMerchantIncome(@PathVariable Long merchantId) {
+    @Operation(summary = "Get Merchant Income", description = "Retrieve merchant's current balance and total income")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Income information retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Merchant not found")
+    })
+    public ResponseEntity<Result<IncomeResponse>> getMerchantIncome(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
+            @PathVariable Long merchantId) {
         logger.info("Getting income for merchant: {}", merchantId);
         
         Money balance = merchantService.getMerchantBalance(merchantId);
@@ -248,9 +305,17 @@ public class MerchantController {
      * For public product browsing, use /api/ecommerce/products?merchantId={merchantId} instead.
      */
     @GetMapping("/{merchantId}/products")
+    @Operation(summary = "Get Merchant Products", description = "Retrieve all products for a specific merchant with optional filtering")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Merchant not found")
+    })
     public ResponseEntity<Result<MerchantProductListResponse>> getMerchantProducts(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
             @PathVariable Long merchantId,
+            @Parameter(description = "Product status filter", required = false, example = "ACTIVE")
             @RequestParam(value = "status", required = false) String status,
+            @Parameter(description = "Search term for product name/description", required = false, example = "iPhone")
             @RequestParam(value = "search", required = false) String searchTerm) {
         logger.info("Getting products for merchant {}, status: {}, search: {}", merchantId, status, searchTerm);
         
@@ -312,8 +377,16 @@ public class MerchantController {
      * GET /api/merchants/{merchantId}/products/{sku}
      */
     @GetMapping("/{merchantId}/products/{sku}")
-    public ResponseEntity<Result<ProductResponse>> getMerchantProduct(@PathVariable Long merchantId,
-                                                                    @PathVariable String sku) {
+    @Operation(summary = "Get Merchant Product", description = "Retrieve specific product details for a merchant")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Product retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+    })
+    public ResponseEntity<Result<ProductResponse>> getMerchantProduct(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
+            @PathVariable Long merchantId,
+            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @PathVariable String sku) {
         logger.info("Getting product {} for merchant {}", sku, merchantId);
         
         // Validate merchant exists
@@ -344,16 +417,21 @@ public class MerchantController {
     }
     
     // DTO classes
+    @Schema(description = "Merchant creation request")
     public static class CreateMerchantRequest {
+        @Schema(description = "Merchant name", example = "Apple Store", required = true)
         @NotBlank(message = "Merchant name is required")
         private String merchantName;
         
+        @Schema(description = "Business license number", example = "BL123456789", required = true)
         @NotBlank(message = "Business license is required")
         private String businessLicense;
         
+        @Schema(description = "Contact email", example = "contact@applestore.com", required = true)
         @NotBlank(message = "Contact email is required")
         private String contactEmail;
         
+        @Schema(description = "Contact phone", example = "400-123-4567", required = true)
         @NotBlank(message = "Contact phone is required")
         private String contactPhone;
         
@@ -405,21 +483,28 @@ public class MerchantController {
         public String getStatus() { return status; }
     }
     
+    @Schema(description = "Product creation request")
     public static class CreateProductRequest {
+        @Schema(description = "Product SKU", example = "IPHONE-15-PRO", required = true)
         @NotBlank(message = "SKU is required")
         private String sku;
         
+        @Schema(description = "Product name", example = "iPhone 15 Pro", required = true)
         @NotBlank(message = "Product name is required")
         private String name;
         
+        @Schema(description = "Product description", example = "Latest iPhone with advanced features")
         private String description;
         
+        @Schema(description = "Product price", example = "7999.00", required = true)
         @DecimalMin(value = "0.01", message = "Price must be positive")
         private BigDecimal price;
         
+        @Schema(description = "Currency code", example = "CNY", defaultValue = "CNY")
         @NotBlank(message = "Currency is required")
         private String currency = "CNY";
         
+        @Schema(description = "Initial inventory quantity", example = "100", required = true)
         @Min(value = 0, message = "Initial inventory cannot be negative")
         private int initialInventory;
         

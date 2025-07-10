@@ -17,6 +17,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * User Controller V2
  * Handles user-related REST APIs - Version 2
@@ -29,6 +37,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(ApiVersionConfig.API_V2 + "/users")
 @ApiVersion(value = "v2", since = "2025-06-01")
+@Tag(name = "User Management V2", description = "Enhanced user management with additional features (API v2)")
 public class UserV2Controller {
     
     private static final Logger logger = LoggerFactory.getLogger(UserV2Controller.class);
@@ -44,6 +53,11 @@ public class UserV2Controller {
      * POST /api/v2/users
      */
     @PostMapping
+    @Operation(summary = "Create User (V2)", description = "Register a new user with enhanced response including registration time and status")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data")
+    })
     public ResponseEntity<UserV2Response> createUser(@Valid @RequestBody CreateUserRequest request) {
         logger.info("Creating user (V2): {}", request.getUsername());
         
@@ -77,7 +91,14 @@ public class UserV2Controller {
      * GET /api/v2/users/{userId}/balance
      */
     @GetMapping("/{userId}/balance")
-    public ResponseEntity<BalanceV2Response> getUserBalance(@PathVariable Long userId) {
+    @Operation(summary = "Get User Balance (V2)", description = "Retrieve user balance with enhanced response including last update time")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Balance retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<BalanceV2Response> getUserBalance(
+            @Parameter(description = "User ID", required = true, example = "1")
+            @PathVariable Long userId) {
         Money balance = userService.getUserBalance(userId);
         
         // V2: Enhanced response with additional fields
@@ -97,8 +118,16 @@ public class UserV2Controller {
      * POST /api/v2/users/{userId}/recharge
      */
     @PostMapping("/{userId}/recharge")
-    public ResponseEntity<RechargeV2Response> rechargeUser(@PathVariable Long userId, 
-                                                          @Valid @RequestBody RechargeRequest request) {
+    @Operation(summary = "Recharge User Account (V2)", description = "Recharge user account with enhanced response including transaction details")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Recharge completed successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<RechargeV2Response> rechargeUser(
+            @Parameter(description = "User ID", required = true, example = "1")
+            @PathVariable Long userId, 
+            @Valid @RequestBody RechargeRequest request) {
         logger.info("Processing recharge (V2) for user {}: amount={}", userId, request.getAmount());
         
         Money rechargeAmount = Money.of(request.getAmount(), request.getCurrency());
@@ -123,14 +152,18 @@ public class UserV2Controller {
     }
     
     // V2 DTO classes with enhanced fields
+    @Schema(description = "User creation request (V2)")
     public static class CreateUserRequest {
+        @Schema(description = "Username", example = "john_doe", required = true)
         @NotBlank(message = "Username is required")
         private String username;
         
+        @Schema(description = "Email address", example = "john.doe@example.com", required = true)
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
         private String email;
         
+        @Schema(description = "Phone number", example = "13800138000", required = true)
         @NotBlank(message = "Phone is required")
         private String phone;
         
@@ -143,16 +176,27 @@ public class UserV2Controller {
         public void setPhone(String phone) { this.phone = phone; }
     }
     
+    @Schema(description = "User response (V2)")
     public static class UserV2Response {
+        @Schema(description = "User ID", example = "1")
         private Long id;
+        @Schema(description = "Username", example = "john_doe")
         private String username;
+        @Schema(description = "Email address", example = "john.doe@example.com")
         private String email;
+        @Schema(description = "Phone number", example = "13800138000")
         private String phone;
+        @Schema(description = "Account balance", example = "100.00")
         private BigDecimal balance;
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        @Schema(description = "User status", example = "ACTIVE")
         private String status;
+        @Schema(description = "Registration timestamp", example = "2025-01-01T10:00:00")
         private LocalDateTime registrationTime; // New in V2
+        @Schema(description = "Last login timestamp", example = "2025-01-01T10:00:00")
         private LocalDateTime lastLoginTime; // New in V2
+        @Schema(description = "Account active status", example = "true")
         private boolean isActive; // New in V2
         
         public UserV2Response(Long id, String username, String email, String phone, 

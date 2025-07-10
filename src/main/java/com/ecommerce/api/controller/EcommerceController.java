@@ -77,8 +77,16 @@ public class EcommerceController {
      * POST /api/ecommerce/orders/{orderNumber}/cancel
      */
     @PostMapping("/orders/{orderNumber}/cancel")
-    public ResponseEntity<Result<Map<String, Object>>> cancelOrder(@PathVariable String orderNumber, 
-                                                                 @RequestBody CancelOrderRequest request) {
+    @Operation(summary = "Cancel Order", description = "Cancel an existing order with reason")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order cancelled successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "Order not found")
+    })
+    public ResponseEntity<Result<Map<String, Object>>> cancelOrder(
+            @Parameter(description = "Order number", required = true, example = "ORD-2025-001")
+            @PathVariable String orderNumber, 
+            @RequestBody CancelOrderRequest request) {
         logger.info("Cancelling order: {} with reason: {}", orderNumber, request.getReason());
         
         ecommerceService.cancelOrder(orderNumber, request.getReason());
@@ -97,7 +105,14 @@ public class EcommerceController {
      * GET /api/ecommerce/products/{sku}
      */
     @GetMapping("/products/{sku}")
-    public ResponseEntity<Result<ProductDetailResponse>> getProductBySku(@PathVariable String sku) {
+    @Operation(summary = "Get Product Details", description = "Retrieve detailed product information by SKU")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Product details retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
+    public ResponseEntity<Result<ProductDetailResponse>> getProductBySku(
+            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @PathVariable String sku) {
         logger.info("Getting product details for SKU: {}", sku);
         
         Product product = productService.getProductBySku(sku);
@@ -133,8 +148,14 @@ public class EcommerceController {
      * For merchant product management, use /api/merchants/{merchantId}/products instead.
      */
     @GetMapping("/products")
+    @Operation(summary = "Get Available Products", description = "Retrieve all available products with optional search and merchant filtering")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+    })
     public ResponseEntity<Result<ProductListResponse>> getAvailableProducts(
+            @Parameter(description = "Search term for product name/description", required = false, example = "iPhone")
             @RequestParam(value = "search", required = false) String searchTerm,
+            @Parameter(description = "Filter by merchant ID", required = false, example = "1")
             @RequestParam(value = "merchantId", required = false) Long merchantId) {
         logger.info("Getting available products with search: {}, merchantId: {}", searchTerm, merchantId);
         
@@ -191,7 +212,14 @@ public class EcommerceController {
      * GET /api/ecommerce/products/{sku}/inventory
      */
     @GetMapping("/products/{sku}/inventory")
-    public ResponseEntity<Result<InventoryResponse>> getProductInventory(@PathVariable String sku) {
+    @Operation(summary = "Get Product Inventory", description = "Check inventory status for a specific product")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Inventory information retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
+    public ResponseEntity<Result<InventoryResponse>> getProductInventory(
+            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @PathVariable String sku) {
         logger.info("Checking inventory for product: {}", sku);
         
         Product product = productService.getProductBySku(sku);
@@ -209,16 +237,27 @@ public class EcommerceController {
 
     
     // DTO classes for product queries
+    @Schema(description = "Product detail response")
     public static class ProductDetailResponse {
+        @Schema(description = "Product ID", example = "1")
         private Long id;
+        @Schema(description = "Product SKU", example = "IPHONE-15-PRO")
         private String sku;
+        @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String name;
+        @Schema(description = "Product description", example = "Latest iPhone with advanced features")
         private String description;
+        @Schema(description = "Product price", example = "7999.00")
         private BigDecimal price;
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
+        @Schema(description = "Available inventory", example = "50")
         private int availableInventory;
+        @Schema(description = "Product status", example = "ACTIVE")
         private String status;
+        @Schema(description = "Product availability", example = "true")
         private boolean available;
         
         public ProductDetailResponse(Long id, String sku, String name, String description,
