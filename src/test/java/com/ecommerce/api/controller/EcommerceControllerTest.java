@@ -281,4 +281,108 @@ class EcommerceControllerTest {
 
         verify(productService).getProductBySku("UNKNOWN");
     }
+
+    @Test
+    void cancelOrder_Success() throws Exception {
+        // Given
+        String orderNumber = "ORD123";
+        String reason = "Customer request";
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/orders/{orderNumber}/cancel", orderNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\"" + reason + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("Order cancelled successfully"))
+                .andExpect(jsonPath("$.data.orderNumber").value(orderNumber))
+                .andExpect(jsonPath("$.data.reason").value(reason));
+
+        verify(ecommerceService).cancelOrder(orderNumber, reason);
+    }
+
+    @Test
+    void cancelOrder_ServiceError() throws Exception {
+        // Given
+        String orderNumber = "ORD123";
+        doThrow(new RuntimeException("Cannot cancel this order"))
+            .when(ecommerceService).cancelOrder(anyString(), anyString());
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/orders/{orderNumber}/cancel", orderNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\"Customer request\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("OPERATION_NOT_ALLOWED"))
+                .andExpect(jsonPath("$.message").value("Cannot cancel this order"));
+
+        verify(ecommerceService).cancelOrder(orderNumber, "Customer request");
+    }
+
+    @Test
+    void getAllProducts_WithMerchantFilter() throws Exception {
+        // Given
+        List<Product> products = Arrays.asList(testProduct);
+        when(productService.getProductsByMerchant(1L)).thenReturn(products);
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/products")
+                .param("merchantId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.products", hasSize(1)))
+                .andExpect(jsonPath("$.data.totalCount").value(1))
+                .andExpect(jsonPath("$.data.merchantId").value(1));
+
+        verify(productService).getProductsByMerchant(1L);
+    }
+
+    @Test
+    void getAllProducts_WithSearchAndMerchantFilter() throws Exception {
+        // Given
+        List<Product> products = Arrays.asList(testProduct);
+        when(productService.getProductsByMerchant(1L)).thenReturn(products);
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/products")
+                .param("search", "iPhone")
+                .param("merchantId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.searchTerm").value("iPhone"))
+                .andExpect(jsonPath("$.data.merchantId").value(1));
+
+        verify(productService).getProductsByMerchant(1L);
+    }
+
+    @Test
+    void getAllProducts_WithSearchOnly() throws Exception {
+        // Given
+        List<Product> products = Arrays.asList(testProduct);
+        when(productService.searchAvailableProducts("iPhone")).thenReturn(products);
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/products")
+                .param("search", "iPhone"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.searchTerm").value("iPhone"));
+
+        verify(productService).searchAvailableProducts("iPhone");
+    }
+
+    @Test
+    void getAllProducts_NoFilters() throws Exception {
+        // Given
+        List<Product> products = Arrays.asList(testProduct);
+        when(productService.getAllAvailableProducts()).thenReturn(products);
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.products", hasSize(1)));
+
+        verify(productService).getAllAvailableProducts();
+    }
 }

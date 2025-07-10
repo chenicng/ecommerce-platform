@@ -78,4 +78,161 @@ class UserTest {
         
         assertThrows(IllegalStateException.class, () -> user.recharge(Money.of("50.00", "USD")));
     }
+
+    @Test
+    void shouldHandleRechargeWithZeroAmount() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> user.recharge(Money.zero("CNY")));
+        assertEquals("Recharge amount must be positive", exception.getMessage());
+    }
+
+    @Test
+    void shouldHandleRechargeWithNullAmount() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> user.recharge(null));
+        assertEquals("Recharge amount must be positive", exception.getMessage());
+    }
+
+    @Test
+    void shouldHandleDeductWithZeroAmount() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> user.deduct(Money.zero("CNY")));
+        assertEquals("Deduct amount must be positive", exception.getMessage());
+    }
+
+    @Test
+    void shouldHandleDeductWithNullAmount() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> user.deduct(null));
+        assertEquals("Deduct amount must be positive", exception.getMessage());
+    }
+
+    @Test
+    void shouldHandleRechargeWhenInactive() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.deactivate();
+        
+        // When & Then
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> user.recharge(Money.of("100.00", "CNY")));
+        assertEquals("User is not active", exception.getMessage());
+    }
+
+    @Test
+    void shouldHandleDeductWhenInactive() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        user.deactivate();
+        
+        // When & Then
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> user.deduct(Money.of("50.00", "CNY")));
+        assertEquals("User is not active", exception.getMessage());
+    }
+
+    @Test
+    void shouldHandleActivationAndDeactivation() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // When & Then
+        assertTrue(user.isActive());
+        
+        user.deactivate();
+        assertFalse(user.isActive());
+        
+        user.activate();
+        assertTrue(user.isActive());
+    }
+
+    @Test
+    void shouldHandleMultipleRecharges() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // When
+        user.recharge(Money.of("100.00", "CNY"));
+        user.recharge(Money.of("200.00", "CNY"));
+        user.recharge(Money.of("50.00", "CNY"));
+        
+        // Then
+        assertEquals(Money.of("350.00", "CNY"), user.getBalance());
+    }
+
+    @Test
+    void shouldHandleMultipleDeductions() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("500.00", "CNY"));
+        
+        // When
+        user.deduct(Money.of("100.00", "CNY"));
+        user.deduct(Money.of("200.00", "CNY"));
+        user.deduct(Money.of("50.00", "CNY"));
+        
+        // Then
+        assertEquals(Money.of("150.00", "CNY"), user.getBalance());
+    }
+
+    @Test
+    void shouldHandleExactBalanceDeduction() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // When
+        user.deduct(Money.of("100.00", "CNY"));
+        
+        // Then
+        assertEquals(Money.of("0.00", "CNY"), user.getBalance());
+    }
+
+    @Test
+    void shouldHandleCanAffordWithExactAmount() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // When & Then
+        assertTrue(user.canAfford(Money.of("100.00", "CNY")));
+    }
+
+    @Test
+    void shouldHandleCanAffordWithLessAmount() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // When & Then
+        assertTrue(user.canAfford(Money.of("50.00", "CNY")));
+    }
+
+    @Test
+    void shouldHandleCanAffordWithZeroBalance() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // When & Then
+        assertFalse(user.canAfford(Money.of("1.00", "CNY")));
+    }
 }
