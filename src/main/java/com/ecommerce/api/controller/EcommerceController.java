@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -86,7 +87,7 @@ public class EcommerceController {
     public ResponseEntity<Result<Map<String, Object>>> cancelOrder(
             @Parameter(description = "Order number", required = true, example = "ORD-2025-001")
             @PathVariable String orderNumber, 
-            @RequestBody CancelOrderRequest request) {
+            @Valid @RequestBody CancelOrderRequest request) {
         logger.info("Cancelling order: {} with reason: {}", orderNumber, request.getReason());
         
         ecommerceService.cancelOrder(orderNumber, request.getReason());
@@ -357,6 +358,7 @@ public class EcommerceController {
     }
     
     public static class CancelOrderRequest {
+        @NotBlank(message = "Reason is required")
         private String reason;
         
         public CancelOrderRequest() {}

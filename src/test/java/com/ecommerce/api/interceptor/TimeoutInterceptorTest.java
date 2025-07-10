@@ -80,4 +80,403 @@ class TimeoutInterceptorTest {
     static class TestControllerWithTimeout {
         public void methodWithTimeout() {}
     }
+
+    // Additional test cases for better coverage
+
+    @Test
+    void preHandle_handlerMethod_withClassTimeoutAnnotation_shouldStoreTimeoutInfo() throws Exception {
+        // Given
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestControllerWithTimeout.class);
+        when(request.getHeader("X-Request-ID")).thenReturn("test-request-id");
+
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+
+        // Then
+        assertTrue(result);
+        verify(request).setAttribute("timeout_value", 500L);
+        verify(request).setAttribute("timeout_unit", TimeUnit.SECONDS);
+        verify(request).setAttribute("timeout_message", "Class timeout");
+    }
+
+    @Test
+    void preHandle_handlerMethod_withoutRequestId_shouldGenerateRequestId() throws Exception {
+        // Given
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        when(request.getHeader("X-Request-ID")).thenReturn(null);
+
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+
+        // Then
+        assertTrue(result);
+    }
+
+    @Test
+    void preHandle_handlerMethod_withEmptyRequestId_shouldGenerateRequestId() throws Exception {
+        // Given
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        when(request.getHeader("X-Request-ID")).thenReturn("");
+
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+
+        // Then
+        assertTrue(result);
+    }
+
+    @Test
+    void preHandle_handlerMethod_withWhitespaceRequestId_shouldGenerateRequestId() throws Exception {
+        // Given
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        when(request.getHeader("X-Request-ID")).thenReturn("   ");
+
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+
+        // Then
+        assertTrue(result);
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withTimeoutExceeded_shouldSetWarningHeaders() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(100L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        // Simulate slow execution by setting start time in the past
+        interceptor.preHandle(request, response, handlerMethod);
+        Thread.sleep(150);
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+        // Then
+        verify(response).setHeader("X-Timeout-Warning", "true");
+        verify(response).setHeader(eq("X-Execution-Time"), anyString());
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withinTimeout_shouldNotSetWarningHeaders() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        // Simulate fast execution
+        interceptor.preHandle(request, response, handlerMethod);
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+        // Then
+        verify(response, never()).setHeader("X-Timeout-Warning", "true");
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withoutTimeoutConfig_shouldLogExecutionTime() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(null);
+        when(request.getAttribute("timeout_unit")).thenReturn(null);
+        when(request.getAttribute("timeout_message")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        // Simulate execution
+        interceptor.preHandle(request, response, handlerMethod);
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withSecondsTimeout_shouldConvertCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.SECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+        Thread.sleep(1100); // Exceed 1 second timeout
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader("X-Timeout-Warning", "true");
+        verify(response).setHeader(eq("X-Execution-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withMinutesTimeout_shouldConvertCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MINUTES);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+        Thread.sleep(61000); // Exceed 1 minute timeout
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader("X-Timeout-Warning", "true");
+        verify(response).setHeader(eq("X-Execution-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withMicrosecondsTimeout_shouldConvertCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MICROSECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+        Thread.sleep(10); // Exceed 1 millisecond timeout (1000 microseconds)
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader("X-Timeout-Warning", "true");
+        verify(response).setHeader(eq("X-Execution-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withException_shouldStillLogExecutionTime() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, new RuntimeException("Test exception"));
+
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withNullException_shouldLogExecutionTime() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withZeroTimeout_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(0L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+        Thread.sleep(10); // Any execution time will exceed 0 timeout
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader("X-Timeout-Warning", "true");
+        verify(response).setHeader(eq("X-Execution-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withNegativeTimeout_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(-1L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withNullTimeoutValue_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(null);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withNullTimeoutUnit_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(null);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withNullTimeoutMessage_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withComplexRequestUri_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("/api/v1/users/123/orders/456?page=1&size=10");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withEmptyRequestUri_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn("");
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        // Simulate execution
+        interceptor.preHandle(request, response, handlerMethod);
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
+
+    @Test
+    void afterCompletion_handlerMethod_withNullRequestUri_shouldHandleCorrectly() throws Exception {
+        // Given
+        String requestId = "test-request-id";
+        when(request.getHeader("X-Request-ID")).thenReturn(requestId);
+        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
+        when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
+        when(request.getRequestURI()).thenReturn(null);
+        when(handlerMethod.getMethodAnnotation(ApiTimeout.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
+        // Simulate execution
+        interceptor.preHandle(request, response, handlerMethod);
+        // When
+        interceptor.afterCompletion(request, response, handlerMethod, null);
+        // Then
+        verify(response).setHeader(eq("X-Response-Time"), anyString());
+    }
 }
