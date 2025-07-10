@@ -25,7 +25,12 @@ public enum ErrorCode {
     
     // System Errors
     INTERNAL_ERROR("INTERNAL_ERROR", "Internal server error"),
-    UNSUPPORTED_API_VERSION("UNSUPPORTED_API_VERSION", "API version not supported");
+    UNSUPPORTED_API_VERSION("UNSUPPORTED_API_VERSION", "API version not supported"),
+    
+    // Settlement related errors
+    SETTLEMENT_FAILED("SETTLEMENT_FAILED", "Settlement execution failed"),
+    MERCHANT_NOT_FOUND("MERCHANT_NOT_FOUND", "Merchant not found"),
+    INVALID_SETTLEMENT_DATE("INVALID_SETTLEMENT_DATE", "Invalid settlement date");
     
     private final String code;
     private final String defaultMessage;
@@ -66,6 +71,10 @@ public enum ErrorCode {
             return RESOURCE_INACTIVE;
         } else if (lowerMessage.contains("cannot cancel")) {
             return OPERATION_NOT_ALLOWED;
+        } else if (lowerMessage.contains("settlement")) {
+            return SETTLEMENT_FAILED;
+        } else if (lowerMessage.contains("merchant not found")) {
+            return MERCHANT_NOT_FOUND;
         } else {
             return BUSINESS_ERROR;
         }

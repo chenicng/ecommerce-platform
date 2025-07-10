@@ -2,6 +2,7 @@ package com.ecommerce.api.controller;
 
 import com.ecommerce.application.service.MerchantService;
 import com.ecommerce.application.service.ProductService;
+import com.ecommerce.application.service.SettlementService;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
@@ -17,6 +18,8 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +30,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import com.ecommerce.domain.settlement.Settlement;
 
 /**
  * Merchant Controller (API v1)
@@ -42,10 +46,12 @@ public class MerchantController {
     
     private final MerchantService merchantService;
     private final ProductService productService;
+    private final SettlementService settlementService;
     
-    public MerchantController(MerchantService merchantService, ProductService productService) {
+    public MerchantController(MerchantService merchantService, ProductService productService, SettlementService settlementService) {
         this.merchantService = merchantService;
         this.productService = productService;
+        this.settlementService = settlementService;
     }
     
     /**
@@ -277,17 +283,89 @@ public class MerchantController {
             @PathVariable Long merchantId) {
         logger.info("Getting income for merchant: {}", merchantId);
         
-        Money balance = merchantService.getMerchantBalance(merchantId);
+        Money currentBalance = merchantService.getMerchantBalance(merchantId);
         Money totalIncome = merchantService.getMerchantTotalIncome(merchantId);
         
         IncomeResponse response = new IncomeResponse(
             merchantId,
-            balance.getAmount(),
+            currentBalance.getAmount(),
             totalIncome.getAmount(),
-            balance.getCurrency()
+            currentBalance.getCurrency()
         );
         
         return ResponseEntity.ok(Result.success(response));
+    }
+    
+    /**
+     * Execute Settlement for Merchant (API v1)
+     * POST /api/v1/merchants/{merchantId}/settlement
+     */
+    @PostMapping("/{merchantId}/settlement")
+    @Operation(summary = "Execute Settlement", description = "Manually trigger settlement for a specific merchant")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Settlement executed successfully"),
+        @ApiResponse(responseCode = "404", description = "Merchant not found")
+    })
+    public ResponseEntity<Result<SettlementResponse>> executeSettlement(
+            @Parameter(description = "Merchant ID", required = true, example = "1")
+            @PathVariable Long merchantId,
+            @RequestBody(required = false) SettlementRequest request) {
+        logger.info("Executing settlement for merchant: {}", merchantId);
+        
+        // Use provided date or default to yesterday
+        LocalDate settlementDate = (request != null && request.getSettlementDate() != null) 
+            ? request.getSettlementDate() 
+            : LocalDate.now().minusDays(1);
+        
+        Settlement settlement = settlementService.executeMerchantSettlement(merchantId, settlementDate);
+        
+        SettlementResponse response = new SettlementResponse(
+            settlement.getMerchantId(),
+            settlement.getSettlementDate(),
+            settlement.getExpectedIncome().getAmount(),
+            settlement.getActualBalance().getAmount(),
+            settlement.getDifference().getAmount(),
+            settlement.getStatus().toString(),
+            settlement.getNotes()
+        );
+        
+        logger.info("Settlement completed for merchant {}: expected={}, actual={}, status={}", 
+                  merchantId, settlement.getExpectedIncome(), settlement.getActualBalance(), 
+                  settlement.getStatus());
+        
+        return ResponseEntity.ok(Result.successWithMessage("Settlement executed successfully", response));
+    }
+    
+    /**
+     * Execute Global Settlement (API v1)
+     * POST /api/v1/merchants/settlement/global
+     */
+    @PostMapping("/settlement/global")
+    @Operation(summary = "Execute Global Settlement", description = "Manually trigger settlement for all merchants")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Global settlement executed successfully")
+    })
+    public ResponseEntity<Result<GlobalSettlementResponse>> executeGlobalSettlement(
+            @RequestBody(required = false) GlobalSettlementRequest request) {
+        logger.info("Executing global settlement");
+        
+        // Use provided date or default to yesterday
+        LocalDate settlementDate = (request != null && request.getSettlementDate() != null) 
+            ? request.getSettlementDate() 
+            : LocalDate.now().minusDays(1);
+        
+        // Execute global settlement
+        settlementService.executeSettlement();
+        
+        GlobalSettlementResponse response = new GlobalSettlementResponse(
+            settlementDate,
+            "Global settlement completed successfully",
+            LocalDateTime.now()
+        );
+        
+        logger.info("Global settlement completed for date: {}", settlementDate);
+        
+        return ResponseEntity.ok(Result.successWithMessage("Global settlement executed successfully", response));
     }
     
     /**
@@ -650,5 +728,145 @@ public class MerchantController {
         public int getTotalCount() { return totalCount; }
         public String getStatusFilter() { return statusFilter; }
         public String getSearchTerm() { return searchTerm; }
+    }
+
+    @Schema(description = "Settlement request")
+    public static class SettlementRequest {
+        @Schema(description = "Date for which to execute settlement (YYYY-MM-DD)", example = "2023-10-27")
+        private LocalDate settlementDate;
+
+        public LocalDate getSettlementDate() {
+            return settlementDate;
+        }
+
+        public void setSettlementDate(LocalDate settlementDate) {
+            this.settlementDate = settlementDate;
+        }
+    }
+
+    public static class SettlementResponse {
+        private Long merchantId;
+        private LocalDate settlementDate;
+        private BigDecimal expectedIncome;
+        private BigDecimal actualBalance;
+        private BigDecimal difference;
+        private String status;
+        private String notes;
+
+        public SettlementResponse(Long merchantId, LocalDate settlementDate, BigDecimal expectedIncome, BigDecimal actualBalance, BigDecimal difference, String status, String notes) {
+            this.merchantId = merchantId;
+            this.settlementDate = settlementDate;
+            this.expectedIncome = expectedIncome;
+            this.actualBalance = actualBalance;
+            this.difference = difference;
+            this.status = status;
+            this.notes = notes;
+        }
+
+        public Long getMerchantId() {
+            return merchantId;
+        }
+
+        public void setMerchantId(Long merchantId) {
+            this.merchantId = merchantId;
+        }
+
+        public LocalDate getSettlementDate() {
+            return settlementDate;
+        }
+
+        public void setSettlementDate(LocalDate settlementDate) {
+            this.settlementDate = settlementDate;
+        }
+
+        public BigDecimal getExpectedIncome() {
+            return expectedIncome;
+        }
+
+        public void setExpectedIncome(BigDecimal expectedIncome) {
+            this.expectedIncome = expectedIncome;
+        }
+
+        public BigDecimal getActualBalance() {
+            return actualBalance;
+        }
+
+        public void setActualBalance(BigDecimal actualBalance) {
+            this.actualBalance = actualBalance;
+        }
+
+        public BigDecimal getDifference() {
+            return difference;
+        }
+
+        public void setDifference(BigDecimal difference) {
+            this.difference = difference;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public String getNotes() {
+            return notes;
+        }
+
+        public void setNotes(String notes) {
+            this.notes = notes;
+        }
+    }
+
+    @Schema(description = "Global Settlement request")
+    public static class GlobalSettlementRequest {
+        @Schema(description = "Date for which to execute global settlement (YYYY-MM-DD)", example = "2023-10-27")
+        private LocalDate settlementDate;
+
+        public LocalDate getSettlementDate() {
+            return settlementDate;
+        }
+
+        public void setSettlementDate(LocalDate settlementDate) {
+            this.settlementDate = settlementDate;
+        }
+    }
+
+    public static class GlobalSettlementResponse {
+        private LocalDate settlementDate;
+        private String message;
+        private LocalDateTime settlementTime;
+
+        public GlobalSettlementResponse(LocalDate settlementDate, String message, LocalDateTime settlementTime) {
+            this.settlementDate = settlementDate;
+            this.message = message;
+            this.settlementTime = settlementTime;
+        }
+
+        public LocalDate getSettlementDate() {
+            return settlementDate;
+        }
+
+        public void setSettlementDate(LocalDate settlementDate) {
+            this.settlementDate = settlementDate;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public LocalDateTime getSettlementTime() {
+            return settlementTime;
+        }
+
+        public void setSettlementTime(LocalDateTime settlementTime) {
+            this.settlementTime = settlementTime;
+        }
     }
 } 

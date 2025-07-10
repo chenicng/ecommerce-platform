@@ -293,4 +293,97 @@ class EcommercePlatformIntegrationTest {
             .add(merchantService.getMerchantBalance(merchant.getId()));
         assertEquals(initialUserBalance, totalSystemBalance);
     }
+
+    @Test
+    void shouldMatchOrderIncomeAndMerchantBalanceInSettlement() {
+        // 1. Create merchant, product, user
+        Merchant merchant = merchantService.createMerchant(
+            "Settlement Test Merchant", "BL000001", "settle@store.com", "555-0000");
+        Product product = productService.createProduct(
+            "SETTLE001", "Settlement Product", "For settlement testing",
+            Money.of("100.00", "CNY"), merchant.getId(), 10);
+        User user = userService.createUser("settle_user", "settle@example.com", "555-0001", "CNY");
+        userService.rechargeUser(user.getId(), Money.of("500.00", "CNY"));
+
+        // 2. User purchases 2 products
+        PurchaseRequest request = new PurchaseRequest(user.getId(), "SETTLE001", 2);
+        PurchaseResponse response = ecommerceService.processPurchase(request);
+        assertEquals("SUCCESS", response.getStatus());
+
+        // 3. Verify merchant balance and order income
+        Money expectedIncome = Money.of("200.00", "CNY"); // 100 * 2
+        Money merchantBalance = merchantService.getMerchantBalance(merchant.getId());
+        assertEquals(expectedIncome, merchantBalance);
+
+        // 4. Execute settlement
+        LocalDate today = LocalDate.now();
+        Settlement settlement = settlementService.executeMerchantSettlement(merchant.getId(), today);
+
+        // 5. Verify settlement record
+        assertNotNull(settlement);
+        assertEquals(expectedIncome, settlement.getExpectedIncome());
+        assertEquals(merchantBalance, settlement.getActualBalance());
+        assertEquals(Money.zero("CNY"), settlement.getDifference());
+        assertTrue(settlement.isMatched());
+        assertTrue(settlement.getNotes().contains("Match: Yes"));
+    }
+
+    @Test
+    void shouldDetectBalanceMismatchInSettlement() {
+        // 1. Create merchant, product, user
+        Merchant merchant = merchantService.createMerchant(
+            "Mismatch Test Merchant", "BL000002", "mismatch@store.com", "555-0002");
+        Product product = productService.createProduct(
+            "MISMATCH001", "Mismatch Product", "For mismatch testing",
+            Money.of("50.00", "CNY"), merchant.getId(), 5);
+        User user = userService.createUser("mismatch_user", "mismatch@example.com", "555-0003", "CNY");
+        userService.rechargeUser(user.getId(), Money.of("100.00", "CNY"));
+
+        // 2. User purchases 1 product
+        PurchaseRequest request = new PurchaseRequest(user.getId(), "MISMATCH001", 1);
+        PurchaseResponse response = ecommerceService.processPurchase(request);
+        assertEquals("SUCCESS", response.getStatus());
+
+        // 3. Manually adjust merchant balance to create mismatch
+        Merchant loaded = merchantService.getMerchantById(merchant.getId());
+        loaded.receiveIncome(Money.of("100.00", "CNY")); // Add extra amount
+        merchantService.saveMerchant(loaded);
+
+        // 4. Execute settlement
+        LocalDate today = LocalDate.now();
+        Settlement settlement = settlementService.executeMerchantSettlement(merchant.getId(), today);
+
+        // 5. Verify settlement record
+        assertNotNull(settlement);
+        assertEquals(Money.of("50.00", "CNY"), settlement.getExpectedIncome());
+        assertEquals(Money.of("100.00", "CNY"), settlement.getDifference());
+        assertFalse(settlement.isMatched());
+        assertTrue(settlement.getNotes().contains("Match: No"));
+    }
+
+    @Test
+    void shouldSupportManualAndScheduledSettlement() {
+        // 1. Create merchant, product, user
+        Merchant merchant = merchantService.createMerchant(
+            "Scheduled Settlement Merchant", "BL000003", "scheduled@store.com", "555-0004");
+        Product product = productService.createProduct(
+            "SCHEDULED001", "Scheduled Product", "For scheduled settlement testing",
+            Money.of("20.00", "CNY"), merchant.getId(), 3);
+        User user = userService.createUser("scheduled_user", "scheduled@example.com", "555-0005", "CNY");
+        userService.rechargeUser(user.getId(), Money.of("100.00", "CNY"));
+
+        // 2. User purchases 2 products
+        PurchaseRequest request = new PurchaseRequest(user.getId(), "SCHEDULED001", 2);
+        PurchaseResponse response = ecommerceService.processPurchase(request);
+        assertEquals("SUCCESS", response.getStatus());
+
+        // 3. Manual settlement
+        LocalDate today = LocalDate.now();
+        Settlement manualSettlement = settlementService.executeMerchantSettlement(merchant.getId(), today);
+        assertNotNull(manualSettlement);
+        assertEquals(Money.of("40.00", "CNY"), manualSettlement.getExpectedIncome());
+
+        // 4. Scheduled settlement (global)
+        assertDoesNotThrow(() -> settlementService.executeSettlement());
+    }
 } 
