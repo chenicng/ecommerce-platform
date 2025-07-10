@@ -1,145 +1,205 @@
 # E-commerce Platform API Documentation
 
-## Overview
+## 📖 Overview
 
-This project has successfully integrated **Springdoc OpenAPI 3.0** and **Swagger UI**, providing comprehensive API documentation and interactive testing interface.
+This document provides comprehensive API documentation through **Springdoc OpenAPI 3.0** and **Swagger UI**, offering interactive testing capabilities and complete API reference.
 
-## Access Methods
+> **Note**: For project overview, quick start, and architecture information, see [README.md](README.md).
 
-### 1. Swagger UI Interface
-- **Recommended URL**: `http://localhost:8080/swagger-ui/index.html` (default path, direct access)
-- **Alternative URL**: `http://localhost:8080/swagger-ui.html` (configured path, redirects to default)
-- **Features**: Interactive API documentation with live testing capabilities
-- **Capabilities**: 
-  - Grouped by business modules
-  - API version switching support
-  - Real-time request/response testing
-  - Complete parameter descriptions and examples
+## 🔗 Access Points
 
-### 2. OpenAPI JSON Documentation
-- **URL**: `http://localhost:8080/v3/api-docs`
-- **Purpose**: Standard OpenAPI 3.0 JSON format documentation
-- **Usage**: Can be used to generate client SDKs, import to other tools
+### Interactive Documentation
+- **Primary URL**: http://localhost:8080/swagger-ui/index.html
+- **Alternative URL**: http://localhost:8080/swagger-ui.html
+- **Features**: Interactive API testing with live request/response capabilities
 
-### 3. Grouped API Documentation
-- **V1 API**: `http://localhost:8080/v3/api-docs/v1`
-- **V2 API**: `http://localhost:8080/v3/api-docs/v2`
-- **Public API**: `http://localhost:8080/v3/api-docs/public`
+### OpenAPI Documentation
+- **JSON Format**: http://localhost:8080/v3/api-docs
+- **Purpose**: Standard OpenAPI 3.0 specification for client generation
 
-## API Group Descriptions
+### Version-Specific Documentation
+- **V1 APIs**: http://localhost:8080/v3/api-docs/v1
+- **V2 APIs**: http://localhost:8080/v3/api-docs/v2
+- **Public APIs**: http://localhost:8080/v3/api-docs/public
 
-### 🏥 Health Check
-- **Description**: System health monitoring endpoints
+## 📋 API Groups
+
+### 🏥 Health Check APIs
+**Description**: System health monitoring and status endpoints
 - **Endpoints**: `/api/health`, `/api/healthz`
-- **Purpose**: Service health checks and system status monitoring
+- **Purpose**: Service health checks, load balancer integration, monitoring
 
-### 📋 API Version
-- **Description**: API version information and compatibility
+### 📋 API Version Management
+**Description**: API version information and compatibility checking
 - **Endpoints**: `/api/version/*`
-- **Purpose**: Query supported API versions, check version compatibility
+- **Purpose**: Version discovery, compatibility verification, client SDK generation
 
-### 👤 User Management
-- **Description**: User registration, authentication and account management
+### 👤 User Management (V1)
+**Description**: Core user operations and account management
 - **Endpoints**: `/api/v1/users/*`
-- **Features**: User creation, balance inquiry, account recharge
+- **Features**: User registration, balance management, account operations
 
-### 👤 User Management V2
-- **Description**: Enhanced user management features (API v2)
+### 👤 User Management (V2)
+**Description**: Enhanced user management with additional features
 - **Endpoints**: `/api/v2/users/*`
-- **Features**: Additional user information and enhanced functionality
+- **Features**: Extended user information, advanced account features
 
 ### 🏪 Merchant Management
-- **Description**: Merchant registration, product management and income tracking
+**Description**: Merchant operations and product management
 - **Endpoints**: `/api/v1/merchants/*`
-- **Features**: Merchant registration, product management, inventory control, income inquiry
+- **Features**: Merchant registration, product management, inventory control, income tracking
 
-### 🛒 Product & Purchase
-- **Description**: Product browsing, purchasing and order management
+### 🛒 E-commerce Operations
+**Description**: Product browsing and purchase operations
 - **Endpoints**: `/api/v1/ecommerce/*`
-- **Features**: Product queries, purchase orders, order cancellation
+- **Features**: Product catalog, purchase processing, order management
 
-## Key Features
+## 🔐 Security & Authentication
 
-### 🔐 Security Authentication
-- **Authentication Method**: JWT Bearer Token
-- **Configuration**: Pre-configured JWT security scheme
-- **Usage**: Click "Authorize" button in Swagger UI to input token
+### JWT Bearer Token Authentication
+- **Method**: JWT Bearer Token
+- **Format**: `Bearer <token>`
+- **Configuration**: Pre-configured in Swagger UI
+- **Usage**: Click "Authorize" button in Swagger UI interface
 
-### 📊 API Version Control
-- **Supported Versions**: v1, v2
-- **Version Strategies**: 
-  - URL path versioning: `/api/v1/*`, `/api/v2/*`
-  - Request header versioning: `API-Version: v1`
-  - Query parameter versioning: `?version=v1`
+### Authentication Flow
+1. Click "Authorize" button in Swagger UI
+2. Enter JWT token in format: `Bearer your-token-here`
+3. Click "Authorize" to confirm
+4. All subsequent requests will include the token
 
-### 📝 Complete Documentation Annotations
-- **@Operation**: Operation descriptions and summaries
-- **@ApiResponse**: HTTP status codes and descriptions (200, 400, 404, etc.)
-- **@Parameter**: Parameter descriptions and examples
-- **@Schema**: Data model definitions
-- **@Tag**: API grouping tags
+## 📊 API Versioning Strategy
 
-### 📋 Response Code System
-The project uses a two-layer response code system:
-- **HTTP Status Codes**: Standard HTTP codes (200, 400, 404, 500, etc.) for transport layer
-- **Business Codes**: Application-specific codes in response body:
-  - `"SUCCESS"` - Operation completed successfully
-  - `"VALIDATION_ERROR"` - Request validation failed
-  - `"RESOURCE_NOT_FOUND"` - Requested resource not found
-  - `"INSUFFICIENT_BALANCE"` - Insufficient user balance
-  - `"BUSINESS_ERROR"` - General business logic error
-  - And other specific business error codes
+### Supported Versions
+- **v1**: Current stable version
+- **v2**: Enhanced features and improvements
 
-### 🎯 Unified Response Format
-All API responses use the unified `Result<T>` format:
+### Version Implementation
+- **URL Path**: `/api/v1/*`, `/api/v2/*`
+- **Request Header**: `API-Version: v1`
+- **Query Parameter**: `?version=v1`
+
+### Version Selection in Swagger UI
+- Use the version selector in the top-right corner
+- Switch between different API groups
+- View version-specific documentation
+
+## 📝 Response Format
+
+### Unified Response Structure
+All API responses follow a consistent format:
+
 ```json
 {
   "code": "SUCCESS",
   "message": "Operation completed successfully",
-  "data": { ... },
+  "data": {
+    // Response data
+  },
   "timestamp": "2025-01-01T12:00:00"
 }
 ```
 
-## Usage Guide
+### Response Codes
+- **HTTP Status Codes**: Standard HTTP codes (200, 400, 404, 500)
+- **Business Codes**: Application-specific codes in response body
 
-### 1. Start Application
+#### Business Error Codes
+- `SUCCESS` - Operation completed successfully
+- `VALIDATION_ERROR` - Request validation failed
+- `RESOURCE_NOT_FOUND` - Requested resource not found
+- `INSUFFICIENT_BALANCE` - Insufficient user balance
+- `INSUFFICIENT_INVENTORY` - Insufficient product inventory
+- `BUSINESS_ERROR` - General business logic error
+- `SYSTEM_ERROR` - Internal system error
+
+## 🎯 API Examples
+
+### User Management
+
+#### Create User
 ```bash
-mvn spring-boot:run
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
 ```
 
-### 2. Access Swagger UI
-Open browser and visit: `http://localhost:8080/swagger-ui/index.html` (recommended)
-
-### 3. Explore APIs
-- View APIs for each business module
-- Click specific endpoints to view detailed information
-- Use "Try it out" functionality to test APIs
-
-### 4. Authentication Testing
-For testing endpoints that require authentication:
-1. Click the "Authorize" button in the top right corner
-2. Enter JWT token (format: `Bearer your-token-here`)
-3. Click "Authorize" to confirm
-
-### 5. Version Switching
-In the top right corner of Swagger UI, you can select different API version groups:
-- **API Version 1**: View v1 version APIs
-- **API Version 2**: View v2 version APIs
-- **Public APIs**: View public APIs
-
-## Configuration Details
-
-### Dependency Configuration
-```xml
-<dependency>
-    <groupId>org.springdoc</groupId>
-    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-    <version>2.3.0</version>
-</dependency>
+#### User Account Recharge
+```bash
+curl -X POST http://localhost:8080/api/v1/users/1/recharge \
+  -H "Content-Type: application/json" \
+  -d '{"amount":1000.00,"currency":"CNY"}'
 ```
 
-### Application Configuration (application.yml)
+#### Query User Balance
+```bash
+curl -X GET http://localhost:8080/api/v1/users/1/balance
+```
+
+### Merchant Management
+
+#### Create Merchant
+```bash
+curl -X POST http://localhost:8080/api/v1/merchants \
+  -H "Content-Type: application/json" \
+  -d '{"merchantName":"Test Store","businessLicense":"TEST123","contactEmail":"test@store.com","contactPhone":"13900139000"}'
+```
+
+#### Create Product
+```bash
+curl -X POST http://localhost:8080/api/v1/merchants/1/products \
+  -H "Content-Type: application/json" \
+  -d '{"sku":"PRODUCT1","name":"Test Product","price":100.00,"initialInventory":10}'
+```
+
+#### Add Inventory
+```bash
+curl -X POST http://localhost:8080/api/v1/merchants/1/products/PRODUCT1/add-inventory \
+  -H "Content-Type: application/json" \
+  -d '{"quantity":50}'
+```
+
+#### Query Merchant Income
+```bash
+curl -X GET http://localhost:8080/api/v1/merchants/1/income
+```
+
+### Product Operations
+
+#### Browse Available Products
+```bash
+# Get all available products
+curl -X GET http://localhost:8080/api/v1/ecommerce/products
+
+# Search products by name
+curl -X GET "http://localhost:8080/api/v1/ecommerce/products?search=product"
+
+# Filter by merchant
+curl -X GET "http://localhost:8080/api/v1/ecommerce/products?merchantId=1"
+```
+
+#### Get Product Details
+```bash
+curl -X GET http://localhost:8080/api/v1/ecommerce/products/PRODUCT1
+```
+
+#### Check Product Inventory
+```bash
+curl -X GET http://localhost:8080/api/v1/ecommerce/products/PRODUCT1/inventory
+```
+
+### Purchase Operations
+
+#### Purchase Product
+```bash
+curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
+  -H "Content-Type: application/json" \
+  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
+```
+
+## 🔧 Configuration
+
+### Springdoc Configuration
 ```yaml
 springdoc:
   api-docs:
@@ -164,51 +224,166 @@ springdoc:
       display-name: Public APIs
 ```
 
-## Best Practices
+### Maven Dependency
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.3.0</version>
+</dependency>
+```
 
-### 1. Annotation Usage
-- Add `@Tag` annotations to each controller
-- Add `@Operation` annotations to each endpoint
-- Add `@Parameter` annotations to important parameters
-- Add `@Schema` annotations to DTO classes
+## 📚 Documentation Best Practices
 
-### 2. Documentation Maintenance
-- Keep annotation descriptions accurate and up-to-date
-- Provide meaningful example data
-- Regularly update API version information
+### Controller Annotations
+```java
+@Tag(name = "User Management", description = "User registration and account operations")
+@RestController
+@RequestMapping(ApiVersionConfig.API_V1 + "/users")
+public class UserController {
+    
+    @Operation(summary = "Create new user", description = "Register a new user account")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "409", description = "User already exists")
+    })
+    @PostMapping
+    public Result<UserResponse> createUser(@RequestBody @Valid CreateUserRequest request) {
+        // Implementation
+    }
+}
+```
 
-### 3. Security Considerations
-- Consider restricting Swagger UI access in production environments
-- Don't expose sensitive information in examples
-- Properly configure authentication and authorization
+### DTO Annotations
+```java
+@Schema(description = "User creation request")
+public class CreateUserRequest {
+    
+    @Schema(description = "Username", example = "john_doe", required = true)
+    @NotBlank(message = "Username is required")
+    private String username;
+    
+    @Schema(description = "Email address", example = "john@example.com", required = true)
+    @Email(message = "Invalid email format")
+    private String email;
+}
+```
 
-### 4. Error Handling Best Practices
-- Use appropriate HTTP status codes (404 for not found, 400 for bad request, etc.)
-- Provide descriptive error messages
-- Maintain consistent error response format
-- Log errors appropriately for debugging
+## 🚀 Getting Started
 
-## Technical Advantages
+### 1. Start Application
+```bash
+mvn spring-boot:run
+```
 
-### ✅ Why Choose Springdoc
-1. **Modern**: Supports OpenAPI 3.0 standard
-2. **Compatibility**: Perfect support for Spring Boot 3.x and Jakarta EE
-3. **Active Maintenance**: Continuously updated and maintained
-4. **Feature Rich**: Supports various advanced features
+### 2. Access Swagger UI
+Open browser and navigate to: http://localhost:8080/swagger-ui/index.html
 
-### ❌ Why Not Choose Springfox
-1. **No Longer Maintained**: Last updated in 2020
-2. **Incompatible**: Does not support Spring Boot 3.x and Jakarta EE
-3. **Outdated Technology**: Based on Swagger 2.0 standard
+### 3. Explore APIs
+- Browse API groups by clicking on different sections
+- View detailed endpoint information
+- Test APIs using the "Try it out" functionality
 
-## Troubleshooting
+### 4. Authentication Testing
+1. Click "Authorize" button in Swagger UI
+2. Enter JWT token: `Bearer your-token-here`
+3. Click "Authorize" to confirm
+4. Test protected endpoints
+
+### 5. Version Switching
+Use the version selector in Swagger UI to switch between:
+- **API Version 1**: Core functionality
+- **API Version 2**: Enhanced features
+- **Public APIs**: Health checks and version info
+
+## 🔍 API Testing Workflow
+
+### Quick Test Scenario
+```bash
+# Create user and product
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
+
+curl -X POST http://localhost:8080/api/v1/merchants/1/products \
+  -H "Content-Type: application/json" \
+  -d '{"sku":"PRODUCT1","name":"Test Product","price":100.00,"initialInventory":10}'
+
+# Purchase and verify
+curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
+  -H "Content-Type: application/json" \
+  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
+
+curl http://localhost:8080/api/v1/users/1/balance
+```
+
+## 🛠️ Troubleshooting
 
 ### Common Issues
-1. **Swagger UI inaccessible**: Check if application started properly
-2. **Incomplete API documentation**: Verify controller annotations are correct
-3. **Authentication failures**: Confirm JWT token format is correct
 
-### Debugging Methods
-- Check console logs
-- Verify `/v3/api-docs` endpoint is working properly
-- Validate application configuration is correct
+#### Swagger UI Not Accessible
+- Verify application is running on port 8080
+- Check if springdoc is enabled in configuration
+- Ensure no firewall blocking access
+
+#### API Documentation Incomplete
+- Verify controller annotations are properly configured
+- Check for compilation errors
+- Ensure all DTOs have proper schema annotations
+
+#### Authentication Issues
+- Verify JWT token format: `Bearer <token>`
+- Check token expiration
+- Ensure token has required permissions
+
+### Debug Mode
+```bash
+# Enable debug logging for springdoc
+export LOGGING_LEVEL_ORG_SPRINGDOC=DEBUG
+
+# Start application with debug profile
+mvn spring-boot:run -Dspring-boot.run.profiles=debug
+```
+
+## 📈 Advanced Features
+
+### Custom Response Examples
+```java
+@ApiResponse(
+    responseCode = "200",
+    description = "User created successfully",
+    content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = UserResponse.class)
+    )
+)
+```
+
+### Parameter Validation
+```java
+@Parameter(
+    name = "search",
+    description = "Search term for product name or description",
+    example = "product"
+)
+@RequestParam(required = false) String search
+```
+
+## 🔄 API Evolution
+
+### Versioning Strategy
+- **Backward Compatibility**: Maintain compatibility within major versions
+- **Deprecation Policy**: Clear deprecation notices and migration guides
+- **Breaking Changes**: Only in major version updates
+
+## 📞 Support
+
+For API-related questions or issues:
+- **Documentation**: http://localhost:8080/swagger-ui/index.html
+- **Health Check**: http://localhost:8080/actuator/health
+- **Issues**: [GitHub Issues](https://github.com/chenlicong0821/ecommerce-platform/issues)
+
+---
+
+**API Documentation powered by Springdoc OpenAPI 3.0**

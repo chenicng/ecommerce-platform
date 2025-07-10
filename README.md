@@ -1,420 +1,421 @@
 # E-commerce Platform
 
-A complete e-commerce platform system based on Spring Boot 3.2 and DDD (Domain-Driven Design), supporting user product purchases, merchant inventory management, automatic settlement, and other features. The system supports both development mode (in-memory storage) and production mode (MySQL database).
+A comprehensive e-commerce platform built with **Spring Boot 3.2** and **Domain-Driven Design (DDD)**, featuring user management, merchant operations, product trading, and automated settlement systems.
 
-## System Features
+## 🚀 Quick Start
 
-### Core Functions
-- **User Management**: User registration, account recharge, balance inquiry
-- **Merchant Management**: Merchant registration, product management, inventory management, income inquiry
-- **Product Trading**: Complete purchase process, including inventory deduction and fund transfer
-- **Automatic Settlement**: Scheduled tasks for daily merchant settlement, matching income with account balance
+### Prerequisites
+- **Java 21+**
+- **Maven 3.6+**
+- **MySQL 8.0+** (for production mode)
 
-### Technical Architecture
-- **Domain-Driven Design (DDD)**: Clear domain division and aggregate root design
-- **Spring Boot 3.2**: Modern Spring framework
-- **MySQL Database**: Production-ready database with JPA support
-- **Mock Mode**: In-memory storage for demonstration and development
-- **REST API**: Complete RESTful interface design
-- **Scheduled Tasks**: Settlement tasks based on Spring Scheduler
-- **TestContainers**: Integration testing support
-
-## Quick Start
-
-### Environment Requirements
-- Java 21+
-- Maven 3.6+
-- MySQL 8.0+ (for production mode)
-
-### Start Application
-
-#### Development Mode (Mock - Default)
+### Development Mode (Default)
 ```bash
+# Clone the repository
+git clone https://github.com/chenlicong0821/ecommerce-platform.git
+cd ecommerce-platform
+
+# Start with mock data (in-memory storage)
 mvn clean spring-boot:run
 ```
 
-#### Production Mode (MySQL)
+### Production Mode (MySQL)
 ```bash
-# First, ensure MySQL is running and create database
+# Create database
 mysql -u root -p
 CREATE DATABASE ecommerce_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-# Set environment variables for database connection
+# Set environment variables
 export DB_USERNAME=your_username
 export DB_PASSWORD=your_password
 
-# Run with MySQL profile
+# Start with MySQL profile
 mvn clean spring-boot:run -Dspring-boot.run.profiles=mysql
 ```
 
-After application startup, access:
-- Application port: http://localhost:8080
-- Health check: http://localhost:8080/actuator/health
+### Access Points
+- **Application**: http://localhost:8080
+- **Health Check**: http://localhost:8080/actuator/health
+- **API Documentation**: http://localhost:8080/swagger-ui/index.html
 
-## API Documentation
+## 📋 Table of Contents
+
+1. [System Overview](#system-overview)
+2. [Architecture](#architecture)
+3. [Core Features](#core-features)
+4. [API Documentation](#api-documentation)
+5. [Testing](#testing)
+6. [Configuration](#configuration)
+7. [Development Guide](#development-guide)
+8. [Production Deployment](#production-deployment)
+
+## 🏗️ System Overview
+
+### Technology Stack
+- **Framework**: Spring Boot 3.2.0
+- **Language**: Java 21
+- **Database**: MySQL 8.0 (production) / In-memory (development)
+- **API Documentation**: Springdoc OpenAPI 3.0 + Swagger UI
+- **Testing**: JUnit 5 + TestContainers + Mockito
+- **Build Tool**: Maven
+- **Architecture**: Domain-Driven Design (DDD)
+
+### Key Features
+- ✅ **User Management**: Registration, account management, balance operations
+- ✅ **Merchant Management**: Merchant registration, product management, income tracking
+- ✅ **Product Trading**: Complete purchase workflow with inventory management
+- ✅ **Automated Settlement**: Daily merchant settlement with scheduled tasks
+- ✅ **API Versioning**: Support for multiple API versions (v1, v2)
+- ✅ **Comprehensive Testing**: Full unit and integration test coverage
+- ✅ **Interactive Documentation**: Swagger UI with live testing capabilities
+
+## 🏛️ Architecture
+
+### Domain-Driven Design (DDD) Structure
+
+```
+src/main/java/com/ecommerce/
+├── api/                    # Application API Layer
+│   ├── controller/        # REST Controllers
+│   ├── dto/              # Data Transfer Objects
+│   ├── exception/         # Global Exception Handling
+│   ├── aspect/            # Cross-cutting Concerns
+│   └── interceptor/       # Request Interceptors
+├── application/           # Application Service Layer
+│   ├── service/           # Application Services
+│   └── dto/              # Application DTOs
+├── domain/               # Domain Layer
+│   ├── user/             # User Domain
+│   ├── merchant/         # Merchant Domain
+│   ├── product/          # Product Domain
+│   ├── order/            # Order Domain
+│   └── settlement/       # Settlement Domain
+└── infrastructure/       # Infrastructure Layer
+    ├── repository/        # Data Access Layer
+    ├── config/           # Configuration
+    └── scheduler/        # Scheduled Tasks
+```
+
+### Core Domains
+
+#### 1. User Domain
+- **User**: Aggregate root managing user information
+- **UserAccount**: Value object for balance operations
+- **UserStatus**: Enum for user state management
+
+#### 2. Merchant Domain
+- **Merchant**: Aggregate root for merchant operations
+- **MerchantAccount**: Value object for income management
+- **MerchantStatus**: Enum for merchant state management
+
+#### 3. Product Domain
+- **Product**: Aggregate root for product information
+- **ProductInventory**: Value object for inventory operations
+- **ProductStatus**: Enum for product state management
+
+#### 4. Order Domain
+- **Order**: Aggregate root for order processing
+- **OrderItem**: Value object for order details
+- **OrderStatus**: Enum for order state transitions
+
+#### 5. Settlement Domain
+- **Settlement**: Aggregate root for settlement records
+- **SettlementStatus**: Enum for settlement state management
+
+## 🎯 Core Features
 
 ### User Management
-
-#### Create User
-```bash
-POST /api/users
-Content-Type: application/json
-
-{
-  "username": "testuser",
-  "email": "test@example.com",
-  "phone": "13800138000"
-}
-```
-
-#### User Recharge
-```bash
-POST /api/users/{userId}/recharge
-Content-Type: application/json
-
-{
-  "amount": 10000.00,
-  "currency": "CNY"
-}
-```
-
-#### Query Balance
-```bash
-GET /api/users/{userId}/balance
-```
+- **User Registration**: Create new user accounts
+- **Account Recharge**: Add funds to user accounts
+- **Balance Inquiry**: Check current account balance
+- **Account Status**: Active/Inactive user management
 
 ### Merchant Management
-
-#### Create Merchant
-```bash
-POST /api/merchants
-Content-Type: application/json
-
-{
-  "merchantName": "Test Merchant",
-  "businessLicense": "12345678",
-  "contactEmail": "merchant@example.com",
-  "contactPhone": "13900139000"
-}
-```
-
-#### Create Product
-```bash
-POST /api/merchants/{merchantId}/products
-Content-Type: application/json
-
-{
-  "sku": "IPHONE15",
-  "name": "iPhone 15",
-  "description": "Latest iPhone model",
-  "price": 6999.00,
-  "initialInventory": 100
-}
-```
-
-#### Add Inventory
-```bash
-POST /api/merchants/{merchantId}/products/{sku}/add-inventory
-Content-Type: application/json
-
-{
-  "quantity": 50
-}
-```
-
-#### Query Income
-```bash
-GET /api/merchants/{merchantId}/income
-```
-
-### Product Browsing and Inventory Management
-
-#### Get Product Details by SKU
-```bash
-GET /api/ecommerce/products/{sku}
-```
-
-#### Browse Available Products (Public Interface)
-```bash
-GET /api/ecommerce/products
-# This endpoint is for public product browsing and purchasing
-# Only returns AVAILABLE products (active and have inventory)
-# Optional query parameters:
-# - search: Search products by name or description
-# - merchantId: Filter products by specific merchant
-# - Combined: Search within specific merchant's products
-GET /api/ecommerce/products?search=iPhone
-GET /api/ecommerce/products?merchantId=1
-GET /api/ecommerce/products?search=iPhone&merchantId=1
-```
-
-#### Check Product Inventory
-```bash
-GET /api/ecommerce/products/{sku}/inventory
-```
-
-#### Get Merchant's Products (Management Interface)
-```bash
-GET /api/merchants/{merchantId}/products
-# This endpoint is for merchant product management
-# Returns ALL products (including inactive/deleted) for management purposes
-# Optional query parameters:
-# - status: Filter by product status (ACTIVE, INACTIVE, DELETED)
-# - search: Search within merchant's products (by name, description, or SKU)
-# - Combined: Search and filter by status
-GET /api/merchants/{merchantId}/products?status=ACTIVE
-GET /api/merchants/{merchantId}/products?search=iPhone
-GET /api/merchants/{merchantId}/products?search=iPhone&status=ACTIVE
-```
-
-#### Get Single Product for Merchant
-```bash
-GET /api/merchants/{merchantId}/products/{sku}
-```
+- **Merchant Registration**: Create merchant accounts
+- **Product Management**: Add, update, and manage products
+- **Inventory Control**: Real-time inventory tracking
+- **Income Tracking**: Monitor sales and revenue
 
 ### Product Trading
+- **Product Browsing**: Public product catalog
+- **Purchase Process**: Complete transaction workflow
+- **Inventory Deduction**: Automatic stock management
+- **Order Management**: Order creation and tracking
 
-#### Purchase Product
-```bash
-POST /api/ecommerce/purchase
-Content-Type: application/json
+### Automated Settlement
+- **Daily Settlement**: Scheduled merchant settlement (2 AM daily)
+- **Income Verification**: Compare expected vs actual income
+- **Settlement Reports**: Generate settlement records
+- **Account Reconciliation**: Balance verification
 
+## 📚 API Documentation
+
+For comprehensive API documentation, examples, and testing scenarios, see [API Documentation](API_DOCUMENTATION.md).
+
+### Interactive Documentation
+- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
+- **OpenAPI JSON**: http://localhost:8080/v3/api-docs
+- **Grouped APIs**: Version-specific documentation
+
+### API Groups
+- **🏥 Health Check**: System monitoring endpoints
+- **📋 API Version**: Version information and compatibility
+- **👤 User Management**: User operations (v1 & v2)
+- **🏪 Merchant Management**: Merchant and product operations
+- **🛒 Product & Purchase**: E-commerce operations
+
+### Response Format
+All APIs use a unified response format:
+```json
 {
-  "userId": 1,
-  "sku": "IPHONE15",
-  "quantity": 1
+  "code": "SUCCESS",
+  "message": "Operation completed successfully",
+  "data": { ... },
+  "timestamp": "2025-01-01T12:00:00"
 }
 ```
 
-## Complete Test Flow
+### Quick API Examples
 
-The following is a complete test flow example:
+For detailed API documentation and examples, see [API Documentation](API_DOCUMENTATION.md).
 
 ```bash
-# 1. Create user
+# Create user
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
 
-# 2. Create merchant
-curl -X POST http://localhost:8080/api/merchants \
+# Purchase product
+curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
   -H "Content-Type: application/json" \
-  -d '{"merchantName":"Test Merchant","businessLicense":"12345678","contactEmail":"merchant@example.com","contactPhone":"13900139000"}'
-
-# 3. Create product
-curl -X POST http://localhost:8080/api/merchants/1/products \
-  -H "Content-Type: application/json" \
-  -d '{"sku":"IPHONE15","name":"iPhone 15","description":"Latest iPhone model","price":6999.00,"initialInventory":100}'
-
-# 4. User recharge
-curl -X POST http://localhost:8080/api/users/1/recharge \
-  -H "Content-Type: application/json" \
-  -d '{"amount":10000.00,"currency":"CNY"}'
-
-# 5. Purchase product
-curl -X POST http://localhost:8080/api/ecommerce/purchase \
-  -H "Content-Type: application/json" \
-  -d '{"userId":1,"sku":"IPHONE15","quantity":1}'
-
-# 6. Query user balance (should decrease by 6999.00)
-curl http://localhost:8080/api/users/1/balance
-
-# 7. Query merchant income (should increase by 6999.00)
-curl http://localhost:8080/api/merchants/1/income
-
-# 8. Add inventory
-curl -X POST http://localhost:8080/api/merchants/1/products/IPHONE15/add-inventory \
-  -H "Content-Type: application/json" \
-  -d '{"quantity":50}'
-
-# 9. Browse available products
-curl http://localhost:8080/api/ecommerce/products
-
-# 10. Search products by name (global search)
-curl "http://localhost:8080/api/ecommerce/products?search=iPhone"
-
-# 11. Get products from specific merchant (public browsing)
-curl "http://localhost:8080/api/ecommerce/products?merchantId=1"
-
-# 12. Search within specific merchant's products (combined search)
-curl "http://localhost:8080/api/ecommerce/products?search=iPhone&merchantId=1"
-
-# 13. Get product details
-curl http://localhost:8080/api/ecommerce/products/IPHONE15
-
-# 14. Check product inventory
-curl http://localhost:8080/api/ecommerce/products/IPHONE15/inventory
-
-# 15. Get merchant's products (management interface - all products)
-curl http://localhost:8080/api/merchants/1/products
-
-# 16. Get merchant's active products only
-curl "http://localhost:8080/api/merchants/1/products?status=ACTIVE"
-
-# 17. Search within merchant's products (management interface)
-curl "http://localhost:8080/api/merchants/1/products?search=iPhone"
-
-# 18. Combined search and status filter for merchant
-curl "http://localhost:8080/api/merchants/1/products?search=iPhone&status=ACTIVE"
+  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
 ```
 
-## Testing
+## 🧪 Testing
 
-### Run Unit Tests
+### Test Structure
+- **Unit Tests**: Comprehensive business logic coverage
+- **Integration Tests**: TestContainers for database testing
+- **Coverage**: Full code coverage with JaCoCo
+
+### Running Tests
 ```bash
+# Run all tests
 mvn test
-```
 
-### Run Tests with Coverage Report
-```bash
+# Run with coverage report
 mvn clean test
+
+# View coverage report
+open target/site/jacoco/index.html
 ```
 
 ### Test Reports
+- **Surefire Reports**: `target/surefire-reports/`
+- **JaCoCo Coverage**: `target/site/jacoco/index.html`
 
-After running tests, the following reports will be generated:
+### Quick Test Example
 
-#### 1. Surefire Test Reports
-- **Location**: `target/surefire-reports/`
-- **Description**: Detailed test execution results for each test class
-- **Formats**:
-  - XML files (`TEST-*.xml`): Machine-readable format for CI/CD systems
-  - Text files (`*.txt`): Human-readable summary for each test class
+For complete API testing examples, see [API Documentation](API_DOCUMENTATION.md).
 
-#### 2. JaCoCo Code Coverage Reports  
-- **Location**: `target/site/jacoco/`
-- **Main Report**: `target/site/jacoco/index.html` (open in browser)
-- **Description**: Interactive HTML reports showing code coverage by package, class, and method
-- **Additional Formats**:
-  - CSV: `target/site/jacoco/jacoco.csv`
-  - XML: `target/site/jacoco/jacoco.xml`
-
-#### 3. View Coverage Report
 ```bash
-# Open the main coverage report in browser (macOS)
-open target/site/jacoco/index.html
+# Create user and purchase product
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
 
-# Or use your preferred browser
-open -a "Google Chrome" target/site/jacoco/index.html
-
-
-#### 4. Quick Test Summary
-```bash
-# View test summary from surefire reports
-find target/surefire-reports -name "*.txt" -exec cat {} \; | grep "Tests run"
+curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
+  -H "Content-Type: application/json" \
+  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
 ```
 
-#### 5. Current Test Status
-- ✅ **Total Tests**: 208
-- ✅ **Passed**: 208  
-- ❌ **Failed**: 0
-- ⚠️ **Errors**: 0
-- ⏭️ **Skipped**: 0
+## ⚙️ Configuration
 
-### Integration Testing
-The project uses TestContainers for integration testing, which automatically manages database containers during testing. No additional setup is required.
+### Application Profiles
 
-## Database Architecture
+#### Mock Profile (Default)
+- **Storage**: In-memory with demo data
+- **Database**: Not required
+- **Use Case**: Development and demonstration
 
-### Profiles
-- **Mock Profile (Default)**: All data is stored in memory using mock repositories. Perfect for development and demonstration.
-- **MySQL Profile**: Production-ready database persistence with JPA entities and automatic schema management.
-
-### Schema Management
-When running with MySQL profile, JPA will automatically create/update tables based on domain entities. The system uses:
-- **Hibernate DDL Auto**: `update` mode for automatic schema evolution
-- **Character Set**: UTF8MB4 for full Unicode support
-- **Timezone**: Asia/Shanghai
-
-## System Design
-
-### DDD Domain Division
-
-1. **User Context**
-   - User aggregate root: Manages user information and prepaid account
-   - UserAccount value object: Encapsulates account balance operations
-   - UserStatus enum: User status management
-
-2. **Merchant Context**
-   - Merchant aggregate root: Manages merchant information and income account
-   - MerchantAccount value object: Encapsulates income and balance management
-   - MerchantStatus enum: Merchant status management
-
-3. **Product Context**
-   - Product aggregate root: Manages product information, price and inventory
-   - ProductInventory value object: Encapsulates inventory operations
-   - ProductStatus enum: Product status management
-
-4. **Order Context**
-   - Order aggregate root: Manages order process and status
-   - OrderItem value object: Order item details
-   - OrderStatus enum: Order status transitions
-
-5. **Settlement Context**
-   - Settlement aggregate root: Manages settlement records and status
-   - SettlementStatus enum: Settlement status management
-
-### Core Business Processes
-
-#### Purchase Process
-1. Validate user, product, and merchant status
-2. Check inventory and balance sufficiency
-3. Create and confirm order
-4. Reduce product inventory
-5. Deduct user account balance
-6. Increase merchant income
-7. Complete order and return results
-
-#### Settlement Process
-1. Scheduled task triggers daily at 2 AM
-2. Calculate merchant expected income (based on order records)
-3. Get merchant actual balance
-4. Compare and record differences
-5. Generate settlement report
-
-## Configuration Instructions
-
-Application configuration file `application.yml` contains the following important configurations:
-
-### Profiles
-- **mock profile** (default): Uses in-memory storage for demo purposes
-- **mysql profile**: Uses MySQL database for production
+#### MySQL Profile (Production)
+- **Storage**: MySQL database
+- **Database**: MySQL 8.0+
+- **Use Case**: Production deployment
 
 ### Key Configuration Sections
-- **Database Configuration**: MySQL connection settings (production mode)
-- **Settlement Configuration**: Scheduled task cron expression (daily at 2 AM)
-- **Currency Configuration**: Default currency (CNY) and precision settings (2 decimal places)
-- **Logging Configuration**: Console logging patterns and application log levels
-- **Actuator Configuration**: Health check and monitoring endpoints
 
-### Environment Variables (MySQL mode)
-- `DB_USERNAME`: Database username (default: root)
-- `DB_PASSWORD`: Database password (default: password)
+#### Database Configuration
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_db
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+  jpa:
+    hibernate:
+      ddl-auto: update
+```
 
-## Production Environment Considerations
+#### Settlement Configuration
+```yaml
+ecommerce:
+  settlement:
+    cron: "0 0 2 * * ?"  # Daily at 2 AM
+    enabled: true
+```
 
-The system supports both development (mock) and production (MySQL) modes. For production deployment, consider:
+#### API Documentation
+```yaml
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+```
 
-1. **Database Setup**: MySQL 8.0+ with proper connection pooling and performance tuning
-2. **Transaction Management**: JPA transactions ensure data consistency and concurrency safety
-3. **Environment Configuration**: Use environment variables for sensitive database credentials
-4. **Caching**: Consider Redis for session storage and hot data caching
-5. **Monitoring**: Actuator endpoints provide health checks and metrics
-6. **Security**: Add authentication and authorization mechanisms
-7. **Performance**: Database index optimization and query optimization
-8. **Scalability**: Consider microservice splitting and distributed deployment
-9. **Testing**: Integrated TestContainers for database integration testing
+## 🛠️ Development Guide
 
-## Extensibility
+### Project Structure
+```
+ecommerce-platform/
+├── src/
+│   ├── main/
+│   │   ├── java/com/ecommerce/
+│   │   │   ├── api/           # API Layer
+│   │   │   ├── application/   # Application Layer
+│   │   │   ├── domain/        # Domain Layer
+│   │   │   └── infrastructure/ # Infrastructure Layer
+│   │   └── resources/
+│   │       └── application.yml # Configuration
+│   └── test/                  # Test Suite
+├── logs/                      # Application Logs
+├── pom.xml                    # Maven Configuration
+└── README.md                  # This File
+```
 
-The system uses DDD design with good extensibility:
+### Development Workflow
+1. **Setup**: Clone repository and install dependencies
+2. **Development**: Use mock profile for rapid development
+3. **Testing**: Run comprehensive test suite
+4. **Documentation**: Update API documentation
+5. **Deployment**: Use MySQL profile for production
 
-- **New Payment Methods**: Extend payment domain
-- **Multi-currency Support**: Extend Money value object
-- **Promotional Activities**: Add promotion context
-- **Inventory Alerts**: Extend inventory management functions
-- **Data Reports**: Add analysis and reporting functions
+### Code Quality
+- **Architecture**: DDD principles
+- **Testing**: Comprehensive unit and integration tests
+- **Documentation**: Complete API documentation
+- **Logging**: Structured logging with request tracking
+- **Error Handling**: Global exception handling
 
-## License
+## 🚀 Production Deployment
 
-MIT License
+### Environment Setup
+1. **Database**: MySQL 8.0+ with proper configuration
+2. **Java**: Java 21 runtime environment
+3. **Memory**: Minimum 2GB RAM recommended
+4. **Storage**: Adequate disk space for logs and data
+
+### Configuration
+```bash
+# Environment variables
+export DB_USERNAME=production_user
+export DB_PASSWORD=secure_password
+export SPRING_PROFILES_ACTIVE=mysql
+
+# Start application
+java -jar ecommerce-platform-1.0.0-SNAPSHOT.jar
+```
+
+### Monitoring
+- **Health Checks**: `/actuator/health`
+- **Metrics**: `/actuator/metrics`
+- **Application Info**: `/actuator/info`
+- **Logs**: `logs/ecommerce-platform.log`
+
+### Security Considerations
+- **Database Security**: Use strong passwords and proper access controls
+- **Network Security**: Configure firewall rules
+- **API Security**: Implement authentication and authorization
+- **Logging**: Secure log storage and rotation
+- **Backup**: Regular database backups
+
+### Performance Optimization
+- **Database**: Optimize indexes and queries
+- **Caching**: Consider Redis for session storage
+- **Connection Pooling**: Configure database connection pool
+- **JVM Tuning**: Optimize heap size and garbage collection
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Application Won't Start
+```bash
+# Check Java version
+java -version
+
+# Check port availability
+netstat -an | grep 8080
+
+# Check logs
+tail -f logs/ecommerce-platform.log
+```
+
+#### Database Connection Issues
+```bash
+# Verify MySQL is running
+sudo systemctl status mysql
+
+# Test database connection
+mysql -u username -p -h localhost ecommerce_db
+
+# Check environment variables
+echo $DB_USERNAME
+echo $DB_PASSWORD
+```
+
+#### API Documentation Not Accessible
+- Verify application is running on port 8080
+- Check if Swagger UI is enabled in configuration
+- Ensure no firewall blocking access
+
+### Debug Mode
+```bash
+# Enable debug logging
+export LOGGING_LEVEL_COM_ECOMMERCE=DEBUG
+
+# Start with debug profile
+mvn spring-boot:run -Dspring-boot.run.profiles=debug
+```
+
+## 📈 Extensibility
+
+### Future Enhancements
+- **Payment Integration**: Multiple payment gateways
+- **Multi-currency**: Support for various currencies
+- **Promotional System**: Discounts and coupons
+- **Inventory Alerts**: Low stock notifications
+- **Analytics**: Sales and performance reports
+- **Microservices**: Service decomposition
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Implement changes with tests
+4. Update documentation
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Support
+
+For questions, issues, or contributions:
+- **Issues**: [GitHub Issues](https://github.com/chenlicong0821/ecommerce-platform/issues)
+- **Documentation**: [API Documentation](http://localhost:8080/swagger-ui/index.html)
+- **Health Check**: [System Status](http://localhost:8080/actuator/health)
+
+---
+
+**Built with ❤️ using Spring Boot 3.2 and Domain-Driven Design**
