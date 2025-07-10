@@ -149,32 +149,6 @@ class SettlementTest {
     }
 
     @Test
-    void testMarkAsProcessed() {
-        Settlement settlement = createTestSettlement();
-        
-        settlement.markAsProcessed();
-        
-        assertEquals(SettlementStatus.PROCESSED, settlement.getStatus());
-    }
-
-    @Test
-    void testMarkAsProcessedFromSurplusStatus() {
-        // Test from SURPLUS status
-        Settlement surplusSettlement = new Settlement(
-            1L, LocalDate.now(), 
-            Money.of("1000.00", "CNY"), 
-            Money.of("1200.00", "CNY")
-        );
-        assertEquals(SettlementStatus.SURPLUS, surplusSettlement.getStatus());
-        
-        surplusSettlement.markAsProcessed();
-        assertEquals(SettlementStatus.PROCESSED, surplusSettlement.getStatus());
-        
-        // Note: Deficit scenarios cannot be tested with current Money design
-        // that doesn't allow negative subtraction results
-    }
-
-    @Test
     void testIsMatchedWithDifferentStatuses() {
         Settlement matchedSettlement = new Settlement(
             1L, LocalDate.now(), 
@@ -235,17 +209,6 @@ class SettlementTest {
     }
 
     @Test
-    void testStatusAfterProcessing() {
-        Settlement settlement = createTestSettlement();
-        settlement.markAsProcessed();
-        
-        // After processing, status checks should reflect PROCESSED status
-        assertFalse(settlement.isMatched());
-        assertFalse(settlement.hasSurplus());
-        assertFalse(settlement.hasDeficit());
-    }
-
-    @Test
     void testCompleteWorkflow() {
         // Create settlement with surplus (since deficit cannot be tested due to Money constraints)
         Settlement settlement = new Settlement(
@@ -263,13 +226,9 @@ class SettlementTest {
         settlement.addNotes("Surplus due to bonus payments");
         assertEquals("Surplus due to bonus payments", settlement.getNotes());
         
-        // Mark as processed
-        settlement.markAsProcessed();
-        assertEquals(SettlementStatus.PROCESSED, settlement.getStatus());
-        
         // Final state verification
+        assertTrue(settlement.hasSurplus());
         assertFalse(settlement.isMatched());
-        assertFalse(settlement.hasSurplus());
         assertFalse(settlement.hasDeficit());
     }
 

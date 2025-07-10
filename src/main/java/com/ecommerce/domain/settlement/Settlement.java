@@ -67,14 +67,6 @@ public class Settlement extends BaseEntity {
     }
     
     /**
-     * Mark as processed
-     */
-    public void markAsProcessed() {
-        this.status = SettlementStatus.PROCESSED;
-        this.markAsUpdated();
-    }
-    
-    /**
      * Check if matched
      */
     public boolean isMatched() {

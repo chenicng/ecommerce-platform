@@ -17,10 +17,5 @@ public enum SettlementStatus {
     /**
      * Deficit status - actual balance is less than expected income
      */
-    DEFICIT,
-    
-    /**
-     * Processed status - settlement has been handled
-     */
-    PROCESSED
+    DEFICIT
 } 
