@@ -20,9 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * API version information controller
- * 
- * Provide API version query and compatibility information
+ * API Version Controller
+ * Provides API version information, compatibility checking, and usage examples
  */
 @RestController
 @RequestMapping("/api/version")
@@ -30,7 +29,7 @@ import java.util.Map;
 public class ApiVersionController {
     
     /**
-     * Get API version information
+     * Get API Version Information
      * GET /api/version/info
      */
     @GetMapping("/info")
@@ -71,7 +70,7 @@ public class ApiVersionController {
     }
     
     /**
-     * Get version usage examples
+     * Get Version Examples
      * GET /api/version/examples
      */
     @GetMapping("/examples")
@@ -107,7 +106,7 @@ public class ApiVersionController {
     }
     
     /**
-     * Check version compatibility
+     * Check Version Compatibility
      * GET /api/version/compatibility/{version}
      */
     @GetMapping("/compatibility/{version}")

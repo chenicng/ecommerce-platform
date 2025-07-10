@@ -29,8 +29,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Merchant Controller
- * Handles merchant registration, product management, and income inquiry
+ * Merchant Controller (API v1)
+ * Handles merchant registration, product management, and income tracking
  */
 @RestController
 @RequestMapping(ApiVersionConfig.API_V1 + "/merchants")
@@ -49,8 +49,8 @@ public class MerchantController {
     }
     
     /**
-     * Register a new merchant
-     * POST /api/merchants
+     * Create Merchant (API v1)
+     * POST /api/v1/merchants
      */
     @PostMapping
     @Operation(summary = "Create Merchant", description = "Register a new merchant with business information")
@@ -89,8 +89,8 @@ public class MerchantController {
     }
     
     /**
-     * Create a new product for merchant
-     * POST /api/merchants/{merchantId}/products
+     * Create Product (API v1)
+     * POST /api/v1/merchants/{merchantId}/products
      */
     @PostMapping("/{merchantId}/products")
     @Operation(summary = "Create Product", description = "Create a new product for a specific merchant")
@@ -136,8 +136,8 @@ public class MerchantController {
     }
     
     /**
-     * Add product inventory
-     * POST /api/merchants/{merchantId}/products/{sku}/inventory/add
+     * Add Product Inventory (API v1)
+     * POST /api/v1/merchants/{merchantId}/products/{sku}/inventory/add
      */
     @PostMapping("/{merchantId}/products/{sku}/inventory/add")
     @Operation(summary = "Add Product Inventory", description = "Add inventory quantity to a specific product")
@@ -173,8 +173,8 @@ public class MerchantController {
     }
     
     /**
-     * Reduce product inventory
-     * POST /api/merchants/{merchantId}/products/{sku}/inventory/reduce
+     * Reduce Product Inventory (API v1)
+     * POST /api/v1/merchants/{merchantId}/products/{sku}/inventory/reduce
      */
     @PostMapping("/{merchantId}/products/{sku}/inventory/reduce")
     @Operation(summary = "Reduce Product Inventory", description = "Reduce inventory quantity for a specific product")
@@ -210,8 +210,8 @@ public class MerchantController {
     }
     
     /**
-     * Set product inventory to absolute value
-     * PUT /api/merchants/{merchantId}/products/{sku}/inventory
+     * Set Product Inventory (API v1)
+     * PUT /api/v1/merchants/{merchantId}/products/{sku}/inventory
      */
     @PutMapping("/{merchantId}/products/{sku}/inventory")
     @Operation(summary = "Set Product Inventory", description = "Set inventory quantity to absolute value for a specific product")
@@ -247,7 +247,7 @@ public class MerchantController {
     }
     
     /**
-     * Helper method to validate merchant and product
+     * Validates that merchant exists and product belongs to the merchant
      */
     private void validateMerchantAndProduct(Long merchantId, String sku) {
         // Validate merchant exists
@@ -263,8 +263,8 @@ public class MerchantController {
     }
     
     /**
-     * Get merchant income information
-     * GET /api/merchants/{merchantId}/income
+     * Get Merchant Income (API v1)
+     * GET /api/v1/merchants/{merchantId}/income
      */
     @GetMapping("/{merchantId}/income")
     @Operation(summary = "Get Merchant Income", description = "Retrieve merchant's current balance and total income")
@@ -291,8 +291,8 @@ public class MerchantController {
     }
     
     /**
-     * Get merchant's products (Merchant management interface)
-     * GET /api/merchants/{merchantId}/products
+     * Get Merchant Products (API v1)
+     * GET /api/v1/merchants/{merchantId}/products
      * 
      * This endpoint is for merchant product management.
      * It returns ALL products (including inactive/deleted) for management purposes.
@@ -302,7 +302,7 @@ public class MerchantController {
      * - Search within merchant's products: ?search=iPhone
      * - Combined filtering: ?search=iPhone&status=ACTIVE
      * 
-     * For public product browsing, use /api/ecommerce/products?merchantId={merchantId} instead.
+     * For public product browsing, use /api/v1/ecommerce/products?merchantId={merchantId} instead.
      */
     @GetMapping("/{merchantId}/products")
     @Operation(summary = "Get Merchant Products", description = "Retrieve all products for a specific merchant with optional filtering")
@@ -337,7 +337,7 @@ public class MerchantController {
                 .collect(Collectors.toList());
         }
         
-        // Apply search filter if specified
+        // Apply search filter if specified (search in name, description, and SKU)
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
             String lowerSearchTerm = searchTerm.toLowerCase();
             products = products.stream()
@@ -373,8 +373,8 @@ public class MerchantController {
     }
     
     /**
-     * Get single product details for merchant
-     * GET /api/merchants/{merchantId}/products/{sku}
+     * Get Merchant Product (API v1)
+     * GET /api/v1/merchants/{merchantId}/products/{sku}
      */
     @GetMapping("/{merchantId}/products/{sku}")
     @Operation(summary = "Get Merchant Product", description = "Retrieve specific product details for a merchant")
@@ -419,19 +419,15 @@ public class MerchantController {
     // DTO classes
     @Schema(description = "Merchant creation request")
     public static class CreateMerchantRequest {
-        @Schema(description = "Merchant name", example = "Apple Store", required = true)
         @NotBlank(message = "Merchant name is required")
         private String merchantName;
         
-        @Schema(description = "Business license number", example = "BL123456789", required = true)
         @NotBlank(message = "Business license is required")
         private String businessLicense;
         
-        @Schema(description = "Contact email", example = "contact@applestore.com", required = true)
         @NotBlank(message = "Contact email is required")
         private String contactEmail;
         
-        @Schema(description = "Contact phone", example = "400-123-4567", required = true)
         @NotBlank(message = "Contact phone is required")
         private String contactPhone;
         
@@ -485,26 +481,20 @@ public class MerchantController {
     
     @Schema(description = "Product creation request")
     public static class CreateProductRequest {
-        @Schema(description = "Product SKU", example = "IPHONE-15-PRO", required = true)
         @NotBlank(message = "SKU is required")
         private String sku;
         
-        @Schema(description = "Product name", example = "iPhone 15 Pro", required = true)
         @NotBlank(message = "Product name is required")
         private String name;
         
-        @Schema(description = "Product description", example = "Latest iPhone with advanced features")
         private String description;
         
-        @Schema(description = "Product price", example = "7999.00", required = true)
         @DecimalMin(value = "0.01", message = "Price must be positive")
         private BigDecimal price;
         
-        @Schema(description = "Currency code", example = "CNY", defaultValue = "CNY")
         @NotBlank(message = "Currency is required")
         private String currency = "CNY";
         
-        @Schema(description = "Initial inventory quantity", example = "100", required = true)
         @Min(value = 0, message = "Initial inventory cannot be negative")
         private int initialInventory;
         

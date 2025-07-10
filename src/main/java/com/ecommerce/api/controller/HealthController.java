@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * Health Check Controller
- * Provides system health monitoring endpoints
+ * Provides system health monitoring and status endpoints
  */
 @RestController
 @RequestMapping("/api")
@@ -25,7 +25,7 @@ import java.util.Map;
 public class HealthController {
     
     /**
-     * Health check endpoint
+     * Health Check
      * GET /api/health
      */
     @GetMapping("/health")

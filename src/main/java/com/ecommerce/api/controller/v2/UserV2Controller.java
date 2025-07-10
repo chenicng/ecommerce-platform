@@ -26,13 +26,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * User Controller V2
- * Handles user-related REST APIs - Version 2
+ * User Controller V2 (API v2)
+ * Enhanced user management with additional features and improved responses
  * 
- * V2 Changes:
+ * V2 Enhancements:
  * - Enhanced user response with registration timestamp
  * - Improved balance response with last update time
- * - Added user profile information
+ * - Added user profile information and transaction details
  */
 @RestController
 @RequestMapping(ApiVersionConfig.API_V2 + "/users")

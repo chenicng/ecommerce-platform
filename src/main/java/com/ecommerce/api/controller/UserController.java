@@ -28,8 +28,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 /**
- * User Controller
- * Handles user-related REST APIs
+ * User Controller (API v1)
+ * Handles user registration, account management, and balance operations
  */
 @RestController
 @RequestMapping(ApiVersionConfig.API_V1 + "/users")
@@ -46,8 +46,8 @@ public class UserController {
     }
     
     /**
-     * Create user
-     * POST /api/users
+     * Create User (API v1)
+     * POST /api/v1/users
      */
     @PostMapping
     @Operation(summary = "Create User", description = "Register a new user with username, email, and phone")
@@ -111,8 +111,8 @@ public class UserController {
     }
     
     /**
-     * User account recharge
-     * POST /api/users/{userId}/recharge
+     * Recharge User Account (API v1)
+     * POST /api/v1/users/{userId}/recharge
      */
     @PostMapping("/{userId}/recharge")
     @Operation(summary = "Recharge User Account", description = "Add funds to user's account balance")
@@ -145,8 +145,8 @@ public class UserController {
     }
     
     /**
-     * Get user balance
-     * GET /api/users/{userId}/balance
+     * Get User Balance (API v1)
+     * GET /api/v1/users/{userId}/balance
      */
     @GetMapping("/{userId}/balance")
     @Operation(summary = "Get User Balance", description = "Retrieve current balance for a specific user")
@@ -169,8 +169,10 @@ public class UserController {
     }
 
     /**
-     * Get all existing user IDs (for debugging - only available in dev/test environments)
-     * GET /api/users/debug/all-ids
+     * Get All User IDs (Debug) (API v1)
+     * GET /api/v1/users/debug/all-ids
+     * 
+     * Debug endpoint - only available in dev/test environments
      */
     @GetMapping("/debug/all-ids")
     @Profile({"dev", "test"})
@@ -190,16 +192,13 @@ public class UserController {
     // DTO classes
     @Schema(description = "User creation request")
     public static class CreateUserRequest {
-        @Schema(description = "Username", example = "john_doe", required = true)
         @NotBlank(message = "Username is required")
         private String username;
         
-        @Schema(description = "Email address", example = "john.doe@example.com", required = true)
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
         private String email;
         
-        @Schema(description = "Phone number", example = "13800138000", required = true)
         @NotBlank(message = "Phone is required")
         private String phone;
         
@@ -244,11 +243,9 @@ public class UserController {
     
     @Schema(description = "User account recharge request")
     public static class RechargeRequest {
-        @Schema(description = "Recharge amount", example = "100.00", required = true)
         @DecimalMin(value = "0.01", message = "Recharge amount must be positive")
         private BigDecimal amount;
         
-        @Schema(description = "Currency code", example = "CNY", defaultValue = "CNY")
         @NotBlank(message = "Currency is required")
         private String currency = "CNY";
         

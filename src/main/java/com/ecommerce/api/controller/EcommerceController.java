@@ -31,8 +31,8 @@ import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Ecommerce Controller
- * Handles REST API related to product purchasing and product browsing
+ * Ecommerce Controller (API v1)
+ * Handles product purchasing, order management, and product browsing functionality
  */
 @RestController
 @RequestMapping(ApiVersionConfig.API_V1 + "/ecommerce")
@@ -51,8 +51,8 @@ public class EcommerceController {
     }
     
     /**
-     * Purchase Product
-     * POST /api/ecommerce/purchase
+     * Purchase Product (API v1)
+     * POST /api/v1/ecommerce/purchase
      */
     @PostMapping("/purchase")
     @ApiTimeout(value = 10, unit = TimeUnit.SECONDS, message = "Purchase operation timeout")
@@ -73,8 +73,8 @@ public class EcommerceController {
     }
     
     /**
-     * Cancel order
-     * POST /api/ecommerce/orders/{orderNumber}/cancel
+     * Cancel Order (API v1)
+     * POST /api/v1/ecommerce/orders/{orderNumber}/cancel
      */
     @PostMapping("/orders/{orderNumber}/cancel")
     @Operation(summary = "Cancel Order", description = "Cancel an existing order with reason")
@@ -101,8 +101,8 @@ public class EcommerceController {
     }
 
     /**
-     * Get product details by SKU
-     * GET /api/ecommerce/products/{sku}
+     * Get Product Details (API v1)
+     * GET /api/v1/ecommerce/products/{sku}
      */
     @GetMapping("/products/{sku}")
     @Operation(summary = "Get Product Details", description = "Retrieve detailed product information by SKU")
@@ -134,8 +134,8 @@ public class EcommerceController {
     }
     
     /**
-     * Get all available products (Public browsing interface)
-     * GET /api/ecommerce/products
+     * Get Available Products (API v1)
+     * GET /api/v1/ecommerce/products
      * 
      * This endpoint is for public product browsing and purchasing.
      * It only returns AVAILABLE products (active and have inventory).
@@ -145,7 +145,7 @@ public class EcommerceController {
      * - Merchant filtering: ?merchantId=1  
      * - Combined search: ?search=iPhone&merchantId=1
      * 
-     * For merchant product management, use /api/merchants/{merchantId}/products instead.
+     * For merchant product management, use /api/v1/merchants/{merchantId}/products instead.
      */
     @GetMapping("/products")
     @Operation(summary = "Get Available Products", description = "Retrieve all available products with optional search and merchant filtering")
@@ -161,9 +161,9 @@ public class EcommerceController {
         
         List<Product> products;
         
-        // Support combined search and merchant filtering
+        // Apply search and merchant filtering logic
         if (searchTerm != null && !searchTerm.trim().isEmpty() && merchantId != null) {
-            // Search within specific merchant's products
+            // Combined search: search within specific merchant's products
             products = productService.getProductsByMerchant(merchantId)
                 .stream()
                 .filter(Product::isAvailable)
@@ -171,16 +171,16 @@ public class EcommerceController {
                                  product.getDescription().toLowerCase().contains(searchTerm.toLowerCase()))
                 .collect(Collectors.toList());
         } else if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            // Global search across all merchants
+            // Global search: search across all merchants
             products = productService.searchAvailableProducts(searchTerm);
         } else if (merchantId != null) {
-            // Get all available products from specific merchant
+            // Merchant filter: get all available products from specific merchant
             products = productService.getProductsByMerchant(merchantId)
                 .stream()
                 .filter(Product::isAvailable)
                 .collect(Collectors.toList());
         } else {
-            // Get all available products
+            // No filters: get all available products
             products = productService.getAllAvailableProducts();
         }
 
@@ -208,8 +208,8 @@ public class EcommerceController {
     }
     
     /**
-     * Check product inventory
-     * GET /api/ecommerce/products/{sku}/inventory
+     * Get Product Inventory (API v1)
+     * GET /api/v1/ecommerce/products/{sku}/inventory
      */
     @GetMapping("/products/{sku}/inventory")
     @Operation(summary = "Get Product Inventory", description = "Check inventory status for a specific product")
@@ -239,25 +239,15 @@ public class EcommerceController {
     // DTO classes for product queries
     @Schema(description = "Product detail response")
     public static class ProductDetailResponse {
-        @Schema(description = "Product ID", example = "1")
         private Long id;
-        @Schema(description = "Product SKU", example = "IPHONE-15-PRO")
         private String sku;
-        @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String name;
-        @Schema(description = "Product description", example = "Latest iPhone with advanced features")
         private String description;
-        @Schema(description = "Product price", example = "7999.00")
         private BigDecimal price;
-        @Schema(description = "Currency code", example = "CNY")
         private String currency;
-        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
-        @Schema(description = "Available inventory", example = "50")
         private int availableInventory;
-        @Schema(description = "Product status", example = "ACTIVE")
         private String status;
-        @Schema(description = "Product availability", example = "true")
         private boolean available;
         
         public ProductDetailResponse(Long id, String sku, String name, String description,
