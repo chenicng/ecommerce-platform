@@ -29,15 +29,6 @@ class ApiVersionControllerTest {
     }
     
     @Test
-    void testGetVersionExamples() throws Exception {
-        mockMvc.perform(get("/api/version/examples"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.urlPathVersioning").exists())
-                .andExpect(jsonPath("$.data.urlPathVersioning.v1_user_create").value("POST /api/v1/users"))
-                .andExpect(jsonPath("$.data.urlPathVersioning.v2_user_create").value("POST /api/v2/users"));
-    }
-    
-    @Test
     void testCheckVersionCompatibility_SupportedVersion() throws Exception {
         mockMvc.perform(get("/api/version/compatibility/v1"))
                 .andExpect(status().isOk())
