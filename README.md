@@ -192,7 +192,7 @@ The following is a complete test flow example:
 
 ```bash
 # 1. Create user
-curl -X POST http://localhost:8080/api/users \
+curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
 

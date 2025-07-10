@@ -61,7 +61,7 @@ public class OpenApiConfig {
                 .title("E-commerce Platform API")
                 .description("Comprehensive REST API for e-commerce platform with DDD architecture. " +
                            "Supports multi-version API, user management, merchant operations, product catalog, " +
-                           "and order processing with real-time settlement.")
+                           "and order processing with daily batch settlement.")
                 .version("1.0.0")
                 .contact(new Contact()
                     .name("E-commerce Platform Team")

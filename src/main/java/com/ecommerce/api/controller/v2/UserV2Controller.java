@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(ApiVersionConfig.API_V2 + "/users")
-@ApiVersion(value = "v2", since = "2024-06-01")
+@ApiVersion(value = "v2", since = "2025-06-01")
 public class UserV2Controller {
     
     private static final Logger logger = LoggerFactory.getLogger(UserV2Controller.class);
