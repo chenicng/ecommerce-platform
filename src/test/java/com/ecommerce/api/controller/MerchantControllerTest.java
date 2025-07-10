@@ -248,8 +248,7 @@ class MerchantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(addInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.data.message").value("Inventory added successfully"));
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).addProductInventory("IPHONE15", 50);
@@ -348,8 +347,7 @@ class MerchantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reduceInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.data.message").value("Inventory reduced successfully"));
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).reduceInventory("IPHONE15", 20);
@@ -371,8 +369,7 @@ class MerchantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(setInventoryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.sku").value("IPHONE15"))
-                .andExpect(jsonPath("$.data.message").value("Inventory set successfully"));
+                .andExpect(jsonPath("$.data.sku").value("IPHONE15"));
 
         verify(merchantService).merchantExists(1L);
         verify(productService).setInventory("IPHONE15", 150);

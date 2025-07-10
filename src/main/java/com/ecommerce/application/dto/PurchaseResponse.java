@@ -14,15 +14,12 @@ public class PurchaseResponse {
     private String productName;
     private int quantity;
     private Money totalAmount;
-    private String status;
-    private String message;
     
     // Constructor
     public PurchaseResponse() {}
     
     public PurchaseResponse(String orderNumber, Long userId, Long merchantId, String sku, 
-                           String productName, int quantity, Money totalAmount, 
-                           String status, String message) {
+                           String productName, int quantity, Money totalAmount) {
         this.orderNumber = orderNumber;
         this.userId = userId;
         this.merchantId = merchantId;
@@ -30,8 +27,6 @@ public class PurchaseResponse {
         this.productName = productName;
         this.quantity = quantity;
         this.totalAmount = totalAmount;
-        this.status = status;
-        this.message = message;
     }
     
     // Getters and Setters
@@ -91,27 +86,10 @@ public class PurchaseResponse {
         this.totalAmount = totalAmount;
     }
     
-    public String getStatus() {
-        return status;
-    }
-    
-    public void setStatus(String status) {
-        this.status = status;
-    }
-    
-    public String getMessage() {
-        return message;
-    }
-    
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    
     @Override
     public String toString() {
         return String.format("PurchaseResponse{orderNumber='%s', userId=%d, merchantId=%d, sku='%s', " +
-                           "productName='%s', quantity=%d, totalAmount=%s, status='%s', message='%s'}",
-                           orderNumber, userId, merchantId, sku, productName, quantity, 
-                           totalAmount, status, message);
+                           "productName='%s', quantity=%d, totalAmount=%s}",
+                           orderNumber, userId, merchantId, sku, productName, quantity, totalAmount);
     }
 } 

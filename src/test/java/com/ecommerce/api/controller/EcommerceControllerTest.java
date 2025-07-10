@@ -74,9 +74,7 @@ class EcommerceControllerTest {
             "IPHONE15",
             "iPhone 15",
             2,
-            Money.of("1999.98", "CNY"),
-            "SUCCESS",
-            "Purchase completed successfully"
+            Money.of("1999.98", "CNY")
         );
     }
 
@@ -100,9 +98,7 @@ class EcommerceControllerTest {
                 .andExpect(jsonPath("$.data.productName").value("iPhone 15"))
                 .andExpect(jsonPath("$.data.quantity").value(2))
                 .andExpect(jsonPath("$.data.totalAmount.amount").value(1999.98))
-                .andExpect(jsonPath("$.data.totalAmount.currency").value("CNY"))
-                .andExpect(jsonPath("$.data.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("Purchase completed successfully"));
+                .andExpect(jsonPath("$.data.totalAmount.currency").value("CNY"));
 
         verify(ecommerceService).processPurchase(any(PurchaseRequest.class));
     }

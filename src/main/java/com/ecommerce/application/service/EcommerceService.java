@@ -97,9 +97,7 @@ public class EcommerceService {
                 product.getSku(),
                 product.getName(),
                 request.getQuantity(),
-                totalPrice,
-                "SUCCESS",
-                "Purchase completed successfully"
+                totalPrice
             );
             
         } catch (Exception e) {

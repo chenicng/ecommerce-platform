@@ -188,7 +188,7 @@ curl -X POST http://localhost:8080/api/v1/users \
 # Purchase product
 curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
   -H "Content-Type: application/json" \
-  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
+  -d '{"userId":1,"sku":"BOOK-001","quantity":1}'
 ```
 
 ## 🧪 Testing

@@ -17,8 +17,6 @@ class PurchaseResponseTest {
         assertNull(response.getProductName());
         assertEquals(0, response.getQuantity());
         assertNull(response.getTotalAmount());
-        assertNull(response.getStatus());
-        assertNull(response.getMessage());
     }
 
     @Test
@@ -30,12 +28,10 @@ class PurchaseResponseTest {
         String productName = "Test Product";
         int quantity = 5;
         Money totalAmount = Money.of("100.00", "CNY");
-        String status = "SUCCESS";
-        String message = "Purchase successful";
         
         PurchaseResponse response = new PurchaseResponse(
             orderNumber, userId, merchantId, sku, productName, 
-            quantity, totalAmount, status, message
+            quantity, totalAmount
         );
         
         assertEquals(orderNumber, response.getOrderNumber());
@@ -45,8 +41,6 @@ class PurchaseResponseTest {
         assertEquals(productName, response.getProductName());
         assertEquals(quantity, response.getQuantity());
         assertEquals(totalAmount, response.getTotalAmount());
-        assertEquals(status, response.getStatus());
-        assertEquals(message, response.getMessage());
     }
 
     @Test
@@ -193,49 +187,11 @@ class PurchaseResponseTest {
     }
 
     @Test
-    void testStatusGetterAndSetter() {
-        PurchaseResponse response = new PurchaseResponse();
-        String status = "FAILED";
-        
-        response.setStatus(status);
-        
-        assertEquals(status, response.getStatus());
-    }
-
-    @Test
-    void testStatusSetterWithNull() {
-        PurchaseResponse response = new PurchaseResponse();
-        
-        response.setStatus(null);
-        
-        assertNull(response.getStatus());
-    }
-
-    @Test
-    void testMessageGetterAndSetter() {
-        PurchaseResponse response = new PurchaseResponse();
-        String message = "Transaction completed successfully";
-        
-        response.setMessage(message);
-        
-        assertEquals(message, response.getMessage());
-    }
-
-    @Test
-    void testMessageSetterWithNull() {
-        PurchaseResponse response = new PurchaseResponse();
-        
-        response.setMessage(null);
-        
-        assertNull(response.getMessage());
-    }
-
-    @Test
     void testToStringWithAllFieldsSet() {
         Money totalAmount = Money.of("100.00", "CNY");
         PurchaseResponse response = new PurchaseResponse(
             "ORD123", 1L, 100L, "SKU123", "Test Product", 
-            5, totalAmount, "SUCCESS", "Purchase successful"
+            5, totalAmount
         );
         
         String result = response.toString();
@@ -247,8 +203,6 @@ class PurchaseResponseTest {
         assertTrue(result.contains("sku='SKU123'"));
         assertTrue(result.contains("productName='Test Product'"));
         assertTrue(result.contains("quantity=5"));
-        assertTrue(result.contains("status='SUCCESS'"));
-        assertTrue(result.contains("message='Purchase successful'"));
     }
 
     @Test
@@ -265,8 +219,6 @@ class PurchaseResponseTest {
         assertTrue(result.contains("productName='null'"));
         assertTrue(result.contains("quantity=0"));
         assertTrue(result.contains("totalAmount=null"));
-        assertTrue(result.contains("status='null'"));
-        assertTrue(result.contains("message='null'"));
     }
 
     @Test
@@ -274,7 +226,7 @@ class PurchaseResponseTest {
         Money totalAmount = Money.of("50.00", "CNY");
         PurchaseResponse response = new PurchaseResponse(
             null, 2L, null, "SKU456", null, 
-            3, totalAmount, null, "Partial data"
+            3, totalAmount
         );
         
         String result = response.toString();
@@ -286,8 +238,6 @@ class PurchaseResponseTest {
         assertTrue(result.contains("sku='SKU456'"));
         assertTrue(result.contains("productName='null'"));
         assertTrue(result.contains("quantity=3"));
-        assertTrue(result.contains("status='null'"));
-        assertTrue(result.contains("message='Partial data'"));
     }
 
     @Test
@@ -302,8 +252,6 @@ class PurchaseResponseTest {
         response.setProductName("Chain Test Product");
         response.setQuantity(7);
         response.setTotalAmount(totalAmount);
-        response.setStatus("PENDING");
-        response.setMessage("Chaining test");
         
         assertEquals("ORD999", response.getOrderNumber());
         assertEquals(777L, response.getUserId());
@@ -312,8 +260,6 @@ class PurchaseResponseTest {
         assertEquals("Chain Test Product", response.getProductName());
         assertEquals(7, response.getQuantity());
         assertEquals(totalAmount, response.getTotalAmount());
-        assertEquals("PENDING", response.getStatus());
-        assertEquals("Chaining test", response.getMessage());
     }
 
     @Test

@@ -169,9 +169,7 @@ public class MerchantController {
             product.getSku(),
             product.getName(),
             product.getAvailableInventory(),
-            product.isAvailable(),
-            product.getStatus().toString(),
-            "Inventory added successfully"
+            product.isAvailable()
         );
         
         logger.info("Inventory added successfully for product {}: quantity={}", sku, request.getQuantity());
@@ -206,9 +204,7 @@ public class MerchantController {
             product.getSku(),
             product.getName(),
             product.getAvailableInventory(),
-            product.isAvailable(),
-            product.getStatus().toString(),
-            "Inventory reduced successfully"
+            product.isAvailable()
         );
         
         logger.info("Inventory reduced successfully for product {}: quantity={}", sku, request.getQuantity());
@@ -243,9 +239,7 @@ public class MerchantController {
             product.getSku(),
             product.getName(),
             product.getAvailableInventory(),
-            product.isAvailable(),
-            product.getStatus().toString(),
-            "Inventory set successfully"
+            product.isAvailable()
         );
         
         logger.info("Inventory set successfully for product {}: quantity={}", sku, request.getQuantity());
@@ -359,7 +353,6 @@ public class MerchantController {
         
         GlobalSettlementResponse response = new GlobalSettlementResponse(
             settlementDate,
-            "Global settlement completed successfully",
             LocalDateTime.now()
         );
         
@@ -663,17 +656,13 @@ public class MerchantController {
         private String productName;
         private int availableInventory;
         private boolean available;
-        private String status;
-        private String message;
         
         public InventoryResponse(String sku, String productName, int availableInventory,
-                               boolean available, String status, String message) {
+                               boolean available) {
             this.sku = sku;
             this.productName = productName;
             this.availableInventory = availableInventory;
             this.available = available;
-            this.status = status;
-            this.message = message;
         }
         
         // Getters
@@ -681,8 +670,6 @@ public class MerchantController {
         public String getProductName() { return productName; }
         public int getAvailableInventory() { return availableInventory; }
         public boolean isAvailable() { return available; }
-        public String getStatus() { return status; }
-        public String getMessage() { return message; }
     }
     
     public static class IncomeResponse {
@@ -836,12 +823,10 @@ public class MerchantController {
 
     public static class GlobalSettlementResponse {
         private LocalDate settlementDate;
-        private String message;
         private LocalDateTime settlementTime;
 
-        public GlobalSettlementResponse(LocalDate settlementDate, String message, LocalDateTime settlementTime) {
+        public GlobalSettlementResponse(LocalDate settlementDate, LocalDateTime settlementTime) {
             this.settlementDate = settlementDate;
-            this.message = message;
             this.settlementTime = settlementTime;
         }
 
@@ -851,14 +836,6 @@ public class MerchantController {
 
         public void setSettlementDate(LocalDate settlementDate) {
             this.settlementDate = settlementDate;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
         }
 
         public LocalDateTime getSettlementTime() {

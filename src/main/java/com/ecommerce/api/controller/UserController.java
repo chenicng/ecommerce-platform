@@ -262,20 +262,16 @@ public class UserController {
         private String rechargeCurrency;
         private BigDecimal newBalance;
         private String balanceCurrency;
-        private String status;
-        private String message;
         
         public RechargeResponse() {}
         
         public RechargeResponse(Long userId, BigDecimal rechargeAmount, String rechargeCurrency,
-                              BigDecimal newBalance, String balanceCurrency, String status, String message) {
+                              BigDecimal newBalance, String balanceCurrency) {
             this.userId = userId;
             this.rechargeAmount = rechargeAmount;
             this.rechargeCurrency = rechargeCurrency;
             this.newBalance = newBalance;
             this.balanceCurrency = balanceCurrency;
-            this.status = status;
-            this.message = message;
         }
         
         // Getters and Setters
@@ -285,10 +281,6 @@ public class UserController {
         public String getRechargeCurrency() { return rechargeCurrency; }
         public BigDecimal getNewBalance() { return newBalance; }
         public String getBalanceCurrency() { return balanceCurrency; }
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
     }
     
     public static class BalanceResponse {
