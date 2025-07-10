@@ -39,28 +39,9 @@ class HealthControllerTest {
     }
     
     @Test
-    void healthz_ShouldReturnSuccessResponse() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/healthz"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("Service is ready"))
-                .andExpect(jsonPath("$.data.status").value("OK"))
-                .andExpect(jsonPath("$.data.timestamp").exists());
-    }
-    
-    @Test
     void health_ShouldHaveCorrectContentType() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/health"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"));
-    }
-    
-    @Test
-    void healthz_ShouldHaveCorrectContentType() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/healthz"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"));
     }
@@ -87,36 +68,9 @@ class HealthControllerTest {
     }
     
     @Test
-    void healthz_ShouldReturnValidJsonStructure() throws Exception {
-        // When & Then
-        String response = mockMvc.perform(get("/api/healthz"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        
-        // Verify JSON can be parsed
-        Result<Map<String, Object>> result = objectMapper.readValue(response, 
-            objectMapper.getTypeFactory().constructParametricType(Result.class, Map.class));
-        
-        assert result.getCode().equals("SUCCESS");
-        assert result.getMessage().equals("Service is ready");
-        assert result.getData().containsKey("status");
-        assert result.getData().containsKey("timestamp");
-    }
-    
-    @Test
     void health_ShouldReturnCorrectHeaders() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/health"))
-                .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", "application/json"));
-    }
-    
-    @Test
-    void healthz_ShouldReturnCorrectHeaders() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/healthz"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"));
     }
@@ -127,14 +81,6 @@ class HealthControllerTest {
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("UP"));
-    }
-    
-    @Test
-    void healthz_ShouldReturnCorrectStatusValue() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/healthz"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("OK"));
     }
     
     @Test
@@ -157,15 +103,6 @@ class HealthControllerTest {
     void health_ShouldReturnTimestamp() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/health"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.timestamp").exists())
-                .andExpect(jsonPath("$.data.timestamp").isNotEmpty());
-    }
-    
-    @Test
-    void healthz_ShouldReturnTimestamp() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/healthz"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.timestamp").exists())
                 .andExpect(jsonPath("$.data.timestamp").isNotEmpty());

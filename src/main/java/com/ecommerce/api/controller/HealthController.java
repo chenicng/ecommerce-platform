@@ -25,7 +25,7 @@ import java.util.Map;
 public class HealthController {
     
     /**
-     * Simple health check endpoint
+     * Health check endpoint
      * GET /api/health
      */
     @GetMapping("/health")
@@ -41,22 +41,5 @@ public class HealthController {
         healthInfo.put("version", "1.0.0");
         
         return ResponseEntity.ok(Result.successWithMessage("System is healthy", healthInfo));
-    }
-    
-    /**
-     * Alternative health check endpoint (common pattern)
-     * GET /api/healthz
-     */
-    @GetMapping("/healthz")
-    @Operation(summary = "Health Check (Alternative)", description = "Alternative health check endpoint following common patterns")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Service is ready")
-    })
-    public ResponseEntity<Result<Map<String, Object>>> healthz() {
-        Map<String, Object> healthInfo = new HashMap<>();
-        healthInfo.put("status", "OK");
-        healthInfo.put("timestamp", LocalDateTime.now());
-        
-        return ResponseEntity.ok(Result.successWithMessage("Service is ready", healthInfo));
     }
 } 

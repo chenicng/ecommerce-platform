@@ -37,7 +37,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**")  // Intercept all API requests
                 .excludePathPatterns(
                     "/api/health",      // Health check doesn't need version control
-                    "/api/healthz",     // Health check doesn't need version control
                     "/actuator/**"      // Actuator endpoints don't need version control
                 );
     }
