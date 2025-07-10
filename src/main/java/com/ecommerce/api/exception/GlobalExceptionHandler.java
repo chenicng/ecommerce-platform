@@ -120,6 +120,7 @@ public class GlobalExceptionHandler {
     private HttpStatus determineHttpStatus(ErrorCode errorCode) {
         switch (errorCode) {
             case RESOURCE_NOT_FOUND:
+            case MERCHANT_NOT_FOUND:
                 return HttpStatus.NOT_FOUND; // 404
             case VALIDATION_ERROR:
             case BIND_ERROR:
@@ -127,12 +128,15 @@ public class GlobalExceptionHandler {
             case INSUFFICIENT_INVENTORY:
             case INSUFFICIENT_FUNDS:
             case OPERATION_NOT_ALLOWED:
+            case INVALID_SETTLEMENT_DATE:
+            case BUSINESS_ERROR:
                 return HttpStatus.BAD_REQUEST; // 400
             case RESOURCE_ALREADY_EXISTS:
                 return HttpStatus.CONFLICT; // 409
             case RESOURCE_INACTIVE:
                 return HttpStatus.FORBIDDEN; // 403
             case INTERNAL_ERROR:
+            case SETTLEMENT_FAILED:
                 return HttpStatus.INTERNAL_SERVER_ERROR; // 500
             case UNSUPPORTED_API_VERSION:
                 return HttpStatus.NOT_ACCEPTABLE; // 406
