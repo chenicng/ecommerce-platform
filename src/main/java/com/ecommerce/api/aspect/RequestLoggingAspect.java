@@ -17,20 +17,41 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
- * Unified Logging Aspect for API Requests
+ * Enhanced Logging Aspect for API Requests
  *
  * Automatically logs all API requests including URL, parameters, response data, and execution time.
- * Provides comprehensive request tracing and monitoring capabilities.
+ * Provides comprehensive request tracing and monitoring capabilities with enhanced data masking.
+ * 
+ * Features:
+ * - Truncates long messages to 256 characters
+ * - Masks sensitive information (passwords, tokens, etc.)
+ * - Masks phone numbers and email addresses
+ * - Configurable sensitive field patterns
  */
 @Aspect
 @Component
 public class RequestLoggingAspect {
     private static final Logger logger = LoggerFactory.getLogger(RequestLoggingAspect.class);
     private static final ObjectMapper objectMapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    
+    // Configuration constants
+    private static final int MAX_LOG_LENGTH = 256;
+    private static final String TRUNCATE_SUFFIX = "...[TRUNCATED]";
+    
     // Configurable sensitive fields for automatic masking
-    private static final Set<String> SENSITIVE_FIELDS = new HashSet<>(Arrays.asList("password", "token", "secret", "key", "authorization"));
+    private static final Set<String> SENSITIVE_FIELDS = new HashSet<>(Arrays.asList(
+        "password", "token", "secret", "key", "authorization", "apiKey", "accessToken", 
+        "refreshToken", "sessionId", "cookie", "auth", "credential"
+    ));
+    
+    // Patterns for sensitive data masking
+    private static final Pattern PHONE_PATTERN = Pattern.compile("(\\d{3})(\\d{4})(\\d{4})");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})");
+    private static final Pattern ID_CARD_PATTERN = Pattern.compile("(\\d{6})(\\d{8})(\\d{4})");
+    private static final Pattern BANK_CARD_PATTERN = Pattern.compile("(\\d{4})(\\d{4})(\\d{4})(\\d{4})");
 
     @Around("execution(* com.ecommerce.api.controller..*.*(..))")
     public Object logApiRequest(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -48,7 +69,8 @@ public class RequestLoggingAspect {
             Object[] args = joinPoint.getArgs();
             if (args != null && args.length > 0) {
                 params = objectMapper.writeValueAsString(args.length == 1 ? args[0] : args);
-                params = maskSensitive(params);
+                params = maskSensitiveData(params);
+                params = truncateIfNeeded(params);
             }
         } catch (Exception e) {
             params = "[Parameter serialization failed]";
@@ -69,6 +91,8 @@ public class RequestLoggingAspect {
             String respSummary = "";
             try {
                 respSummary = extractResultSummary(result);
+                respSummary = maskSensitiveData(respSummary);
+                respSummary = truncateIfNeeded(respSummary);
             } catch (Exception e) {
                 respSummary = "[Response summary failed]";
             }
@@ -81,7 +105,7 @@ public class RequestLoggingAspect {
     }
 
     /**
-     * Only print Result's core fields: code, message, data type (if present)
+     * Print Result's core fields: code, message, and data content
      */
     private String extractResultSummary(Object result) {
         if (result == null) return "null";
@@ -91,26 +115,68 @@ public class RequestLoggingAspect {
         }
         if (body instanceof Result<?>) {
             Result<?> res = (Result<?>) body;
-            String dataType = res.getData() != null ? res.getData().getClass().getSimpleName() : "null";
-            return String.format("{code: %s, message: %s, dataType: %s}", res.getCode(), res.getMessage(), dataType);
+            String dataContent = "null";
+            if (res.getData() != null) {
+                try {
+                    dataContent = objectMapper.writeValueAsString(res.getData());
+                } catch (Exception e) {
+                    dataContent = String.valueOf(res.getData());
+                }
+            }
+            return String.format("{code: %s, message: %s, data: %s}", res.getCode(), res.getMessage(), dataContent);
         }
         // fallback: try toString or JSON
         try {
-            return maskSensitive(objectMapper.writeValueAsString(body));
+            return objectMapper.writeValueAsString(body);
         } catch (Exception e) {
             return String.valueOf(body);
         }
     }
 
     /**
-     * Simple sensitive data masking implementation
-     * Replaces sensitive field values with "***" in JSON strings
+     * Enhanced sensitive data masking implementation
+     * Masks passwords, tokens, phone numbers, email addresses, ID cards, and bank cards
      */
-    private String maskSensitive(String json) {
-        String masked = json;
+    private String maskSensitiveData(String content) {
+        if (content == null || content.isEmpty()) {
+            return content;
+        }
+        
+        String masked = content;
+        
+        // Mask sensitive JSON fields
         for (String field : SENSITIVE_FIELDS) {
             masked = masked.replaceAll("\\\"" + field + "\\\"\\s*:\\s*\\\"[^\\\"]*\\\"", "\\\"" + field + "\\\":\\\"***\\\"");
         }
+        
+        // Mask phone numbers (11 digits)
+        masked = PHONE_PATTERN.matcher(masked).replaceAll("$1****$3");
+        
+        // Mask email addresses
+        masked = EMAIL_PATTERN.matcher(masked).replaceAll("$1***@$2");
+        
+        // Mask ID card numbers (18 digits)
+        masked = ID_CARD_PATTERN.matcher(masked).replaceAll("$1********$3");
+        
+        // Mask bank card numbers (16 digits)
+        masked = BANK_CARD_PATTERN.matcher(masked).replaceAll("$1****$3****$4");
+        
         return masked;
+    }
+    
+    /**
+     * Truncates content if it exceeds the maximum log length
+     */
+    private String truncateIfNeeded(String content) {
+        if (content == null) {
+            return null;
+        }
+        
+        if (content.length() <= MAX_LOG_LENGTH) {
+            return content;
+        }
+        
+        int truncateLength = MAX_LOG_LENGTH - TRUNCATE_SUFFIX.length();
+        return content.substring(0, truncateLength) + TRUNCATE_SUFFIX;
     }
 }
