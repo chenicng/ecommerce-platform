@@ -77,7 +77,6 @@ public class SettlementService {
         
         // Calculate date range: from yesterday settlement time to now
         LocalDateTime startTime;
-        LocalDateTime endTime = LocalDateTime.now(); // Current time
         
         // Check if there was a settlement record yesterday
         Optional<Settlement> yesterdaySettlement = getSettlementByMerchantAndDate(merchantId, settlementDate.minusDays(1));
@@ -92,15 +91,17 @@ public class SettlementService {
             logger.info("No yesterday settlement found for merchant {}, starting from: {}", merchantId, startTime);
         }
         
-        // Get completed orders for the merchant from yesterday settlement to now
+        // Set settlement time point to ensure data consistency between order query and balance retrieval
+        LocalDateTime settlementTime = LocalDateTime.now();
+         // Get current balance at the same time point as settlementTime
+         Money currentBalance = merchantService.getMerchantBalance(merchantId);
+         
+        // Get completed orders for the merchant from yesterday settlement to settlement time
         List<Order> completedOrders = orderService.getCompletedOrdersByMerchantAndDateRange(
-            merchantId, startTime, endTime);
+            merchantId, startTime, settlementTime);
         
         // Calculate expected income from completed orders (orders since yesterday settlement)
         Money recentOrderIncome = calculateExpectedIncomeFromOrders(completedOrders);
-        
-        // Get current balance
-        Money currentBalance = merchantService.getMerchantBalance(merchantId);
         
         Money expectedBalance;
         String calculationNotes;
@@ -121,7 +122,7 @@ public class SettlementService {
         boolean isMatched = expectedBalance.equals(currentBalance);
         
         logger.info("Settlement calculation for merchant {}: {} completed orders from {} to {}", 
-                  merchantId, completedOrders.size(), startTime, endTime);
+                  merchantId, completedOrders.size(), startTime, settlementTime);
         logger.info("Recent order income: {}, Current balance: {}, Expected balance: {}, Match: {}", 
                   recentOrderIncome, currentBalance, expectedBalance, isMatched);
         
