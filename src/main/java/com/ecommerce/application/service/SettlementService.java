@@ -3,6 +3,7 @@ package com.ecommerce.application.service;
 import com.ecommerce.domain.settlement.Settlement;
 import com.ecommerce.domain.Money;
 import com.ecommerce.domain.order.Order;
+import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.infrastructure.repository.SettlementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,83 +38,118 @@ public class SettlementService {
     }
     
     /**
-     * Execute settlement for all merchants (called by scheduler)
+     * Execute settlement for all active merchants (called by scheduler)
+     * Improved logic: Calculate orders from yesterday settlement to now and compare with current balance
      */
     public void executeSettlement() {
-        LocalDate settlementDate = LocalDate.now().minusDays(1); // Settle previous day's data
+        LocalDate settlementDate = LocalDate.now(); // Settle today's data
         
         logger.info("Starting daily settlement for date: {}", settlementDate);
         
-        // In a real project, this should query database for all active merchants
-        // For demo purposes, we'll settle for known merchants
-        List<Long> merchantIds = List.of(1L, 2L, 3L); // Demo merchant IDs
+        // Get all active merchants
+        List<Merchant> activeMerchants = merchantService.getAllActiveMerchants();
+        logger.info("Found {} active merchants for settlement", activeMerchants.size());
         
-        for (Long merchantId : merchantIds) {
+        for (Merchant merchant : activeMerchants) {
             try {
-                if (merchantService.merchantExists(merchantId)) {
-                    Settlement settlement = executeMerchantSettlement(merchantId, settlementDate);
-                    logger.info("Settlement completed for merchant {}: expected={}, actual={}, status={}", 
-                              merchantId, settlement.getExpectedIncome(), settlement.getActualBalance(), 
-                              settlement.getStatus());
-                }
+                Settlement settlement = executeMerchantSettlement(merchant.getId(), settlementDate);
+                logger.info("Settlement completed for merchant {} ({}): expected={}, actual={}, status={}", 
+                          merchant.getId(), merchant.getMerchantName(), 
+                          settlement.getExpectedIncome(), settlement.getActualBalance(), 
+                          settlement.getStatus());
             } catch (Exception e) {
-                logger.error("Failed to settle merchant {}: {}", merchantId, e.getMessage(), e);
+                logger.error("Failed to settle merchant {} ({}): {}", 
+                           merchant.getId(), merchant.getMerchantName(), e.getMessage(), e);
             }
         }
         
-        logger.info("Daily settlement task completed for date: {}", settlementDate);
+        logger.info("Daily settlement task completed for date: {} with {} merchants processed", 
+                   settlementDate, activeMerchants.size());
     }
     
     /**
-     * Execute merchant settlement
-     * Validates: Previous day balance + Current day order income = Current day balance
+     * Execute merchant settlement with improved logic
+     * Validates: Orders from yesterday settlement to now should match current balance
+     * If there was a settlement record yesterday, then: yesterday's balance + orders since yesterday = current balance
      */
     public Settlement executeMerchantSettlement(Long merchantId, LocalDate settlementDate) {
         logger.info("Executing settlement for merchant {} on date {}", merchantId, settlementDate);
         
-        // Calculate date range for the settlement date
-        LocalDateTime startOfDay = settlementDate.atStartOfDay();
-        LocalDateTime endOfDay = settlementDate.atTime(LocalTime.MAX);
+        // Calculate date range: from yesterday settlement time to now
+        LocalDateTime startTime;
+        LocalDateTime endTime = LocalDateTime.now(); // Current time
         
-        // Get completed orders for the merchant on the settlement date
+        // Check if there was a settlement record yesterday
+        Optional<Settlement> yesterdaySettlement = getSettlementByMerchantAndDate(merchantId, settlementDate.minusDays(1));
+        
+        if (yesterdaySettlement.isPresent()) {
+            // If there was a settlement yesterday, start from yesterday's settlement time
+            startTime = yesterdaySettlement.get().getCreatedAt();
+            logger.info("Found yesterday settlement for merchant {}, starting from: {}", merchantId, startTime);
+        } else {
+            // If no settlement yesterday, start from yesterday's start of day
+            startTime = settlementDate.minusDays(1).atStartOfDay();
+            logger.info("No yesterday settlement found for merchant {}, starting from: {}", merchantId, startTime);
+        }
+        
+        // Get completed orders for the merchant from yesterday settlement to now
         List<Order> completedOrders = orderService.getCompletedOrdersByMerchantAndDateRange(
-            merchantId, startOfDay, endOfDay);
+            merchantId, startTime, endTime);
         
-        // Calculate expected income from completed orders (Current day order income)
-        Money currentDayOrderIncome = calculateExpectedIncomeFromOrders(completedOrders);
+        // Calculate expected income from completed orders (orders since yesterday settlement)
+        Money recentOrderIncome = calculateExpectedIncomeFromOrders(completedOrders);
         
-        // Get current balance (Current day balance)
-        Money currentDayBalance = merchantService.getMerchantBalance(merchantId);
+        // Get current balance
+        Money currentBalance = merchantService.getMerchantBalance(merchantId);
         
-        // Calculate previous day balance (Current day balance - Current day order income)
-        Money previousDayBalance = currentDayBalance.subtract(currentDayOrderIncome);
+        Money expectedBalance;
+        String calculationNotes;
         
-        logger.info("Settlement calculation for merchant {}: {} completed orders", 
-                  merchantId, completedOrders.size());
-        logger.info("Previous day balance: {}, Current day order income: {}, Current day balance: {}", 
-                  previousDayBalance, currentDayOrderIncome, currentDayBalance);
+        if (yesterdaySettlement.isPresent()) {
+            // If there was a settlement yesterday, calculate: yesterday's balance + orders since yesterday
+            Money yesterdayBalance = yesterdaySettlement.get().getActualBalance();
+            expectedBalance = yesterdayBalance.add(recentOrderIncome);
+            calculationNotes = String.format("Yesterday's balance: %s, Orders since yesterday: %s, Expected balance: %s", 
+                                          yesterdayBalance, recentOrderIncome, expectedBalance);
+        } else {
+            // If no settlement yesterday, assume current balance should match recent orders
+            expectedBalance = recentOrderIncome;
+            calculationNotes = String.format("No previous settlement found, Recent orders income: %s", recentOrderIncome);
+        }
         
-        // Validate: Expected income (from orders) should match the current balance
-        // In a real system, we would track previous day balance separately and validate:
-        // Previous day balance + Current day order income = Current day balance
-        // For this demo, we'll validate that the current balance matches the expected income
-        boolean isMatched = currentDayOrderIncome.equals(currentDayBalance);
+        // Validate: Expected balance should match current balance
+        boolean isMatched = expectedBalance.equals(currentBalance);
+        
+        logger.info("Settlement calculation for merchant {}: {} completed orders from {} to {}", 
+                  merchantId, completedOrders.size(), startTime, endTime);
+        logger.info("Recent order income: {}, Current balance: {}, Expected balance: {}, Match: {}", 
+                  recentOrderIncome, currentBalance, expectedBalance, isMatched);
         
         if (!isMatched) {
-            logger.warn("Balance mismatch for merchant {}: expected income={}, actual balance={}", 
-                       merchantId, currentDayOrderIncome, currentDayBalance);
+            logger.warn("Balance mismatch for merchant {}: expected={}, actual={}", 
+                       merchantId, expectedBalance, currentBalance);
         }
         
         // Create settlement record
-        Settlement settlement = new Settlement(merchantId, settlementDate, currentDayOrderIncome, currentDayBalance);
+        Settlement settlement = new Settlement(merchantId, settlementDate, recentOrderIncome, currentBalance);
         
-        // Add notes about the calculation
-        String notes = String.format("Previous day balance: %s, Current day order income: %s, Current day balance: %s, Match: %s", 
-                                   previousDayBalance, currentDayOrderIncome, currentDayBalance,
+        // Add detailed notes about the calculation
+        String notes = String.format("%s, Current balance: %s, Match: %s", 
+                                   calculationNotes, currentBalance,
                                    isMatched ? "Yes" : "No");
         settlement.addNotes(notes);
         
         return settlementRepository.save(settlement);
+    }
+    
+    /**
+     * Get settlement by merchant ID and date
+     */
+    @Transactional(readOnly = true)
+    public Optional<Settlement> getSettlementByMerchantAndDate(Long merchantId, LocalDate settlementDate) {
+        // This would need to be implemented in the repository layer
+        // For now, we'll return empty as this is a demo implementation
+        return Optional.empty();
     }
     
     /**

@@ -3,6 +3,7 @@ package com.ecommerce.application.service;
 import com.ecommerce.domain.settlement.Settlement;
 import com.ecommerce.domain.settlement.SettlementStatus;
 import com.ecommerce.domain.Money;
+import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.infrastructure.repository.SettlementRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,13 +38,26 @@ class SettlementServiceTest {
 
     @Test
     void executeSettlement_ShouldCompleteSuccessfully() {
+        // Arrange
+        Merchant merchant1 = new Merchant("Test Merchant 1", "BL001", "test1@store.com", "555-0001");
+        merchant1.setId(1L);
+        Merchant merchant2 = new Merchant("Test Merchant 2", "BL002", "test2@store.com", "555-0002");
+        merchant2.setId(2L);
+        List<Merchant> activeMerchants = Arrays.asList(merchant1, merchant2);
+        
+        when(merchantService.getAllActiveMerchants()).thenReturn(activeMerchants);
+        when(merchantService.getMerchantBalance(1L)).thenReturn(Money.zero("CNY"));
+        when(merchantService.getMerchantBalance(2L)).thenReturn(Money.zero("CNY"));
+        when(settlementRepository.save(any(Settlement.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         // Act
         settlementService.executeSettlement();
 
-        // Assert - no exception should be thrown
-        // In a real implementation, this would verify database operations
-        // For now, we verify the method completes without errors
-        assertDoesNotThrow(() -> settlementService.executeSettlement());
+        // Assert
+        verify(merchantService).getAllActiveMerchants();
+        verify(merchantService).getMerchantBalance(1L);
+        verify(merchantService).getMerchantBalance(2L);
+        verify(settlementRepository, times(2)).save(any(Settlement.class));
     }
 
     @Test
@@ -266,6 +282,19 @@ class SettlementServiceTest {
         
         verify(merchantService).getMerchantBalance(merchantId);
         verify(settlementRepository, never()).save(any(Settlement.class));
+    }
+
+    @Test
+    void getSettlementByMerchantAndDate_ShouldReturnEmptyForDemo() {
+        // Arrange
+        Long merchantId = 1L;
+        LocalDate settlementDate = LocalDate.now();
+
+        // Act
+        Optional<Settlement> result = settlementService.getSettlementByMerchantAndDate(merchantId, settlementDate);
+
+        // Assert
+        assertTrue(result.isEmpty());
     }
 
     @Test

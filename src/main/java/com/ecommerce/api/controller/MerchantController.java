@@ -312,10 +312,10 @@ public class MerchantController {
             @RequestBody(required = false) SettlementRequest request) {
         logger.info("Executing settlement for merchant: {}", merchantId);
         
-        // Use provided date or default to yesterday
+        // Use provided date or default to today
         LocalDate settlementDate = (request != null && request.getSettlementDate() != null) 
             ? request.getSettlementDate() 
-            : LocalDate.now().minusDays(1);
+            : LocalDate.now();
         
         Settlement settlement = settlementService.executeMerchantSettlement(merchantId, settlementDate);
         
@@ -349,10 +349,10 @@ public class MerchantController {
             @RequestBody(required = false) GlobalSettlementRequest request) {
         logger.info("Executing global settlement");
         
-        // Use provided date or default to yesterday
+        // Use provided date or default to today
         LocalDate settlementDate = (request != null && request.getSettlementDate() != null) 
             ? request.getSettlementDate() 
-            : LocalDate.now().minusDays(1);
+            : LocalDate.now();
         
         // Execute global settlement
         settlementService.executeSettlement();

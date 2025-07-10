@@ -10,6 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -171,5 +173,21 @@ class MerchantServiceTest {
         // Then
         assertFalse(result);
         verify(merchantRepository).existsById(merchantId);
+    }
+
+    @Test
+    void getAllActiveMerchants_Success() {
+        // Given
+        List<Merchant> activeMerchants = Arrays.asList(testMerchant);
+        when(merchantRepository.findAllActive()).thenReturn(activeMerchants);
+
+        // When
+        List<Merchant> result = merchantService.getAllActiveMerchants();
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(testMerchant, result.get(0));
+        verify(merchantRepository).findAllActive();
     }
 } 

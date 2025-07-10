@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Mock Merchant Repository Implementation
@@ -58,5 +59,12 @@ public class MockMerchantRepository implements MerchantRepository {
     @Override
     public void deleteById(Long id) {
         storage.remove(id);
+    }
+    
+    @Override
+    public List<Merchant> findAllActive() {
+        return storage.values().stream()
+                .filter(Merchant::isActive)
+                .collect(Collectors.toList());
     }
 } 

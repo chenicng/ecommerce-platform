@@ -6,6 +6,8 @@ import com.ecommerce.infrastructure.repository.MerchantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * Merchant Service
  * Manages merchant-related business operations
@@ -69,5 +71,14 @@ public class MerchantService {
     @Transactional(readOnly = true)
     public boolean merchantExists(Long merchantId) {
         return merchantRepository.existsById(merchantId);
+    }
+    
+    /**
+     * Get all active merchants
+     * Used for settlement processing
+     */
+    @Transactional(readOnly = true)
+    public List<Merchant> getAllActiveMerchants() {
+        return merchantRepository.findAllActive();
     }
 } 

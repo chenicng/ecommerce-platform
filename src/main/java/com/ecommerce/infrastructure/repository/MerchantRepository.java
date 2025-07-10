@@ -1,6 +1,7 @@
 package com.ecommerce.infrastructure.repository;
 
 import com.ecommerce.domain.merchant.Merchant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,4 +29,10 @@ public interface MerchantRepository {
      * Delete merchant by ID
      */
     void deleteById(Long id);
+    
+    /**
+     * Find all active merchants
+     * Used for settlement processing
+     */
+    List<Merchant> findAllActive();
 } 
