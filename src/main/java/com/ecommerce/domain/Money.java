@@ -1,6 +1,7 @@
 package com.ecommerce.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.util.Set;
  * Includes comprehensive validation for currency and amount operations
  */
 @Embeddable
+@JsonIgnoreProperties({"zero", "positive", "negative"})
 public final class Money {
     
     private static final int DEFAULT_SCALE = 2;
@@ -128,6 +130,7 @@ public final class Money {
     }
     
     // Comparison methods
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isZero() {
         return this.amount.compareTo(BigDecimal.ZERO) == 0;
     }

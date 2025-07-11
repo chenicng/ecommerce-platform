@@ -307,6 +307,7 @@ class MoneyTest {
         // The @JsonIgnore methods should not appear in JSON
         assertFalse(json.contains("\"positive\""));
         assertFalse(json.contains("\"negative\""));
+        assertFalse(json.contains("\"zero\""));
     }
 
     @Test
@@ -322,6 +323,7 @@ class MoneyTest {
         // The @JsonIgnore methods should not appear in JSON
         assertFalse(json.contains("\"positive\""));
         assertFalse(json.contains("\"negative\""));
+        assertFalse(json.contains("\"zero\""));
     }
 
     @Test
