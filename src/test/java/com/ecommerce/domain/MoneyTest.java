@@ -274,10 +274,12 @@ class MoneyTest {
     }
 
     @Test
-    void shouldHandleSpecialCharactersInCurrency() {
-        // Currency codes should be basic strings, test edge cases
-        Money money = Money.of("100.00", "XYZ");
-        assertEquals("XYZ", money.getCurrency());
+    void shouldRejectUnsupportedCurrency() {
+        // Currency validation should reject unsupported currencies
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+            () -> Money.of("100.00", "XYZ"));
+        assertTrue(exception.getMessage().contains("Unsupported currency: XYZ"));
+        assertTrue(exception.getMessage().contains("Supported currencies:"));
     }
 
     @Test

@@ -10,7 +10,9 @@ import com.ecommerce.application.dto.PurchaseResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Ecommerce Service
@@ -19,7 +21,7 @@ import java.util.UUID;
  * Performance Notes:
  * - For high-concurrency scenarios, consider implementing optimistic locking
  * - Inventory deduction could benefit from distributed locks (Redis) in clustered environments
- * - Order number generation should use a more robust distributed ID generation strategy
+ * - Order number generation is now thread-safe and includes business context
  */
 @Service
 public class EcommerceService {
@@ -28,6 +30,11 @@ public class EcommerceService {
     private final MerchantService merchantService;
     private final ProductService productService;
     private final OrderService orderService;
+    
+    // Order number generation - format: ORD202507110001 (12 chars, supports 9999 orders/day)
+    private static final AtomicLong orderSequence = new AtomicLong(1);
+    private static final DateTimeFormatter ORDER_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static volatile String lastOrderDate = "";
     
     public EcommerceService(UserService userService, MerchantService merchantService,
                           ProductService productService, OrderService orderService) {
@@ -222,7 +229,23 @@ public class EcommerceService {
     }
 
     private String generateOrderNumber() {
-        return "ORD-" + LocalDateTime.now().toString().replace(":", "").replace("-", "").replace(".", "") + 
-               "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String currentDate = LocalDateTime.now().format(ORDER_DATE_FORMAT);
+        
+        // Reset sequence if date changed (new day)
+        if (!currentDate.equals(lastOrderDate)) {
+            synchronized (this) {
+                if (!currentDate.equals(lastOrderDate)) {
+                    lastOrderDate = currentDate;
+                    orderSequence.set(1);
+                }
+            }
+        }
+        
+        // Generate sequence with fixed 4 digits (0001, 0002, ... 9999)
+        long sequence = orderSequence.getAndIncrement();
+        if (sequence > 9999) {
+            throw new IllegalStateException("Daily order limit exceeded (9999). Consider implementing additional scaling solutions.");
+        }
+        return String.format("ORD%s%04d", currentDate, sequence);
     }
 } 

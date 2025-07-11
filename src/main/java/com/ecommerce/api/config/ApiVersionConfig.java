@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
  * API version control configuration
  * 
  * Define API version constants and version control strategies
+ * Supports V1 (stable) and V2 (enhanced features) APIs
  */
 @Configuration
 public class ApiVersionConfig {

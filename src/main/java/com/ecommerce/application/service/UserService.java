@@ -8,6 +8,7 @@ import com.ecommerce.infrastructure.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Set;
+import java.util.List;
 
 /**
  * User Service
@@ -45,7 +46,6 @@ public class UserService {
     /**
      * Get user by ID
      */
-    @Transactional(readOnly = true)
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -65,6 +65,7 @@ public class UserService {
     /**
      * Save user
      */
+    @Transactional
     public void saveUser(User user) {
         userRepository.save(user);
     }
@@ -72,7 +73,6 @@ public class UserService {
     /**
      * Get user balance
      */
-    @Transactional(readOnly = true)
     public Money getUserBalance(Long userId) {
         User user = getUserById(userId);
         return user.getBalance();
@@ -87,9 +87,22 @@ public class UserService {
     }
 
     /**
-     * Get all existing user IDs (for debugging)
+     * Check if user exists by phone number
      */
-    @Transactional(readOnly = true)
+    public boolean existsByPhone(String phone) {
+        return userRepository.existsByPhone(phone);
+    }
+    
+    /**
+     * Check if user exists by email address
+     */
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * Get all user IDs
+     */
     public Set<Long> getAllUserIds() {
         return userRepository.getAllUserIds();
     }

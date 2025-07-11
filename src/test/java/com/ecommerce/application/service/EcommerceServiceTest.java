@@ -516,8 +516,8 @@ class EcommerceServiceTest {
         assertNotNull(response1.getOrderNumber());
         assertNotNull(response2.getOrderNumber());
         assertNotEquals(response1.getOrderNumber(), response2.getOrderNumber());
-        assertTrue(response1.getOrderNumber().startsWith("ORD-"));
-        assertTrue(response2.getOrderNumber().startsWith("ORD-"));
+        assertTrue(response1.getOrderNumber().startsWith("ORD"));
+        assertTrue(response2.getOrderNumber().startsWith("ORD"));
     }
 
     @Test

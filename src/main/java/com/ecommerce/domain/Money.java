@@ -6,16 +6,23 @@ import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Money Value Object
  * Uses BigDecimal to ensure precision, follows immutability principle
+ * Includes comprehensive validation for currency and amount operations
  */
 @Embeddable
 public final class Money {
     
     private static final int DEFAULT_SCALE = 2;
     private static final RoundingMode DEFAULT_ROUNDING_MODE = RoundingMode.HALF_UP;
+    
+    // Supported currencies (ISO 4217 compliant)
+    private static final Set<String> SUPPORTED_CURRENCIES = Set.of(
+        "CNY", "USD", "EUR", "GBP", "JPY", "HKD", "SGD", "AUD", "CAD"
+    );
     
     @Column(name = "amount", precision = 19, scale = 2, nullable = false)
     private final BigDecimal amount;
@@ -42,6 +49,15 @@ public final class Money {
         if (currency == null || currency.trim().isEmpty()) {
             throw new IllegalArgumentException("Currency cannot be null or empty");
         }
+        validateCurrency(currency);
+    }
+    
+    private static void validateCurrency(String currency) {
+        String normalizedCurrency = currency.toUpperCase().trim();
+        if (!SUPPORTED_CURRENCIES.contains(normalizedCurrency)) {
+            throw new IllegalArgumentException("Unsupported currency: " + currency + 
+                ". Supported currencies: " + SUPPORTED_CURRENCIES);
+        }
     }
     
     public static Money of(BigDecimal amount, String currency) {
@@ -64,6 +80,7 @@ public final class Money {
         if (currency == null || currency.trim().isEmpty()) {
             throw new IllegalArgumentException("Currency cannot be null or empty");
         }
+        validateCurrency(currency);
         return new Money(BigDecimal.ZERO, currency.toUpperCase());
     }
     
@@ -87,20 +104,25 @@ public final class Money {
     
     /**
      * Multiply by a factor
+     * Factor must be non-negative for business operations
      */
     public Money multiply(int factor) {
         if (factor < 0) {
-            throw new IllegalArgumentException("Factor cannot be negative");
+            throw new IllegalArgumentException("Factor cannot be negative in money operations. Factor: " + factor);
         }
         return new Money(this.amount.multiply(BigDecimal.valueOf(factor)), this.currency);
     }
     
     /**
      * Multiply by a decimal factor
+     * Factor must be non-negative for business operations
      */
     public Money multiply(BigDecimal factor) {
-        if (factor == null || factor.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Factor cannot be null or negative");
+        if (factor == null) {
+            throw new IllegalArgumentException("Factor cannot be null");
+        }
+        if (factor.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Factor cannot be negative in money operations. Factor: " + factor);
         }
         return new Money(this.amount.multiply(factor), this.currency);
     }
@@ -157,6 +179,13 @@ public final class Money {
     @JsonIgnore
     public boolean isNegative() {
         return amount.compareTo(BigDecimal.ZERO) < 0;
+    }
+    
+    /**
+     * Get list of supported currencies
+     */
+    public static Set<String> getSupportedCurrencies() {
+        return Set.copyOf(SUPPORTED_CURRENCIES);
     }
     
     @Override

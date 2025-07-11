@@ -124,8 +124,9 @@ public class OpenApiConfig {
     private Info v2ApiInfo() {
         return new Info()
                 .title("E-commerce Platform API - V2")
-                .description("API Version 2 - Enhanced user management with additional features and improvements. " +
-                           "Includes extended user information and advanced account features.")
+                .description("API Version 2 - Simple enhancements over V1 with additional response fields. " +
+                           "V2 includes timestamp information (createdAt, lastUpdated) and enhanced user status " +
+                           "to demonstrate API versioning capabilities.")
                 .version("2.0.0")
                 .contact(new Contact()
                     .name("E-commerce Platform Team")
