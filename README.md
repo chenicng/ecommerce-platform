@@ -145,10 +145,11 @@ src/main/java/com/ecommerce/
 - **Order Management**: Order creation and tracking
 
 ### Automated Settlement
-- **Daily Settlement**: Scheduled merchant settlement (2 AM daily)
-- **Income Verification**: Compare expected vs actual income
-- **Settlement Reports**: Generate settlement records
-- **Account Reconciliation**: Balance verification
+- **Daily Settlement**: Scheduled merchant settlement (2 AM daily via cron job)
+- **Income Verification**: Compare expected vs actual income from orders
+- **Settlement Reports**: Generate detailed settlement records with notes
+- **Account Reconciliation**: Balance verification between expected and actual amounts
+- **Configurable Scheduling**: Cron expression configurable via `ecommerce.settlement.cron`
 
 ## 📚 API Documentation
 
