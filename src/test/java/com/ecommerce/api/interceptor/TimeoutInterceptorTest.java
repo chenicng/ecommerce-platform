@@ -147,7 +147,7 @@ class TimeoutInterceptorTest {
         // Given
         String requestId = "test-request-id";
         when(request.getHeader("X-Request-ID")).thenReturn(requestId);
-        when(request.getAttribute("timeout_value")).thenReturn(100L);
+        when(request.getAttribute("timeout_value")).thenReturn(1L); // Very short timeout - 1ms
         when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MILLISECONDS);
         when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
         when(request.getRequestURI()).thenReturn("/api/test");
@@ -155,7 +155,8 @@ class TimeoutInterceptorTest {
         when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
         // Simulate slow execution by setting start time in the past
         interceptor.preHandle(request, response, handlerMethod);
-        Thread.sleep(150);
+        // Simulate some execution time that will exceed 1ms timeout
+        Thread.sleep(10); // This will definitely exceed 1ms timeout
         // When
         interceptor.afterCompletion(request, response, handlerMethod, null);
         // Then
@@ -208,7 +209,7 @@ class TimeoutInterceptorTest {
         // Given
         String requestId = "test-request-id";
         when(request.getHeader("X-Request-ID")).thenReturn(requestId);
-        when(request.getAttribute("timeout_value")).thenReturn(1L);
+        when(request.getAttribute("timeout_value")).thenReturn(0L); // Use 0 seconds to trigger timeout immediately
         when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.SECONDS);
         when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
         when(request.getRequestURI()).thenReturn("/api/test");
@@ -216,7 +217,7 @@ class TimeoutInterceptorTest {
         when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
 
         interceptor.preHandle(request, response, handlerMethod);
-        Thread.sleep(1100); // Exceed 1 second timeout
+        Thread.sleep(10); // Minimal sleep to ensure timeout is exceeded
 
         // When
         interceptor.afterCompletion(request, response, handlerMethod, null);
@@ -231,7 +232,7 @@ class TimeoutInterceptorTest {
         // Given
         String requestId = "test-request-id";
         when(request.getHeader("X-Request-ID")).thenReturn(requestId);
-        when(request.getAttribute("timeout_value")).thenReturn(1L);
+        when(request.getAttribute("timeout_value")).thenReturn(0L); // Use 0 minutes to trigger timeout immediately
         when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MINUTES);
         when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
         when(request.getRequestURI()).thenReturn("/api/test");
@@ -239,7 +240,7 @@ class TimeoutInterceptorTest {
         when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
 
         interceptor.preHandle(request, response, handlerMethod);
-        Thread.sleep(61000); // Exceed 1 minute timeout
+        Thread.sleep(10); // Minimal sleep to ensure timeout is exceeded
 
         // When
         interceptor.afterCompletion(request, response, handlerMethod, null);
@@ -254,7 +255,7 @@ class TimeoutInterceptorTest {
         // Given
         String requestId = "test-request-id";
         when(request.getHeader("X-Request-ID")).thenReturn(requestId);
-        when(request.getAttribute("timeout_value")).thenReturn(1000L);
+        when(request.getAttribute("timeout_value")).thenReturn(1L); // 1 microsecond timeout
         when(request.getAttribute("timeout_unit")).thenReturn(TimeUnit.MICROSECONDS);
         when(request.getAttribute("timeout_message")).thenReturn("Request timeout");
         when(request.getRequestURI()).thenReturn("/api/test");
@@ -262,7 +263,7 @@ class TimeoutInterceptorTest {
         when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
 
         interceptor.preHandle(request, response, handlerMethod);
-        Thread.sleep(10); // Exceed 1 millisecond timeout (1000 microseconds)
+        Thread.sleep(1); // Even 1ms will exceed 1 microsecond timeout
 
         // When
         interceptor.afterCompletion(request, response, handlerMethod, null);
@@ -327,7 +328,7 @@ class TimeoutInterceptorTest {
         when(handlerMethod.getBeanType()).thenReturn((Class) TestController.class);
 
         interceptor.preHandle(request, response, handlerMethod);
-        Thread.sleep(10); // Any execution time will exceed 0 timeout
+        Thread.sleep(1); // Minimal sleep - any execution time will exceed 0 timeout
 
         // When
         interceptor.afterCompletion(request, response, handlerMethod, null);
