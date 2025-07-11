@@ -2,6 +2,7 @@ package com.ecommerce.api.controller.v2;
 
 import com.ecommerce.application.service.UserService;
 import com.ecommerce.domain.Money;
+import com.ecommerce.domain.user.User;
 import com.ecommerce.api.dto.Result;
 import com.ecommerce.api.annotation.ApiVersion;
 import com.ecommerce.api.config.ApiVersionConfig;
@@ -33,6 +34,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * - Enhanced user response with registration timestamp
  * - Improved balance response with last update time
  * - Added user profile information and transaction details
+ * - Unified Result wrapper format for consistency
  */
 @RestController
 @RequestMapping(ApiVersionConfig.API_V2 + "/users")
@@ -58,7 +60,7 @@ public class UserV2Controller {
         @ApiResponse(responseCode = "200", description = "User created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid request data")
     })
-    public ResponseEntity<UserV2Response> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<Result<UserV2Response>> createUser(@Valid @RequestBody CreateUserRequest request) {
         logger.info("Creating user (V2): {}", request.getUsername());
         
         var user = userService.createUser(
@@ -83,7 +85,42 @@ public class UserV2Controller {
         );
         
         logger.info("User created successfully (V2) with ID: {}", user.getId());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.successWithMessage("User created successfully", response));
+    }
+    
+    /**
+     * Get user by ID - V2 with enhanced response
+     * GET /api/v2/users/{userId}
+     */
+    @GetMapping("/{userId}")
+    @Operation(summary = "Get User (V2)", description = "Retrieve user information by ID with enhanced response including registration time and additional fields")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<Result<UserV2Response>> getUserById(
+            @Parameter(description = "User ID", required = true, example = "1")
+            @PathVariable Long userId) {
+        logger.info("Getting user by ID (V2): {}", userId);
+        
+        User user = userService.getUserById(userId);
+        
+        // V2: Enhanced response with additional fields
+        UserV2Response response = new UserV2Response(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getBalance().getAmount(),
+            user.getBalance().getCurrency(),
+            user.getStatus().toString(),
+            LocalDateTime.now(), // registrationTime - new in V2 (mock for now)
+            LocalDateTime.now(), // lastLoginTime - new in V2 (mock for now)
+            true // isActive - new in V2
+        );
+        
+        logger.info("User retrieved successfully (V2): {}", user.getUsername());
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**
@@ -96,7 +133,7 @@ public class UserV2Controller {
         @ApiResponse(responseCode = "200", description = "Balance retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "User not found")
     })
-    public ResponseEntity<BalanceV2Response> getUserBalance(
+    public ResponseEntity<Result<BalanceV2Response>> getUserBalance(
             @Parameter(description = "User ID", required = true, example = "1")
             @PathVariable Long userId) {
         Money balance = userService.getUserBalance(userId);
@@ -110,7 +147,7 @@ public class UserV2Controller {
             "ACTIVE" // accountStatus - new in V2
         );
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.success(response));
     }
     
     /**
@@ -124,7 +161,7 @@ public class UserV2Controller {
         @ApiResponse(responseCode = "400", description = "Invalid request data"),
         @ApiResponse(responseCode = "404", description = "User not found")
     })
-    public ResponseEntity<RechargeV2Response> rechargeUser(
+    public ResponseEntity<Result<RechargeV2Response>> rechargeUser(
             @Parameter(description = "User ID", required = true, example = "1")
             @PathVariable Long userId, 
             @Valid @RequestBody RechargeRequest request) {
@@ -148,7 +185,7 @@ public class UserV2Controller {
         );
         
         logger.info("Recharge completed (V2) for user {}: new balance={}", userId, balance);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Result.successWithMessage("Recharge completed successfully", response));
     }
     
     // V2 DTO classes with enhanced fields

@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test class for UserV2Controller
- * Tests all endpoints and validates V2 enhanced features
+ * Tests all endpoints and validates V2 enhanced features with Result wrapper
  */
 @ExtendWith(MockitoExtension.class)
 class UserV2ControllerTest {
@@ -51,7 +51,7 @@ class UserV2ControllerTest {
     }
 
     @Test
-    void createUser_ValidRequest_ShouldReturnUserV2Response() throws Exception {
+    void createUser_ValidRequest_ShouldReturnUserV2ResponseWithResultWrapper() throws Exception {
         // Arrange
         UserV2Controller.CreateUserRequest request = new UserV2Controller.CreateUserRequest();
         request.setUsername("testuser");
@@ -69,22 +69,55 @@ class UserV2ControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.email").value("test@example.com"))
-                .andExpect(jsonPath("$.phone").value("1234567890"))
-                .andExpect(jsonPath("$.balance").value(0))
-                .andExpect(jsonPath("$.currency").value("CNY"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.registrationTime").exists())
-                .andExpect(jsonPath("$.lastLoginTime").exists())
-                .andExpect(jsonPath("$.active").value(true));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("User created successfully"))
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.id").value(1L))
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.phone").value("1234567890"))
+                .andExpect(jsonPath("$.data.balance").value(0))
+                .andExpect(jsonPath("$.data.currency").value("CNY"))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.registrationTime").exists())
+                .andExpect(jsonPath("$.data.lastLoginTime").exists())
+                .andExpect(jsonPath("$.data.active").value(true))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         verify(userService).createUser("testuser", "test@example.com", "1234567890", "CNY");
     }
 
     @Test
-    void createUser_InvalidUsername_ShouldReturn400() throws Exception {
+    void getUserById_ValidUserId_ShouldReturnUserV2ResponseWithResultWrapper() throws Exception {
+        // Arrange
+        Long userId = 1L;
+        User user = new User("testuser", "test@example.com", "1234567890", "CNY");
+        user.setId(userId);
+
+        when(userService.getUserById(userId)).thenReturn(user);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v2/users/{userId}", userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.id").value(1L))
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.phone").value("1234567890"))
+                .andExpect(jsonPath("$.data.balance").value(0))
+                .andExpect(jsonPath("$.data.currency").value("CNY"))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.registrationTime").exists())
+                .andExpect(jsonPath("$.data.lastLoginTime").exists())
+                .andExpect(jsonPath("$.data.active").value(true))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verify(userService).getUserById(userId);
+    }
+
+    @Test
+    void createUser_BlankUsername_ShouldReturn400() throws Exception {
         // Arrange
         UserV2Controller.CreateUserRequest request = new UserV2Controller.CreateUserRequest();
         request.setUsername(""); // Invalid: blank username
@@ -105,7 +138,7 @@ class UserV2ControllerTest {
         // Arrange
         UserV2Controller.CreateUserRequest request = new UserV2Controller.CreateUserRequest();
         request.setUsername("testuser");
-        request.setEmail("invalid-email"); // Invalid email format
+        request.setEmail("invalid-email"); // Invalid: wrong email format
         request.setPhone("1234567890");
 
         // Act & Assert
@@ -135,7 +168,7 @@ class UserV2ControllerTest {
     }
 
     @Test
-    void getUserBalance_ValidUserId_ShouldReturnBalanceV2Response() throws Exception {
+    void getUserBalance_ValidUserId_ShouldReturnBalanceV2ResponseWithResultWrapper() throws Exception {
         // Arrange
         Long userId = 1L;
         Money balance = Money.of(new BigDecimal("100.50"), "CNY");
@@ -145,11 +178,14 @@ class UserV2ControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/v2/users/{userId}/balance", userId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1L))
-                .andExpect(jsonPath("$.balance").value(100.50))
-                .andExpect(jsonPath("$.currency").value("CNY"))
-                .andExpect(jsonPath("$.lastUpdateTime").exists())
-                .andExpect(jsonPath("$.accountStatus").value("ACTIVE"));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.userId").value(1L))
+                .andExpect(jsonPath("$.data.balance").value(100.50))
+                .andExpect(jsonPath("$.data.currency").value("CNY"))
+                .andExpect(jsonPath("$.data.lastUpdateTime").exists())
+                .andExpect(jsonPath("$.data.accountStatus").value("ACTIVE"))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         verify(userService).getUserBalance(userId);
     }
@@ -171,7 +207,7 @@ class UserV2ControllerTest {
     }
 
     @Test
-    void rechargeUser_ValidRequest_ShouldReturnRechargeV2Response() throws Exception {
+    void rechargeUser_ValidRequest_ShouldReturnRechargeV2ResponseWithResultWrapper() throws Exception {
         // Arrange
         Long userId = 1L;
         UserV2Controller.RechargeRequest request = new UserV2Controller.RechargeRequest();
@@ -187,14 +223,18 @@ class UserV2ControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1L))
-                .andExpect(jsonPath("$.rechargeAmount").value(50.00))
-                .andExpect(jsonPath("$.rechargeCurrency").value("CNY"))
-                .andExpect(jsonPath("$.newBalance").value(150.50))
-                .andExpect(jsonPath("$.balanceCurrency").value("CNY"))
-                .andExpect(jsonPath("$.transactionTime").exists())
-                .andExpect(jsonPath("$.transactionStatus").value("COMPLETED"))
-                .andExpect(jsonPath("$.resultCode").value("SUCCESS"));
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("Recharge completed successfully"))
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.userId").value(1L))
+                .andExpect(jsonPath("$.data.rechargeAmount").value(50.00))
+                .andExpect(jsonPath("$.data.rechargeCurrency").value("CNY"))
+                .andExpect(jsonPath("$.data.newBalance").value(150.50))
+                .andExpect(jsonPath("$.data.balanceCurrency").value("CNY"))
+                .andExpect(jsonPath("$.data.transactionTime").exists())
+                .andExpect(jsonPath("$.data.transactionStatus").value("COMPLETED"))
+                .andExpect(jsonPath("$.data.resultCode").value("SUCCESS"))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         verify(userService).rechargeUser(eq(userId), any(Money.class));
         verify(userService).getUserBalance(userId);
