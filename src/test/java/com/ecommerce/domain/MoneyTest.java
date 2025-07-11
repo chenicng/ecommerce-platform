@@ -1,5 +1,6 @@
 package com.ecommerce.domain;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.math.BigDecimal;
@@ -284,5 +285,31 @@ class MoneyTest {
         
         Money money3 = Money.of("0.996", "USD");
         assertEquals(new BigDecimal("1.00"), money3.getAmount());
+    }
+
+    @Test
+    void shouldExcludeIsZeroFromJsonSerialization() throws Exception {
+        Money money = Money.of("100.00", "USD");
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        String json = objectMapper.writeValueAsString(money);
+        
+        // Verify that the JSON contains amount and currency but not zero
+        assertTrue(json.contains("\"amount\":100.00"));
+        assertTrue(json.contains("\"currency\":\"USD\""));
+        assertFalse(json.contains("\"zero\""));
+    }
+
+    @Test
+    void shouldExcludeIsZeroFromJsonSerializationForZeroAmount() throws Exception {
+        Money zeroMoney = Money.zero("USD");
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        String json = objectMapper.writeValueAsString(zeroMoney);
+        
+        // Verify that the JSON contains amount and currency but not zero
+        assertTrue(json.contains("\"amount\":0.00"));
+        assertTrue(json.contains("\"currency\":\"USD\""));
+        assertFalse(json.contains("\"zero\""));
     }
 }

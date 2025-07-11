@@ -1,5 +1,6 @@
 package com.ecommerce.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -74,21 +75,25 @@ public final class Money {
         return new Money(this.amount.multiply(multiplier), this.currency);
     }
     
+    @JsonIgnore
     public boolean isGreaterThan(Money other) {
         validateSameCurrency(other);
         return this.amount.compareTo(other.amount) > 0;
     }
     
+    @JsonIgnore
     public boolean isGreaterThanOrEqual(Money other) {
         validateSameCurrency(other);
         return this.amount.compareTo(other.amount) >= 0;
     }
     
+    @JsonIgnore
     public boolean isLessThan(Money other) {
         validateSameCurrency(other);
         return this.amount.compareTo(other.amount) < 0;
     }
     
+    @JsonIgnore
     public boolean isZero() {
         return this.amount.compareTo(BigDecimal.ZERO) == 0;
     }
