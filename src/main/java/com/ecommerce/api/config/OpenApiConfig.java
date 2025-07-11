@@ -9,8 +9,10 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.tags.Tag;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.List;
 
@@ -19,7 +21,7 @@ import java.util.List;
  * 
  * This configuration sets up comprehensive API documentation with:
  * - API metadata and contact information
- * - Version management
+ * - Version management with multiple groups (v1, v2, public)
  * - Security scheme configuration
  * - Organized API tags
  */
@@ -27,6 +29,7 @@ import java.util.List;
 public class OpenApiConfig {
 
     @Bean
+    @Primary
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(apiInfo())
@@ -56,12 +59,90 @@ public class OpenApiConfig {
                 ));
     }
 
+    @Bean
+    public GroupedOpenApi v1Api() {
+        return GroupedOpenApi.builder()
+                .group("v1")
+                .pathsToMatch("/api/v1/**")
+                .addOpenApiCustomizer(openApi -> openApi.info(v1ApiInfo()))
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi v2Api() {
+        return GroupedOpenApi.builder()
+                .group("v2")
+                .pathsToMatch("/api/v2/**")
+                .addOpenApiCustomizer(openApi -> openApi.info(v2ApiInfo()))
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi publicApi() {
+        return GroupedOpenApi.builder()
+                .group("public")
+                .pathsToMatch("/api/health/**", "/api/version/**")
+                .addOpenApiCustomizer(openApi -> openApi.info(publicApiInfo()))
+                .build();
+    }
+
     private Info apiInfo() {
         return new Info()
                 .title("E-commerce Platform API")
                 .description("Comprehensive REST API for e-commerce platform with DDD architecture. " +
                            "Supports multi-version API, user management, merchant operations, product catalog, " +
                            "and order processing with daily batch settlement.")
+                .version("1.0.0")
+                .contact(new Contact()
+                    .name("E-commerce Platform Team")
+                    .email("api-support@ecommerce.com")
+                    .url("https://github.com/chenlicong0821/ecommerce-platform")
+                )
+                .license(new License()
+                    .name("MIT License")
+                    .url("https://opensource.org/licenses/MIT")
+                );
+    }
+
+    private Info v1ApiInfo() {
+        return new Info()
+                .title("E-commerce Platform API - V1")
+                .description("API Version 1 - Core functionality including user management, merchant operations, " +
+                           "product catalog, and order processing. This is the stable production version.")
+                .version("1.0.0")
+                .contact(new Contact()
+                    .name("E-commerce Platform Team")
+                    .email("api-support@ecommerce.com")
+                    .url("https://github.com/chenlicong0821/ecommerce-platform")
+                )
+                .license(new License()
+                    .name("MIT License")
+                    .url("https://opensource.org/licenses/MIT")
+                );
+    }
+
+    private Info v2ApiInfo() {
+        return new Info()
+                .title("E-commerce Platform API - V2")
+                .description("API Version 2 - Enhanced user management with additional features and improvements. " +
+                           "Includes extended user information and advanced account features.")
+                .version("2.0.0")
+                .contact(new Contact()
+                    .name("E-commerce Platform Team")
+                    .email("api-support@ecommerce.com")
+                    .url("https://github.com/chenlicong0821/ecommerce-platform")
+                )
+                .license(new License()
+                    .name("MIT License")
+                    .url("https://opensource.org/licenses/MIT")
+                );
+    }
+
+    private Info publicApiInfo() {
+        return new Info()
+                .title("E-commerce Platform API - Public")
+                .description("Public API endpoints for system health monitoring and version information. " +
+                           "These endpoints do not require authentication and are suitable for load balancers and monitoring systems.")
                 .version("1.0.0")
                 .contact(new Contact()
                     .name("E-commerce Platform Team")

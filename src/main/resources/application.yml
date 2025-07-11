@@ -78,6 +78,8 @@ springdoc:
   api-docs:
     path: /v3/api-docs  # OpenAPI JSON documentation path
     enabled: true
+    groups:
+      enabled: true
   swagger-ui:
     path: /swagger-ui.html  # Swagger UI access path
     enabled: true
@@ -88,6 +90,15 @@ springdoc:
     default-model-expand-depth: 2
     display-request-duration: true  # Show request duration
     doc-expansion: none  # Default expansion state
+    urls:
+      - name: "All APIs"
+        url: "/v3/api-docs"
+      - name: "V1 APIs"
+        url: "/v3/api-docs/v1"
+      - name: "V2 APIs"
+        url: "/v3/api-docs/v2"
+      - name: "Public APIs"
+        url: "/v3/api-docs/public"
   show-actuator: false  # Hide actuator endpoints from documentation
 
 # Business Configuration

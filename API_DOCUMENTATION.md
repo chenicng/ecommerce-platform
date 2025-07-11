@@ -327,6 +327,11 @@ curl http://localhost:8080/api/v1/users/1/balance
 - Check token expiration
 - Ensure token has required permissions
 
+#### Version-Specific Endpoints Not Working
+- Ensure GroupedOpenApi beans are properly configured
+- Check that only one primary OpenAPI bean exists
+- Verify path patterns match controller endpoints
+
 
 ## 📈 Advanced Features
 
