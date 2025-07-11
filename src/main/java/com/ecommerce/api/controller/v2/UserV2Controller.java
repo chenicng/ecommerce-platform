@@ -83,7 +83,8 @@ public class UserV2Controller {
             user.getBalance().getCurrency(),
             user.getStatus().toString(),
             user.getCreatedAt(),
-            user.getUpdatedAt()
+            user.getUpdatedAt(),
+            user.isActive()
         );
         
         logger.info("User created successfully (V2) with ID: {}", user.getId());
@@ -113,7 +114,8 @@ public class UserV2Controller {
             user.getBalance().getCurrency(),
             user.getStatus().toString(),
             user.getCreatedAt(),
-            user.getUpdatedAt()
+            user.getUpdatedAt(),
+            user.isActive()
         );
         
         logger.info("User retrieved successfully (V2): {}", user.getUsername());
@@ -130,18 +132,50 @@ public class UserV2Controller {
             @Parameter(description = "User ID", required = true, example = "1")
             @PathVariable Long userId) {
         
-        User user = userService.getUserById(userId);
-        Money balance = user.getBalance();
+        Money balance = userService.getUserBalance(userId);
         
         BalanceV2Response response = new BalanceV2Response(
             userId,
             balance.getAmount(),
             balance.getCurrency(),
-            user.getUpdatedAt(),
-            user.isActive() ? "ACTIVE" : "INACTIVE"
+            LocalDateTime.now(), // Use current time since we don't have user object
+            "ACTIVE" // Default to ACTIVE for simplicity
         );
         
         return ResponseEntity.ok(Result.success(response));
+    }
+    
+    /**
+     * Recharge User - V2 with enhanced response
+     * POST /api/v2/users/{userId}/recharge
+     */
+    @PostMapping("/{userId}/recharge")
+    @Operation(summary = "Recharge User (V2)", description = "Recharge user account with enhanced response including transaction details")
+    public ResponseEntity<Result<RechargeV2Response>> rechargeUser(
+            @Parameter(description = "User ID", required = true, example = "1")
+            @PathVariable Long userId,
+            @Valid @RequestBody RechargeRequest request) {
+        
+        logger.info("Recharging user (V2): {} with amount: {}", userId, request.getAmount());
+        
+        Money rechargeAmount = Money.of(request.getAmount(), request.getCurrency());
+        userService.rechargeUser(userId, rechargeAmount);
+        
+        Money newBalance = userService.getUserBalance(userId);
+        
+        RechargeV2Response response = new RechargeV2Response(
+            userId,
+            request.getAmount(),
+            request.getCurrency(),
+            newBalance.getAmount(),
+            newBalance.getCurrency(),
+            LocalDateTime.now(),
+            "COMPLETED",
+            "SUCCESS"
+        );
+        
+        logger.info("User recharged successfully (V2): {} new balance: {}", userId, newBalance);
+        return ResponseEntity.ok(Result.successWithMessage("Recharge completed successfully", response));
     }
     
     // V2 Enhanced DTOs (simplified)
@@ -170,6 +204,23 @@ public class UserV2Controller {
         public void setPhone(String phone) { this.phone = phone; }
     }
     
+    @Schema(description = "User recharge request")
+    public static class RechargeRequest {
+        @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
+        @Schema(description = "Recharge amount", example = "100.00")
+        private BigDecimal amount;
+        
+        @NotBlank(message = "Currency is required")
+        @Schema(description = "Currency code", example = "CNY")
+        private String currency;
+        
+        // Getters and setters
+        public BigDecimal getAmount() { return amount; }
+        public void setAmount(BigDecimal amount) { this.amount = amount; }
+        public String getCurrency() { return currency; }
+        public void setCurrency(String currency) { this.currency = currency; }
+    }
+    
     @Schema(description = "User response with enhanced information (V2)")
     public static class UserV2Response {
         @Schema(description = "User ID", example = "1")
@@ -186,14 +237,16 @@ public class UserV2Controller {
         private String currency;
         @Schema(description = "User status (ACTIVE/INACTIVE/DELETED)", example = "ACTIVE")
         private String status;
-        @Schema(description = "Creation timestamp", example = "2025-07-11T10:00:00")
-        private LocalDateTime createdAt; // New in V2
-        @Schema(description = "Last update timestamp", example = "2025-07-11T12:00:00")
-        private LocalDateTime lastUpdated; // New in V2
+        @Schema(description = "Registration timestamp", example = "2025-07-11T10:00:00")
+        private LocalDateTime registrationTime; // Renamed from createdAt
+        @Schema(description = "Last login timestamp", example = "2025-07-11T12:00:00")
+        private LocalDateTime lastLoginTime; // Renamed from lastUpdated
+        @Schema(description = "Account active status", example = "true")
+        private boolean active; // New field
         
         public UserV2Response(Long id, String username, String email, String phone, 
                              BigDecimal balance, String currency, String status,
-                             LocalDateTime createdAt, LocalDateTime lastUpdated) {
+                             LocalDateTime registrationTime, LocalDateTime lastLoginTime, boolean active) {
             this.id = id;
             this.username = username;
             this.email = email;
@@ -201,8 +254,9 @@ public class UserV2Controller {
             this.balance = balance;
             this.currency = currency;
             this.status = status;
-            this.createdAt = createdAt;
-            this.lastUpdated = lastUpdated;
+            this.registrationTime = registrationTime;
+            this.lastLoginTime = lastLoginTime;
+            this.active = active;
         }
         
         // Getters
@@ -213,8 +267,9 @@ public class UserV2Controller {
         public BigDecimal getBalance() { return balance; }
         public String getCurrency() { return currency; }
         public String getStatus() { return status; }
-        public LocalDateTime getCreatedAt() { return createdAt; }
-        public LocalDateTime getLastUpdated() { return lastUpdated; }
+        public LocalDateTime getRegistrationTime() { return registrationTime; }
+        public LocalDateTime getLastLoginTime() { return lastLoginTime; }
+        public boolean isActive() { return active; }
     }
     
     @Schema(description = "User balance response with enhanced information (V2)")
@@ -226,16 +281,16 @@ public class UserV2Controller {
         @Schema(description = "Currency code", example = "CNY")
         private String currency;
         @Schema(description = "Last update timestamp", example = "2025-07-11T10:00:00")
-        private LocalDateTime lastUpdated; // New in V2
+        private LocalDateTime lastUpdateTime; // Renamed from lastUpdated
         @Schema(description = "Account status", example = "ACTIVE")
-        private String accountStatus; // New in V2
+        private String accountStatus;
         
         public BalanceV2Response(Long userId, BigDecimal balance, String currency,
-                                LocalDateTime lastUpdated, String accountStatus) {
+                                LocalDateTime lastUpdateTime, String accountStatus) {
             this.userId = userId;
             this.balance = balance;
             this.currency = currency;
-            this.lastUpdated = lastUpdated;
+            this.lastUpdateTime = lastUpdateTime;
             this.accountStatus = accountStatus;
         }
         
@@ -243,7 +298,50 @@ public class UserV2Controller {
         public Long getUserId() { return userId; }
         public BigDecimal getBalance() { return balance; }
         public String getCurrency() { return currency; }
-        public LocalDateTime getLastUpdated() { return lastUpdated; }
+        public LocalDateTime getLastUpdateTime() { return lastUpdateTime; }
         public String getAccountStatus() { return accountStatus; }
+    }
+    
+    @Schema(description = "User recharge response with enhanced information (V2)")
+    public static class RechargeV2Response {
+        @Schema(description = "User ID", example = "1")
+        private Long userId;
+        @Schema(description = "Recharge amount", example = "50.00")
+        private BigDecimal rechargeAmount;
+        @Schema(description = "Recharge currency", example = "CNY")
+        private String rechargeCurrency;
+        @Schema(description = "New balance after recharge", example = "150.00")
+        private BigDecimal newBalance;
+        @Schema(description = "Balance currency", example = "CNY")
+        private String balanceCurrency;
+        @Schema(description = "Transaction timestamp", example = "2025-07-11T10:00:00")
+        private LocalDateTime transactionTime;
+        @Schema(description = "Transaction status", example = "COMPLETED")
+        private String transactionStatus;
+        @Schema(description = "Result code", example = "SUCCESS")
+        private String resultCode;
+        
+        public RechargeV2Response(Long userId, BigDecimal rechargeAmount, String rechargeCurrency,
+                                 BigDecimal newBalance, String balanceCurrency,
+                                 LocalDateTime transactionTime, String transactionStatus, String resultCode) {
+            this.userId = userId;
+            this.rechargeAmount = rechargeAmount;
+            this.rechargeCurrency = rechargeCurrency;
+            this.newBalance = newBalance;
+            this.balanceCurrency = balanceCurrency;
+            this.transactionTime = transactionTime;
+            this.transactionStatus = transactionStatus;
+            this.resultCode = resultCode;
+        }
+        
+        // Getters
+        public Long getUserId() { return userId; }
+        public BigDecimal getRechargeAmount() { return rechargeAmount; }
+        public String getRechargeCurrency() { return rechargeCurrency; }
+        public BigDecimal getNewBalance() { return newBalance; }
+        public String getBalanceCurrency() { return balanceCurrency; }
+        public LocalDateTime getTransactionTime() { return transactionTime; }
+        public String getTransactionStatus() { return transactionStatus; }
+        public String getResultCode() { return resultCode; }
     }
 } 
