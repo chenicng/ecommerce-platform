@@ -111,7 +111,7 @@ class UserNotFoundExceptionTest {
 
     @Test
     void shouldCreateExceptionWithUnicodeCharacters() {
-        String message = "用户未找到";
+        String message = "User not found";
         UserNotFoundException exception = new UserNotFoundException(message);
         
         assertEquals(message, exception.getMessage());

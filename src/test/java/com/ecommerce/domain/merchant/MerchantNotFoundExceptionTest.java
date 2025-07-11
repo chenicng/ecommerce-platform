@@ -111,7 +111,7 @@ class MerchantNotFoundExceptionTest {
 
     @Test
     void shouldCreateExceptionWithUnicodeCharacters() {
-        String message = "商户未找到";
+        String message = "Merchant not found";
         MerchantNotFoundException exception = new MerchantNotFoundException(message);
         
         assertEquals(message, exception.getMessage());

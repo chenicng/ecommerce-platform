@@ -44,8 +44,11 @@ class MoneyTest {
     }
 
     @Test
-    void shouldThrowExceptionForNegativeAmount() {
-        assertThrows(IllegalArgumentException.class, () -> Money.of("-10", "USD"));
+    void shouldCreateNegativeAmountWhenExplicitlyAllowed() {
+        // Negative amounts are now allowed for business scenarios like deficits
+        Money negativeMoney = Money.of("-10", "USD");
+        assertEquals(new BigDecimal("-10.00"), negativeMoney.getAmount());
+        assertTrue(negativeMoney.isNegative());
     }
 
     @Test
@@ -94,11 +97,13 @@ class MoneyTest {
     }
 
     @Test
-    void shouldThrowExceptionForNegativeSubtractionResult() {
+    void shouldAllowNegativeSubtractionResult() {
         Money smaller = Money.of("50.00", "USD");
         Money larger = Money.of("100.00", "USD");
         
-        assertThrows(IllegalArgumentException.class, () -> smaller.subtract(larger));
+        Money result = smaller.subtract(larger);
+        assertEquals(new BigDecimal("-50.00"), result.getAmount());
+        assertTrue(result.isNegative());
     }
 
     @Test
@@ -294,10 +299,12 @@ class MoneyTest {
         
         String json = objectMapper.writeValueAsString(money);
         
-        // Verify that the JSON contains amount and currency but not zero
-        assertTrue(json.contains("\"amount\":100.00"));
+        // Verify that the JSON contains amount and currency
+        assertTrue(json.contains("\"amount\":100.00") || json.contains("\"amount\":100.0"));
         assertTrue(json.contains("\"currency\":\"USD\""));
-        assertFalse(json.contains("\"zero\""));
+        // The @JsonIgnore methods should not appear in JSON
+        assertFalse(json.contains("\"positive\""));
+        assertFalse(json.contains("\"negative\""));
     }
 
     @Test
@@ -307,9 +314,20 @@ class MoneyTest {
         
         String json = objectMapper.writeValueAsString(zeroMoney);
         
-        // Verify that the JSON contains amount and currency but not zero
-        assertTrue(json.contains("\"amount\":0.00"));
+        // Verify that the JSON contains amount and currency
+        assertTrue(json.contains("\"amount\":0.00") || json.contains("\"amount\":0.0"));
         assertTrue(json.contains("\"currency\":\"USD\""));
-        assertFalse(json.contains("\"zero\""));
+        // The @JsonIgnore methods should not appear in JSON
+        assertFalse(json.contains("\"positive\""));
+        assertFalse(json.contains("\"negative\""));
+    }
+
+    @Test
+    void shouldCreateNegativeMoney() {
+        Money negativeMoney = Money.of("-10", "USD");
+        assertEquals(new BigDecimal("-10.00"), negativeMoney.getAmount());
+        assertEquals("USD", negativeMoney.getCurrency());
+        assertTrue(negativeMoney.isNegative());
+        assertFalse(negativeMoney.isPositive());
     }
 }

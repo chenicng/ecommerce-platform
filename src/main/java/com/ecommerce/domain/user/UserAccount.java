@@ -31,7 +31,7 @@ public final class UserAccount {
      * Add balance
      */
     public UserAccount addBalance(Money amount) {
-        if (amount == null || amount.isZero()) {
+        if (amount == null || !amount.isPositive()) {
             throw new IllegalArgumentException("Amount must be positive");
         }
         return new UserAccount(this.balance.add(amount));
@@ -41,16 +41,25 @@ public final class UserAccount {
      * Deduct balance
      */
     public UserAccount deduct(Money amount) {
-        if (amount == null || amount.isZero()) {
+        if (amount == null || !amount.isPositive()) {
             throw new IllegalArgumentException("Amount must be positive");
         }
-        return new UserAccount(this.balance.subtract(amount));
+        
+        Money newBalance = this.balance.subtract(amount);
+        if (newBalance.isNegative()) {
+            throw new IllegalArgumentException("Insufficient balance for deduction");
+        }
+        
+        return new UserAccount(newBalance);
     }
     
     /**
      * Check if has enough balance
      */
     public boolean hasEnoughBalance(Money amount) {
+        if (amount == null) {
+            return false;
+        }
         return this.balance.isGreaterThanOrEqual(amount);
     }
     

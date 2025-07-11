@@ -56,10 +56,17 @@ class SettlementTest {
         Money expectedIncome = Money.of("1000.00", "CNY");
         Money actualBalance = Money.of("800.00", "CNY");
         
-        // This should throw an exception due to Money not supporting negative results
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Settlement(merchantId, settlementDate, expectedIncome, actualBalance);
-        });
+        Settlement settlement = new Settlement(merchantId, settlementDate, expectedIncome, actualBalance);
+        
+        assertEquals(merchantId, settlement.getMerchantId());
+        assertEquals(settlementDate, settlement.getSettlementDate());
+        assertEquals(expectedIncome, settlement.getExpectedIncome());
+        assertEquals(actualBalance, settlement.getActualBalance());
+        assertEquals(Money.of("-200.00", "CNY"), settlement.getDifference());
+        assertEquals(SettlementStatus.DEFICIT, settlement.getStatus());
+        assertFalse(settlement.isMatched());
+        assertFalse(settlement.hasSurplus());
+        assertTrue(settlement.hasDeficit());
     }
 
     @Test

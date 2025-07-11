@@ -15,6 +15,11 @@ import java.util.UUID;
 /**
  * Ecommerce Service
  * Handles the complete business process of user purchasing products
+ * 
+ * Performance Notes:
+ * - For high-concurrency scenarios, consider implementing optimistic locking
+ * - Inventory deduction could benefit from distributed locks (Redis) in clustered environments
+ * - Order number generation should use a more robust distributed ID generation strategy
  */
 @Service
 public class EcommerceService {

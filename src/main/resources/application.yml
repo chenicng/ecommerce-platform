@@ -1,37 +1,29 @@
-# E-commerce Platform API Configuration File
+# E-commerce Platform API Configuration
 
-# Spring Boot Application Configuration
 spring:
   application:
     name: ecommerce-platform
-  
-  # Active Profile Configuration
   profiles:
-    active: mock  # Default to mock mode for demo purposes
-  
-  # JSON Serialization Configuration
+    active: mock
   jackson:
     serialization:
-      indent-output: true  # Format JSON output
-    date-format: yyyy-MM-dd HH:mm:ss  # Date format
-    time-zone: Asia/Shanghai  # Timezone setting
-    default-property-inclusion: non-null  # Ignore null values
-  
-  # MVC Configuration for proper 404 error handling
+      indent-output: true
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non-null
   mvc:
-    throw-exception-if-no-handler-found: true  # Enable NoHandlerFoundException
-    static-path-pattern: /static/**  # Configure static resource path
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /static/**
 
-# Server Configuration
 server:
-  port: 8080  # Service port
+  port: 8080
 
 # Logging Configuration
 logging:
   level:
-    root: INFO  # Root log level
-    com.ecommerce: INFO  # Application log level
-    com.ecommerce.api.aspect.RequestLoggingAspect: INFO  # Enable detailed request logging
+    root: INFO
+    com.ecommerce: INFO
+    com.ecommerce.api.aspect.RequestLoggingAspect: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{requestId:-}] %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{requestId:-}] %logger{36} - %msg%n"
@@ -42,54 +34,49 @@ logging:
 
 # Security Configuration
 security:
-  # Request rate limiting
   rate-limit:
     enabled: true
     max-requests-per-minute: 100
-  
-  # Input validation
   validation:
     max-string-length: 1000
-    max-request-size: 10485760  # 10MB in bytes
+    max-request-size: 10485760  # 10MB
 
-# Actuator Monitoring Endpoint Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics  # Exposed endpoints
-      base-path: /actuator  # Monitoring endpoint base path
+        include: health,info,metrics
+      base-path: /actuator
   endpoint:
     health:
-      show-details: when-authorized  # Health check detail display policy
+      show-details: when-authorized
 
-# Application Information Configuration
+# Application Information
 info:
   app:
     name: E-commerce Platform API
-    description: E-commerce Platform API Service with Spring Boot and DDD - Demo Project
+    description: E-commerce Platform API Service with Spring Boot and DDD
     version: 1.0.0
     encoding: UTF-8
     java:
       version: 21
 
-# Springdoc OpenAPI Configuration
+# API Documentation Configuration
 springdoc:
   api-docs:
-    path: /v3/api-docs  # OpenAPI JSON documentation path
+    path: /v3/api-docs
     enabled: true
     groups:
       enabled: true
   swagger-ui:
-    path: /swagger-ui.html  # Swagger UI access path
+    path: /swagger-ui.html
     enabled: true
-    try-it-out-enabled: true  # Enable "Try it out" functionality
-    operations-sorter: method  # Sort operations by HTTP method
-    tags-sorter: alpha  # Sort tags alphabetically
-    default-models-expand-depth: 2  # Model expansion depth
-    default-model-expand-depth: 2
-    display-request-duration: true  # Show request duration
-    doc-expansion: none  # Default expansion state
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    default-models-expand-depth: 2
+    display-request-duration: true
+    doc-expansion: none
     urls:
       - name: "All APIs"
         url: "/v3/api-docs"
@@ -99,54 +86,43 @@ springdoc:
         url: "/v3/api-docs/v2"
       - name: "Public APIs"
         url: "/v3/api-docs/public"
-  show-actuator: false  # Hide actuator endpoints from documentation
+  show-actuator: false
+
 
 # Business Configuration
 ecommerce:
-  # Settlement Configuration
   settlement:
-    cron: "0 0 2 * * ?"  # Execute settlement daily at 2 AM
+    cron: "0 0 2 * * ?"
     enabled: true
-  
-  # Currency Configuration
   currency:
     default: CNY
-    precision: 2  # Amount precision (decimal places)
-    
-  # Order Configuration
+    precision: 2
   order:
-    timeout-minutes: 30  # Order timeout (minutes)
+    timeout-minutes: 30
 
 ---
-# Mock Profile Configuration - for demo purposes
+# Mock Environment Configuration
 spring:
   config:
     activate:
       on-profile: mock
-      
-# No database configuration needed for mock mode
-# All data is stored in memory with pre-loaded demo data
 
 ---
-# MySQL Production Profile Configuration
+# MySQL Production Environment Configuration
 spring:
   config:
     activate:
       on-profile: mysql
-      
-  # Data Source Configuration - MySQL Database
   datasource:
     url: jdbc:mysql://localhost:3306/ecommerce_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
-    driverClassName: com.mysql.cj.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:password}
-    
-  # JPA Configuration
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update  # Auto-update table structure
-    show-sql: false  # Disable SQL logging in production
+      ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
         format_sql: false

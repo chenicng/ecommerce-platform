@@ -27,8 +27,7 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     /**
-     * Handle 404 Not Found exceptions (NoHandlerFoundException)
-     * This occurs when a request is made to a non-existent endpoint
+     * Handle 404 Not Found exceptions
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<Result<Void>> handleNoHandlerFoundException(NoHandlerFoundException e, WebRequest request) {
@@ -73,14 +72,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         logger.warn("Message not readable: {}", e.getMessage());
         
-        String message = "Invalid request format";
+        String message = "Invalid request format or malformed JSON";
         Result<Void> result = Result.error(ErrorCode.VALIDATION_ERROR, message);
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
     
     /**
-     * Handle validation exceptions from @Valid annotations
+     * Handle validation exceptions with improved error messages
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Result<Void>> handleValidationException(MethodArgumentNotValidException e) {
@@ -93,19 +92,32 @@ public class GlobalExceptionHandler {
             if (errorMessage.length() > 0) {
                 errorMessage.append(", ");
             }
-            if ("userId".equals(fieldName) && message.contains("null")) {
-                errorMessage.append("User ID is required");
-            } else if ("sku".equals(fieldName) && message.contains("blank")) {
-                errorMessage.append("SKU is required");
-            } else if ("quantity".equals(fieldName) && message.contains("positive")) {
-                errorMessage.append("Quantity must be positive");
-            } else {
-                errorMessage.append(message);
-            }
+            errorMessage.append(buildUserFriendlyValidationMessage(fieldName, message));
         });
         
         Result<Void> result = Result.error(ErrorCode.VALIDATION_ERROR, errorMessage.toString());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    }
+    
+    /**
+     * Build user-friendly validation messages
+     */
+    private String buildUserFriendlyValidationMessage(String fieldName, String originalMessage) {
+        // Map common validation errors to user-friendly messages
+        if ("userId".equals(fieldName) && originalMessage.contains("null")) {
+            return "User ID is required";
+        } else if ("sku".equals(fieldName) && originalMessage.contains("blank")) {
+            return "Product SKU is required";
+        } else if ("quantity".equals(fieldName) && originalMessage.contains("positive")) {
+            return "Quantity must be positive";
+        } else if ("amount".equals(fieldName)) {
+            return "Amount must be a positive number";
+        } else if ("email".equals(fieldName)) {
+            return "Valid email address is required";
+        } else if ("phone".equals(fieldName)) {
+            return "Valid phone number is required";
+        }
+        return originalMessage;
     }
     
     /**
@@ -130,7 +142,7 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * Handle illegal argument exceptions (validation errors)
+     * Handle illegal argument exceptions
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Result<Void>> handleIllegalArgumentException(IllegalArgumentException e) {
@@ -147,11 +159,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<Void>> handleBusinessException(BusinessException e, WebRequest request) {
         logger.error("Business error: {}", e.getMessage(), e);
         
-        // Use the error code from the exception directly
         ErrorCode errorCode = e.getErrorCode();
         Result<Void> result = Result.error(errorCode, e.getMessage());
         
-        // Use appropriate HTTP status codes
         HttpStatus status = determineHttpStatus(errorCode);
         return ResponseEntity.status(status).body(result);
     }
@@ -163,12 +173,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<Void>> handleRuntimeException(RuntimeException e, WebRequest request) {
         logger.error("Runtime error: {}", e.getMessage(), e);
         
-        // Use fromMessage as fallback for legacy RuntimeExceptions
         String message = e.getMessage();
         ErrorCode errorCode = ErrorCode.fromMessage(message);
         Result<Void> result = Result.error(errorCode, message);
         
-        // Use appropriate HTTP status codes
         HttpStatus status = determineHttpStatus(errorCode);
         return ResponseEntity.status(status).body(result);
     }
@@ -177,31 +185,17 @@ public class GlobalExceptionHandler {
      * Determine appropriate HTTP status code based on error type
      */
     private HttpStatus determineHttpStatus(ErrorCode errorCode) {
-        switch (errorCode) {
-            case RESOURCE_NOT_FOUND:
-            case MERCHANT_NOT_FOUND:
-                return HttpStatus.NOT_FOUND; // 404
-            case VALIDATION_ERROR:
-            case BIND_ERROR:
-            case INSUFFICIENT_BALANCE:
-            case INSUFFICIENT_INVENTORY:
-            case INSUFFICIENT_FUNDS:
-            case OPERATION_NOT_ALLOWED:
-            case INVALID_SETTLEMENT_DATE:
-            case BUSINESS_ERROR:
-                return HttpStatus.BAD_REQUEST; // 400
-            case RESOURCE_ALREADY_EXISTS:
-                return HttpStatus.CONFLICT; // 409
-            case RESOURCE_INACTIVE:
-                return HttpStatus.FORBIDDEN; // 403
-            case INTERNAL_ERROR:
-            case SETTLEMENT_FAILED:
-                return HttpStatus.INTERNAL_SERVER_ERROR; // 500
-            case UNSUPPORTED_API_VERSION:
-                return HttpStatus.NOT_ACCEPTABLE; // 406
-            default:
-                return HttpStatus.INTERNAL_SERVER_ERROR; // 500 for unknown errors
-        }
+        return switch (errorCode) {
+            case RESOURCE_NOT_FOUND, MERCHANT_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case VALIDATION_ERROR, BIND_ERROR, INSUFFICIENT_BALANCE, 
+                 INSUFFICIENT_INVENTORY, INSUFFICIENT_FUNDS, OPERATION_NOT_ALLOWED,
+                 INVALID_SETTLEMENT_DATE, BUSINESS_ERROR -> HttpStatus.BAD_REQUEST;
+            case RESOURCE_ALREADY_EXISTS -> HttpStatus.CONFLICT;
+            case RESOURCE_INACTIVE -> HttpStatus.FORBIDDEN;
+            case UNSUPPORTED_API_VERSION -> HttpStatus.NOT_ACCEPTABLE;
+            case INTERNAL_ERROR, SETTLEMENT_FAILED -> HttpStatus.INTERNAL_SERVER_ERROR;
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
     
     /**
