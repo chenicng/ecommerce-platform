@@ -96,7 +96,7 @@ All API responses follow a consistent format:
   "data": {
     // Response data
   },
-  "timestamp": "2025-01-01T12:00:00"
+  "timestamp": "2025-07-11T12:00:00"
 }
 ```
 

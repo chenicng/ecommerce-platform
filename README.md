@@ -173,7 +173,7 @@ All APIs use a unified response format:
   "code": "SUCCESS",
   "message": "Operation completed successfully",
   "data": { ... },
-  "timestamp": "2025-01-01T12:00:00"
+  "timestamp": "2025-07-11T12:00:00"
 }
 ```
 

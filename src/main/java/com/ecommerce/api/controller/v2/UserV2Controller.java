@@ -40,7 +40,7 @@ import com.ecommerce.api.dto.ErrorResponse;
  */
 @RestController
 @RequestMapping(ApiVersionConfig.API_V2 + "/users")
-@ApiVersion(value = "v2", since = "2025-06-01")
+@ApiVersion(value = "v2", since = "2025-07-11")
 @Tag(name = "User Management V2", description = "Enhanced user management with additional features (API v2)")
 public class UserV2Controller {
     
@@ -64,13 +64,13 @@ public class UserV2Controller {
                                      schema = @Schema(implementation = Result.class),
                                      examples = @ExampleObject(
                                          name = "Success Response",
-                                         value = "{\"code\":\"SUCCESS\",\"message\":\"User created successfully\",\"data\":{\"id\":1,\"username\":\"john_doe\",\"email\":\"john.doe@example.com\",\"phone\":\"13800138000\",\"balance\":0.00,\"currency\":\"CNY\",\"status\":\"ACTIVE\",\"registrationTime\":\"2025-01-11T12:00:00\",\"lastLoginTime\":\"2025-01-11T12:00:00\",\"isActive\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"User created successfully\",\"data\":{\"id\":1,\"username\":\"john_doe\",\"email\":\"john.doe@example.com\",\"phone\":\"13800138000\",\"balance\":0.00,\"currency\":\"CNY\",\"status\":\"ACTIVE\",\"registrationTime\":\"2025-07-11T12:00:00\",\"lastLoginTime\":\"2025-07-11T12:00:00\",\"isActive\":true},\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "400", description = "Invalid request data",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Username is required\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Username is required\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<UserV2Response>> createUser(@Valid @RequestBody CreateUserRequest request) {
         logger.info("Creating user (V2): {}", request.getUsername());
@@ -112,13 +112,13 @@ public class UserV2Controller {
                                      schema = @Schema(implementation = Result.class),
                                      examples = @ExampleObject(
                                          name = "Success Response",
-                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"id\":1,\"username\":\"john_doe\",\"email\":\"john.doe@example.com\",\"phone\":\"13800138000\",\"balance\":100.00,\"currency\":\"CNY\",\"status\":\"ACTIVE\",\"registrationTime\":\"2025-01-11T12:00:00\",\"lastLoginTime\":\"2025-01-11T12:00:00\",\"isActive\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"id\":1,\"username\":\"john_doe\",\"email\":\"john.doe@example.com\",\"phone\":\"13800138000\",\"balance\":100.00,\"currency\":\"CNY\",\"status\":\"ACTIVE\",\"registrationTime\":\"2025-07-11T12:00:00\",\"lastLoginTime\":\"2025-07-11T12:00:00\",\"isActive\":true},\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "User Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<UserV2Response>> getUserById(
             @Parameter(description = "User ID", required = true, example = "1")
@@ -157,13 +157,13 @@ public class UserV2Controller {
                                      schema = @Schema(implementation = Result.class),
                                      examples = @ExampleObject(
                                          name = "Success Response",
-                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"userId\":1,\"balance\":100.00,\"currency\":\"CNY\",\"lastUpdateTime\":\"2025-01-11T12:00:00\",\"accountStatus\":\"ACTIVE\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"userId\":1,\"balance\":100.00,\"currency\":\"CNY\",\"lastUpdateTime\":\"2025-07-11T12:00:00\",\"accountStatus\":\"ACTIVE\"},\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "User Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<BalanceV2Response>> getUserBalance(
             @Parameter(description = "User ID", required = true, example = "1")
@@ -194,19 +194,19 @@ public class UserV2Controller {
                                      schema = @Schema(implementation = Result.class),
                                      examples = @ExampleObject(
                                          name = "Success Response",
-                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Recharge completed successfully\",\"data\":{\"userId\":1,\"rechargeAmount\":100.00,\"rechargeCurrency\":\"CNY\",\"newBalance\":200.00,\"balanceCurrency\":\"CNY\",\"transactionTime\":\"2025-01-11T12:00:00\",\"transactionStatus\":\"COMPLETED\",\"resultCode\":\"SUCCESS\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Recharge completed successfully\",\"data\":{\"userId\":1,\"rechargeAmount\":100.00,\"rechargeCurrency\":\"CNY\",\"newBalance\":200.00,\"balanceCurrency\":\"CNY\",\"transactionTime\":\"2025-07-11T12:00:00\",\"transactionStatus\":\"COMPLETED\",\"resultCode\":\"SUCCESS\"},\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "400", description = "Invalid request data",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Recharge amount must be positive\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Recharge amount must be positive\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "User Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<RechargeV2Response>> rechargeUser(
             @Parameter(description = "User ID", required = true, example = "1")
@@ -276,9 +276,9 @@ public class UserV2Controller {
         private String currency;
         @Schema(description = "User status", example = "ACTIVE")
         private String status;
-        @Schema(description = "Registration timestamp", example = "2025-01-01T10:00:00")
+        @Schema(description = "Registration timestamp", example = "2025-07-11T10:00:00")
         private LocalDateTime registrationTime; // New in V2
-        @Schema(description = "Last login timestamp", example = "2025-01-01T10:00:00")
+        @Schema(description = "Last login timestamp", example = "2025-07-11T10:00:00")
         private LocalDateTime lastLoginTime; // New in V2
         @Schema(description = "Account active status", example = "true")
         private boolean isActive; // New in V2

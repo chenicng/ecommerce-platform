@@ -60,7 +60,7 @@ class ApiVersionInterceptorTest {
         when(apiVersion.value()).thenReturn("v1");
         when(apiVersion.deprecated()).thenReturn(true);
         when(apiVersion.deprecationMessage()).thenReturn("This API will be removed in v3");
-        when(apiVersion.until()).thenReturn("2024-12-31");
+        when(apiVersion.until()).thenReturn("2025-07-10");
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/v1/users");
         
@@ -71,7 +71,7 @@ class ApiVersionInterceptorTest {
         assertTrue(result);
         verify(response).setHeader("X-API-Deprecated", "true");
         verify(response).setHeader("X-API-Deprecation-Message", "This API will be removed in v3");
-        verify(response).setHeader("X-API-Deprecation-Until", "2024-12-31");
+        verify(response).setHeader("X-API-Deprecation-Until", "2025-07-10");
         verify(response).setHeader("X-API-Version", "v1");
     }
     
@@ -199,7 +199,7 @@ class ApiVersionInterceptorTest {
         when(apiVersion.value()).thenReturn("v1");
         when(apiVersion.deprecated()).thenReturn(true);
         when(apiVersion.deprecationMessage()).thenReturn("This API will be removed in v3");
-        when(apiVersion.until()).thenReturn("2024-12-31");
+        when(apiVersion.until()).thenReturn("2025-07-10");
         when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
         when(request.getRequestURI()).thenReturn("/api/v1/users");
         
@@ -210,7 +210,7 @@ class ApiVersionInterceptorTest {
         assertTrue(result);
         verify(response).setHeader("X-API-Deprecated", "true");
         verify(response).setHeader("X-API-Deprecation-Message", "This API will be removed in v3");
-        verify(response).setHeader("X-API-Deprecation-Until", "2024-12-31");
+        verify(response).setHeader("X-API-Deprecation-Until", "2025-07-10");
         verify(response).setHeader("X-API-Version", "v1");
     }
     
