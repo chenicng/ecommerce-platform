@@ -1,6 +1,7 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.merchant.Merchant;
+import com.ecommerce.domain.merchant.MerchantNotFoundException;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.MerchantRepository;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class MerchantService {
     @Transactional(readOnly = true)
     public Merchant getMerchantById(Long merchantId) {
         return merchantRepository.findById(merchantId)
-                .orElseThrow(() -> new RuntimeException("Merchant not found with id: " + merchantId));
+                .orElseThrow(() -> new MerchantNotFoundException(merchantId));
     }
     
     /**

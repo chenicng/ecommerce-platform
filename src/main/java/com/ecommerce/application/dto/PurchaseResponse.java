@@ -27,7 +27,7 @@ public class PurchaseResponse {
     @Schema(description = "Purchase quantity", example = "2")
     private int quantity;
     
-    @Schema(description = "Total amount", example = "2000.00")
+    @Schema(description = "Total amount", example = "1998.00")
     private Money totalAmount;
     
     // Constructor

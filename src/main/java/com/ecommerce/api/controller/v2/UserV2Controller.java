@@ -264,11 +264,17 @@ public class UserV2Controller {
         public boolean isActive() { return isActive; }
     }
     
+    @Schema(description = "User balance response (V2)")
     public static class BalanceV2Response {
+        @Schema(description = "User ID", example = "1")
         private Long userId;
+        @Schema(description = "Current balance", example = "100.00")
         private BigDecimal balance;
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        @Schema(description = "Last update timestamp", example = "2025-07-11T10:00:00")
         private LocalDateTime lastUpdateTime; // New in V2
+        @Schema(description = "Account status", example = "ACTIVE")
         private String accountStatus; // New in V2
         
         public BalanceV2Response(Long userId, BigDecimal balance, String currency,
@@ -288,10 +294,13 @@ public class UserV2Controller {
         public String getAccountStatus() { return accountStatus; }
     }
     
+    @Schema(description = "User account recharge request (V2)")
     public static class RechargeRequest {
+        @Schema(description = "Recharge amount", example = "100.00", required = true)
         @DecimalMin(value = "0.01", message = "Recharge amount must be positive")
         private BigDecimal amount;
         
+        @Schema(description = "Currency code", example = "CNY", required = true)
         @NotBlank(message = "Currency is required")
         private String currency = "CNY";
         
@@ -302,14 +311,23 @@ public class UserV2Controller {
         public void setCurrency(String currency) { this.currency = currency; }
     }
     
+    @Schema(description = "User account recharge response (V2)")
     public static class RechargeV2Response {
+        @Schema(description = "User ID", example = "1")
         private Long userId;
+        @Schema(description = "Recharged amount", example = "100.00")
         private BigDecimal rechargeAmount;
+        @Schema(description = "Recharge currency", example = "CNY")
         private String rechargeCurrency;
+        @Schema(description = "New account balance", example = "200.00")
         private BigDecimal newBalance;
+        @Schema(description = "Balance currency", example = "CNY")
         private String balanceCurrency;
+        @Schema(description = "Transaction timestamp", example = "2025-07-11T10:00:00")
         private LocalDateTime transactionTime; // New in V2
+        @Schema(description = "Transaction status", example = "COMPLETED")
         private String transactionStatus; // New in V2
+        @Schema(description = "Result code", example = "SUCCESS")
         private String resultCode; // New in V2
         
         public RechargeV2Response(Long userId, BigDecimal rechargeAmount, String rechargeCurrency,

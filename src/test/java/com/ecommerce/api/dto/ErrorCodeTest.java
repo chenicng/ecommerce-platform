@@ -66,7 +66,6 @@ class ErrorCodeTest {
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.fromMessage("User not found"));
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.fromMessage("Product not found"));
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.fromMessage("Order not found"));
-        assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.fromMessage("Merchant not found"));
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.fromMessage("NOT FOUND"));
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.fromMessage("not found"));
     }

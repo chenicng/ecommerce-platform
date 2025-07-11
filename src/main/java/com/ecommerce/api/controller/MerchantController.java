@@ -3,6 +3,7 @@ package com.ecommerce.api.controller;
 import com.ecommerce.application.service.MerchantService;
 import com.ecommerce.application.service.ProductService;
 import com.ecommerce.application.service.SettlementService;
+import com.ecommerce.domain.merchant.MerchantNotFoundException;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
@@ -113,7 +114,7 @@ public class MerchantController {
         
         // Validate merchant exists
         if (!merchantService.merchantExists(merchantId)) {
-            throw new RuntimeException("Merchant not found with id: " + merchantId);
+            throw new MerchantNotFoundException(merchantId);
         }
         
         Product product = productService.createProduct(
@@ -252,7 +253,7 @@ public class MerchantController {
     private void validateMerchantAndProduct(Long merchantId, String sku) {
         // Validate merchant exists
         if (!merchantService.merchantExists(merchantId)) {
-            throw new RuntimeException("Merchant not found with id: " + merchantId);
+            throw new MerchantNotFoundException(merchantId);
         }
         // Validate product exists and belongs to this merchant
         Product product = productService.getProductBySku(sku);
@@ -391,7 +392,7 @@ public class MerchantController {
         
         // Validate merchant exists
         if (!merchantService.merchantExists(merchantId)) {
-            throw new RuntimeException("Merchant not found with id: " + merchantId);
+            throw new MerchantNotFoundException(merchantId);
         }
         
         List<Product> products;
@@ -461,7 +462,7 @@ public class MerchantController {
         
         // Validate merchant exists
         if (!merchantService.merchantExists(merchantId)) {
-            throw new RuntimeException("Merchant not found with id: " + merchantId);
+            throw new MerchantNotFoundException(merchantId);
         }
         
         Product product = productService.getProductBySku(sku);
@@ -692,7 +693,7 @@ public class MerchantController {
     
     @Schema(description = "Set inventory request")
     public static class SetInventoryRequest {
-        @Schema(description = "New inventory quantity", example = "20", required = true)
+        @Schema(description = "New inventory quantity", example = "50", required = true)
         @Min(value = 0, message = "Quantity cannot be negative")
         private int quantity;
         
@@ -710,7 +711,7 @@ public class MerchantController {
         @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String productName;
         
-        @Schema(description = "Available inventory", example = "50")
+        @Schema(description = "Available inventory", example = "100")
         private int availableInventory;
         
         @Schema(description = "Product availability", example = "true")

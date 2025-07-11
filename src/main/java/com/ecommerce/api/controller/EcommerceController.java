@@ -261,7 +261,7 @@ public class EcommerceController {
         @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
         
-        @Schema(description = "Available inventory", example = "50")
+        @Schema(description = "Available inventory", example = "100")
         private int availableInventory;
         
         @Schema(description = "Product status", example = "ACTIVE")
@@ -298,14 +298,23 @@ public class EcommerceController {
         public boolean isAvailable() { return available; }
     }
     
+    @Schema(description = "Product summary response")
     public static class ProductSummaryResponse {
+        @Schema(description = "Product ID", example = "1")
         private Long id;
+        @Schema(description = "Product SKU", example = "PHONE-001")
         private String sku;
+        @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String name;
+        @Schema(description = "Product price", example = "999.00")
         private BigDecimal price;
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
+        @Schema(description = "Available inventory", example = "100")
         private int availableInventory;
+        @Schema(description = "Product availability", example = "true")
         private boolean available;
         
         public ProductSummaryResponse(Long id, String sku, String name, BigDecimal price,
@@ -331,10 +340,15 @@ public class EcommerceController {
         public boolean isAvailable() { return available; }
     }
     
+    @Schema(description = "Product list response")
     public static class ProductListResponse {
+        @Schema(description = "List of products")
         private List<ProductSummaryResponse> products;
+        @Schema(description = "Total product count", example = "10")
         private int totalCount;
+        @Schema(description = "Search term applied", example = "iPhone")
         private String searchTerm;
+        @Schema(description = "Merchant ID filter applied", example = "1")
         private Long merchantId;
         
         public ProductListResponse(List<ProductSummaryResponse> products, int totalCount,
@@ -352,11 +366,17 @@ public class EcommerceController {
         public Long getMerchantId() { return merchantId; }
     }
     
+    @Schema(description = "Product inventory response")
     public static class InventoryResponse {
+        @Schema(description = "Product SKU", example = "PHONE-001")
         private String sku;
+        @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String productName;
+        @Schema(description = "Available inventory", example = "100")
         private int availableInventory;
+        @Schema(description = "Product availability", example = "true")
         private boolean available;
+        @Schema(description = "Product status", example = "ACTIVE")
         private String status;
         
         public InventoryResponse(String sku, String productName, int availableInventory,
@@ -376,7 +396,9 @@ public class EcommerceController {
         public String getStatus() { return status; }
     }
     
+    @Schema(description = "Cancel order request")
     public static class CancelOrderRequest {
+        @Schema(description = "Cancellation reason", example = "Customer request", required = true)
         @NotBlank(message = "Reason is required")
         private String reason;
         

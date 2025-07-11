@@ -499,7 +499,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleBusinessException_WithMerchantNotFound_ShouldReturn404() {
-        // Arrange - "Merchant not found" contains "not found" so it maps to RESOURCE_NOT_FOUND
+        // Arrange - "Merchant not found" specifically maps to MERCHANT_NOT_FOUND
         RuntimeException exception = new RuntimeException("Merchant not found");
         
         // Act
@@ -508,7 +508,7 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), response.getBody().getCode());
+        assertEquals(ErrorCode.MERCHANT_NOT_FOUND.getCode(), response.getBody().getCode());
         assertEquals("Merchant not found", response.getBody().getMessage());
     }
 

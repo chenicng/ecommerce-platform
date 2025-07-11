@@ -62,8 +62,10 @@ public enum ErrorCode {
         }
         
         String lowerMessage = message.toLowerCase();
-        if (lowerMessage.contains("not found")) {
-            return RESOURCE_NOT_FOUND;
+        
+        // Check specific patterns first before generic ones
+        if (lowerMessage.contains("merchant not found")) {
+            return MERCHANT_NOT_FOUND;
         } else if (lowerMessage.contains("insufficient balance")) {
             return INSUFFICIENT_BALANCE;
         } else if (lowerMessage.contains("insufficient inventory")) {
@@ -80,10 +82,11 @@ public enum ErrorCode {
             return VALIDATION_ERROR;
         } else if (lowerMessage.contains("settlement")) {
             return SETTLEMENT_FAILED;
-        } else if (lowerMessage.contains("merchant not found")) {
-            return MERCHANT_NOT_FOUND;
         } else if (lowerMessage.contains("business error") || lowerMessage.contains("business logic error")) {
             return BUSINESS_ERROR;
+        } else if (lowerMessage.contains("not found")) {
+            // Generic "not found" check should come after specific ones
+            return RESOURCE_NOT_FOUND;
         } else {
             return INTERNAL_ERROR;
         }

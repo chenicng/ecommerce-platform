@@ -121,14 +121,14 @@ All API responses follow a consistent format:
 ```bash
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
-  -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
+  -d '{"username":"john_doe","email":"john.doe@example.com","phone":"13800138000"}'
 ```
 
 #### User Account Recharge
 ```bash
 curl -X POST http://localhost:8080/api/v1/users/1/recharge \
   -H "Content-Type: application/json" \
-  -d '{"amount":1000.00,"currency":"CNY"}'
+  -d '{"amount":100.00,"currency":"CNY"}'
 ```
 
 #### Query User Balance
@@ -142,21 +142,21 @@ curl -X GET http://localhost:8080/api/v1/users/1/balance
 ```bash
 curl -X POST http://localhost:8080/api/v1/merchants \
   -H "Content-Type: application/json" \
-  -d '{"merchantName":"Test Store","businessLicense":"TEST123","contactEmail":"test@store.com","contactPhone":"13900139000"}'
+  -d '{"merchantName":"Apple Store","businessLicense":"BL123456789","contactEmail":"contact@applestore.com","contactPhone":"13800138000"}'
 ```
 
 #### Create Product
 ```bash
 curl -X POST http://localhost:8080/api/v1/merchants/1/products \
   -H "Content-Type: application/json" \
-  -d '{"sku":"PRODUCT1","name":"Test Product","price":100.00,"initialInventory":10}'
+  -d '{"sku":"PHONE-001","name":"iPhone 15 Pro","description":"Latest iPhone with advanced features","price":999.00,"currency":"CNY","initialInventory":100}'
 ```
 
 #### Add Inventory
 ```bash
-curl -X POST http://localhost:8080/api/v1/merchants/1/products/PRODUCT1/inventory/add \
+curl -X POST http://localhost:8080/api/v1/merchants/1/products/PHONE-001/inventory/add \
   -H "Content-Type: application/json" \
-  -d '{"quantity":50}'
+  -d '{"quantity":10}'
 ```
 
 #### Query Merchant Income
@@ -172,7 +172,7 @@ curl -X GET http://localhost:8080/api/v1/merchants/1/income
 curl -X GET http://localhost:8080/api/v1/ecommerce/products
 
 # Search products by name
-curl -X GET "http://localhost:8080/api/v1/ecommerce/products?search=product"
+curl -X GET "http://localhost:8080/api/v1/ecommerce/products?search=iPhone"
 
 # Filter by merchant
 curl -X GET "http://localhost:8080/api/v1/ecommerce/products?merchantId=1"
@@ -180,12 +180,12 @@ curl -X GET "http://localhost:8080/api/v1/ecommerce/products?merchantId=1"
 
 #### Get Product Details
 ```bash
-curl -X GET http://localhost:8080/api/v1/ecommerce/products/PRODUCT1
+curl -X GET http://localhost:8080/api/v1/ecommerce/products/PHONE-001
 ```
 
 #### Check Product Inventory
 ```bash
-curl -X GET http://localhost:8080/api/v1/ecommerce/products/PRODUCT1/inventory
+curl -X GET http://localhost:8080/api/v1/ecommerce/products/PHONE-001/inventory
 ```
 
 ### Purchase Operations
@@ -194,7 +194,7 @@ curl -X GET http://localhost:8080/api/v1/ecommerce/products/PRODUCT1/inventory
 ```bash
 curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
   -H "Content-Type: application/json" \
-  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
+  -d '{"userId":1,"sku":"PHONE-001","quantity":1}'
 ```
 
 ## 🔧 Configuration
@@ -294,16 +294,16 @@ Use the version selector in Swagger UI to switch between:
 # Create user and product
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
-  -d '{"username":"testuser","email":"test@example.com","phone":"13800138000"}'
+  -d '{"username":"john_doe","email":"john.doe@example.com","phone":"13800138000"}'
 
 curl -X POST http://localhost:8080/api/v1/merchants/1/products \
   -H "Content-Type: application/json" \
-  -d '{"sku":"PRODUCT1","name":"Test Product","price":100.00,"initialInventory":10}'
+  -d '{"sku":"PHONE-001","name":"iPhone 15 Pro","description":"Latest iPhone with advanced features","price":999.00,"currency":"CNY","initialInventory":100}'
 
 # Purchase and verify
 curl -X POST http://localhost:8080/api/v1/ecommerce/purchase \
   -H "Content-Type: application/json" \
-  -d '{"userId":1,"sku":"PRODUCT1","quantity":1}'
+  -d '{"userId":1,"sku":"PHONE-001","quantity":1}'
 
 curl http://localhost:8080/api/v1/users/1/balance
 ```

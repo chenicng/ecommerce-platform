@@ -716,7 +716,7 @@ class EcommerceControllerTest {
         mockMvc.perform(get(API_BASE_PATH + "/products")
                 .param("merchantId", "999"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.code").value("MERCHANT_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("Merchant not found"));
 
         verify(productService).getProductsByMerchant(999L);
