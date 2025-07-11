@@ -55,7 +55,10 @@ public enum ErrorCode {
     
     /**
      * Determine error code based on exception message
+     * @deprecated This method should only be used as a fallback for legacy RuntimeExceptions.
+     * New code should use BusinessException with explicit error codes.
      */
+    @Deprecated
     public static ErrorCode fromMessage(String message) {
         if (message == null || message.trim().isEmpty()) {
             return INTERNAL_ERROR;

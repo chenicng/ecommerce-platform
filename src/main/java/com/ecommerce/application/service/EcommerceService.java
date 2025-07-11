@@ -51,14 +51,14 @@ public class EcommerceService {
         
         // 4. Check user balance
         if (!user.canAfford(totalPrice)) {
-            throw new RuntimeException("Insufficient balance. Required: " + totalPrice + 
-                                     ", Available: " + user.getBalance());
+            throw new com.ecommerce.domain.user.InsufficientBalanceException(
+                "Insufficient balance. Required: " + totalPrice + ", Available: " + user.getBalance());
         }
         
         // 5. Check product inventory
         if (!product.hasEnoughInventory(request.getQuantity())) {
-            throw new RuntimeException("Insufficient inventory. Required: " + request.getQuantity() + 
-                                     ", Available: " + product.getAvailableInventory());
+            throw new com.ecommerce.domain.product.InsufficientInventoryException(
+                "Insufficient inventory. Required: " + request.getQuantity() + ", Available: " + product.getAvailableInventory());
         }
         
         try {
@@ -100,27 +100,33 @@ public class EcommerceService {
                 totalPrice
             );
             
+        } catch (com.ecommerce.api.exception.BusinessException e) {
+            // Business exceptions should be re-thrown as-is to preserve error codes
+            throw e;
         } catch (Exception e) {
-            // If an exception occurs, the transaction will automatically rollback
-            throw new RuntimeException("Purchase failed: " + e.getMessage(), e);
+            // System exceptions get wrapped with generic error code
+            throw new com.ecommerce.api.exception.BusinessException(
+                com.ecommerce.api.dto.ErrorCode.INTERNAL_ERROR, 
+                "Purchase failed: " + e.getMessage(), e);
         }
     }
     
     private void validatePurchaseRequest(User user, Product product, Merchant merchant, int quantity) {
         if (!user.isActive()) {
-            throw new RuntimeException("User is not active");
+            throw new com.ecommerce.domain.ResourceInactiveException("User is not active. User ID: " + user.getId());
         }
         
         if (!product.isActive()) {
-            throw new RuntimeException("Product is not active");
+            throw new com.ecommerce.domain.ResourceInactiveException("Product is not active: " + product.getSku());
         }
         
         if (!merchant.isActive()) {
-            throw new RuntimeException("Merchant is not active");
+            throw new com.ecommerce.domain.ResourceInactiveException("Merchant is not active. Merchant ID: " + merchant.getId());
         }
         
         if (quantity <= 0) {
-            throw new RuntimeException("Quantity must be positive");
+            throw new com.ecommerce.api.exception.BusinessException(
+                com.ecommerce.api.dto.ErrorCode.VALIDATION_ERROR, "Quantity must be positive");
         }
     }
     
@@ -134,11 +140,11 @@ public class EcommerceService {
             
             // 2. Check if order can be cancelled
             if (order.isCompleted()) {
-                throw new RuntimeException("Cannot cancel completed order");
+                throw new com.ecommerce.domain.order.InvalidOrderStateException("Cannot cancel completed order");
             }
             
             if (order.isCancelled()) {
-                throw new RuntimeException("Order is already cancelled");
+                throw new com.ecommerce.domain.order.InvalidOrderStateException("Order is already cancelled");
             }
             
             // 3. Handle refund if needed
@@ -157,8 +163,13 @@ public class EcommerceService {
             // 6. Save changes
             orderService.saveOrder(order);
             
+        } catch (com.ecommerce.api.exception.BusinessException e) {
+            // Business exceptions should be re-thrown as-is to preserve error codes
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to cancel order: " + e.getMessage(), e);
+            throw new com.ecommerce.api.exception.BusinessException(
+                com.ecommerce.api.dto.ErrorCode.INTERNAL_ERROR,
+                "Failed to cancel order: " + e.getMessage(), e);
         }
     }
     
@@ -178,7 +189,9 @@ public class EcommerceService {
         } else {
             // In real scenarios, this might need to be handled differently
             // e.g., create a debt record for the merchant
-            throw new RuntimeException("Merchant has insufficient funds for refund");
+            throw new com.ecommerce.domain.merchant.InsufficientFundsException(
+                "Merchant has insufficient funds for refund. Required: " + refundAmount + 
+                ", Available: " + merchant.getBalance());
         }
         
         // 3. Then refund money to user (only after merchant deduction succeeds)

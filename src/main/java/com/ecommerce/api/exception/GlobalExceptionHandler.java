@@ -141,12 +141,29 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * Handle business logic exceptions
+     * Handle business logic exceptions with explicit error codes
      */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Result<Void>> handleBusinessException(RuntimeException e, WebRequest request) {
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Result<Void>> handleBusinessException(BusinessException e, WebRequest request) {
         logger.error("Business error: {}", e.getMessage(), e);
         
+        // Use the error code from the exception directly
+        ErrorCode errorCode = e.getErrorCode();
+        Result<Void> result = Result.error(errorCode, e.getMessage());
+        
+        // Use appropriate HTTP status codes
+        HttpStatus status = determineHttpStatus(errorCode);
+        return ResponseEntity.status(status).body(result);
+    }
+    
+    /**
+     * Handle runtime exceptions (fallback for legacy code)
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Result<Void>> handleRuntimeException(RuntimeException e, WebRequest request) {
+        logger.error("Runtime error: {}", e.getMessage(), e);
+        
+        // Use fromMessage as fallback for legacy RuntimeExceptions
         String message = e.getMessage();
         ErrorCode errorCode = ErrorCode.fromMessage(message);
         Result<Void> result = Result.error(errorCode, message);

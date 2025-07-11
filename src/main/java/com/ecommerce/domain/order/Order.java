@@ -43,7 +43,7 @@ public class Order extends BaseEntity {
      */
     public void addOrderItem(String sku, String productName, Money unitPrice, int quantity) {
         if (this.status != OrderStatus.PENDING) {
-            throw new IllegalStateException("Cannot modify order in status: " + this.status);
+            throw new InvalidOrderStateException("Cannot modify order in status: " + this.status);
         }
         
         OrderItem item = new OrderItem(sku, productName, unitPrice, quantity);
@@ -64,7 +64,7 @@ public class Order extends BaseEntity {
     public void confirm() {
         validatePendingStatus();
         if (this.items.isEmpty()) {
-            throw new IllegalStateException("Cannot confirm order without items");
+            throw new InvalidOrderStateException("Cannot confirm order without items");
         }
         this.status = OrderStatus.CONFIRMED;
         this.markAsUpdated();
@@ -75,7 +75,7 @@ public class Order extends BaseEntity {
      */
     public void processPayment() {
         if (this.status != OrderStatus.CONFIRMED) {
-            throw new IllegalStateException("Order must be confirmed before payment");
+            throw new InvalidOrderStateException("Order must be confirmed before payment. Current status: " + this.status);
         }
         this.status = OrderStatus.PAID;
         this.markAsUpdated();
@@ -86,7 +86,7 @@ public class Order extends BaseEntity {
      */
     public void complete() {
         if (this.status != OrderStatus.PAID) {
-            throw new IllegalStateException("Order must be paid before completion");
+            throw new InvalidOrderStateException("Order must be paid before completion. Current status: " + this.status);
         }
         this.status = OrderStatus.COMPLETED;
         this.completedTime = LocalDateTime.now();
@@ -100,7 +100,7 @@ public class Order extends BaseEntity {
      */
     public void cancel(String reason) {
         if (this.status == OrderStatus.COMPLETED) {
-            throw new IllegalStateException("Cannot cancel completed order");
+            throw new InvalidOrderStateException("Cannot cancel completed order");
         }
         this.status = OrderStatus.CANCELLED;
         this.markAsUpdated();
@@ -156,7 +156,7 @@ public class Order extends BaseEntity {
     
     private void validatePendingStatus() {
         if (this.status != OrderStatus.PENDING) {
-            throw new IllegalStateException("Order is not in pending status");
+            throw new InvalidOrderStateException("Order is not in pending status. Current status: " + this.status);
         }
     }
     

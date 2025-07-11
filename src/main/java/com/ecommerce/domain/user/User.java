@@ -2,6 +2,7 @@ package com.ecommerce.domain.user;
 
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
+import com.ecommerce.domain.ResourceInactiveException;
 
 /**
  * User Aggregate Root
@@ -50,7 +51,7 @@ public class User extends BaseEntity {
             throw new IllegalArgumentException("Deduct amount must be positive");
         }
         if (!canAfford(amount)) {
-            throw new InsufficientBalanceException("Insufficient balance for deduction");
+            throw new InsufficientBalanceException("Insufficient balance for deduction. Required: " + amount + ", Available: " + getBalance());
         }
         this.account = this.account.deduct(amount);
         this.markAsUpdated();
@@ -88,7 +89,7 @@ public class User extends BaseEntity {
     
     private void validateActiveStatus() {
         if (!isActive()) {
-            throw new IllegalStateException("User is not active");
+            throw new ResourceInactiveException("User is not active. User ID: " + getId());
         }
     }
     

@@ -145,9 +145,9 @@ class MerchantTest {
         merchant.receiveIncome(Money.of("100.00", "CNY"));
         merchant.deactivate();
         
-        assertThrows(IllegalStateException.class, 
+        assertThrows(com.ecommerce.domain.ResourceInactiveException.class, 
             () -> merchant.receiveIncome(Money.of("50.00", "CNY")));
-        assertThrows(IllegalStateException.class, 
+        assertThrows(com.ecommerce.domain.ResourceInactiveException.class, 
             () -> merchant.withdrawIncome(Money.of("50.00", "CNY")));
     }
 

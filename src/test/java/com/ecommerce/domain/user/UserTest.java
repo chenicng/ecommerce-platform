@@ -76,7 +76,7 @@ class UserTest {
         User user = new User("john", "john@example.com", "123-456-7890", "USD");
         user.deactivate();
         
-        assertThrows(IllegalStateException.class, () -> user.recharge(Money.of("50.00", "USD")));
+        assertThrows(com.ecommerce.domain.ResourceInactiveException.class, () -> user.recharge(Money.of("50.00", "USD")));
     }
 
     @Test
@@ -132,9 +132,9 @@ class UserTest {
         user.deactivate();
         
         // When & Then
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        com.ecommerce.domain.ResourceInactiveException exception = assertThrows(com.ecommerce.domain.ResourceInactiveException.class,
             () -> user.recharge(Money.of("100.00", "CNY")));
-        assertEquals("User is not active", exception.getMessage());
+        assertTrue(exception.getMessage().contains("User is not active"));
     }
 
     @Test
@@ -145,9 +145,9 @@ class UserTest {
         user.deactivate();
         
         // When & Then
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        com.ecommerce.domain.ResourceInactiveException exception = assertThrows(com.ecommerce.domain.ResourceInactiveException.class,
             () -> user.deduct(Money.of("50.00", "CNY")));
-        assertEquals("User is not active", exception.getMessage());
+        assertTrue(exception.getMessage().contains("User is not active"));
     }
 
     @Test

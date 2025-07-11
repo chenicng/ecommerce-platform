@@ -2,6 +2,7 @@ package com.ecommerce.domain.merchant;
 
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
+import com.ecommerce.domain.ResourceInactiveException;
 
 /**
  * Merchant Aggregate Root
@@ -59,7 +60,7 @@ public class Merchant extends BaseEntity {
         }
         
         if (!canWithdraw(amount)) {
-            throw new InsufficientFundsException("Insufficient funds for withdrawal");
+            throw new InsufficientFundsException("Insufficient funds for withdrawal. Required: " + amount + ", Available: " + getBalance());
         }
         
         this.account = this.account.withdraw(amount);
@@ -105,7 +106,7 @@ public class Merchant extends BaseEntity {
     
     private void validateActiveStatus() {
         if (!isActive()) {
-            throw new IllegalStateException("Merchant is not active");
+            throw new ResourceInactiveException("Merchant is not active. Merchant ID: " + getId());
         }
     }
     

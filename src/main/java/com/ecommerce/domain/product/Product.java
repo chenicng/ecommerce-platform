@@ -2,6 +2,7 @@ package com.ecommerce.domain.product;
 
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
+import com.ecommerce.domain.ResourceInactiveException;
 
 /**
  * Product Aggregate Root
@@ -55,7 +56,7 @@ public class Product extends BaseEntity {
             throw new IllegalArgumentException("Quantity must be positive");
         }
         if (!hasEnoughInventory(quantity)) {
-            throw new InsufficientInventoryException("Insufficient inventory for product: " + sku);
+            throw new InsufficientInventoryException("Insufficient inventory for product: " + sku + ". Required: " + quantity + ", Available: " + getAvailableInventory());
         }
         this.inventory = this.inventory.reduce(quantity);
         this.markAsUpdated();
@@ -108,7 +109,7 @@ public class Product extends BaseEntity {
     
     private void validateActiveStatus() {
         if (!isActive()) {
-            throw new IllegalStateException("Product is not active: " + sku);
+            throw new ResourceInactiveException("Product is not active: " + sku);
         }
     }
     

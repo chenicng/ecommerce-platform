@@ -161,9 +161,9 @@ class ProductTest {
         
         product.deactivate();
         
-        assertThrows(IllegalStateException.class, () -> product.addInventory(10));
-        assertThrows(IllegalStateException.class, () -> product.reduceInventory(10));
-        assertThrows(IllegalStateException.class, () -> product.updatePrice(Money.of("60.00", "USD")));
+        assertThrows(com.ecommerce.domain.ResourceInactiveException.class, () -> product.addInventory(10));
+        assertThrows(com.ecommerce.domain.ResourceInactiveException.class, () -> product.reduceInventory(10));
+        assertThrows(com.ecommerce.domain.ResourceInactiveException.class, () -> product.updatePrice(Money.of("60.00", "USD")));
     }
 
     @Test

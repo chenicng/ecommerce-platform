@@ -60,7 +60,7 @@ class OrderTest {
         order.addOrderItem("SKU001", "Product", Money.of("10.00", "CNY"), 1);
         order.confirm();
         
-        assertThrows(IllegalStateException.class, 
+        assertThrows(com.ecommerce.domain.order.InvalidOrderStateException.class, 
             () -> order.addOrderItem("SKU002", "Product 2", Money.of("20.00", "CNY"), 1));
     }
 
@@ -78,7 +78,7 @@ class OrderTest {
     void shouldThrowExceptionWhenConfirmingEmptyOrder() {
         Order order = new Order("ORD-006", 1L, 2L);
         
-        assertThrows(IllegalStateException.class, order::confirm);
+        assertThrows(com.ecommerce.domain.order.InvalidOrderStateException.class, order::confirm);
     }
 
     @Test
@@ -87,7 +87,7 @@ class OrderTest {
         order.addOrderItem("SKU001", "Product", Money.of("10.00", "CNY"), 1);
         order.confirm();
         
-        assertThrows(IllegalStateException.class, order::confirm);
+        assertThrows(com.ecommerce.domain.order.InvalidOrderStateException.class, order::confirm);
     }
 
     @Test
@@ -106,7 +106,7 @@ class OrderTest {
         Order order = new Order("ORD-009", 1L, 2L);
         order.addOrderItem("SKU001", "Product", Money.of("10.00", "CNY"), 1);
         
-        assertThrows(IllegalStateException.class, order::processPayment);
+        assertThrows(com.ecommerce.domain.order.InvalidOrderStateException.class, order::processPayment);
     }
 
     @Test
@@ -129,7 +129,7 @@ class OrderTest {
         order.addOrderItem("SKU001", "Product", Money.of("10.00", "CNY"), 1);
         order.confirm();
         
-        assertThrows(IllegalStateException.class, order::complete);
+        assertThrows(com.ecommerce.domain.order.InvalidOrderStateException.class, order::complete);
     }
 
     @Test
@@ -176,7 +176,7 @@ class OrderTest {
         order.processPayment();
         order.complete();
         
-        assertThrows(IllegalStateException.class, () -> order.cancel("Too late"));
+        assertThrows(com.ecommerce.domain.order.InvalidOrderStateException.class, () -> order.cancel("Too late"));
     }
 
     @Test

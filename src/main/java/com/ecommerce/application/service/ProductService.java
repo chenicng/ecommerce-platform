@@ -1,5 +1,7 @@
 package com.ecommerce.application.service;
 
+import com.ecommerce.api.dto.ErrorCode;
+import com.ecommerce.api.exception.BusinessException;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
@@ -29,7 +31,8 @@ public class ProductService {
     public Product createProduct(String sku, String name, String description, 
                                Money price, Long merchantId, int initialInventory) {
         if (productRepository.existsBySku(sku)) {
-            throw new RuntimeException("Product with SKU " + sku + " already exists");
+            throw new BusinessException(ErrorCode.RESOURCE_ALREADY_EXISTS, 
+                "Product with SKU " + sku + " already exists");
         }
         
         Product product = new Product(sku, name, description, price, merchantId, initialInventory);
@@ -42,7 +45,8 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Product getProductBySku(String sku) {
         return productRepository.findBySku(sku)
-                .orElseThrow(() -> new RuntimeException("Product not found with SKU: " + sku));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, 
+                    "Product not found with SKU: " + sku));
     }
     
     /**
@@ -51,7 +55,8 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Product getProductById(Long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, 
+                    "Product not found with id: " + productId));
     }
     
     /**
