@@ -26,6 +26,26 @@ public interface UserRepository {
     boolean existsById(Long id);
     
     /**
+     * Find user by phone number
+     */
+    Optional<User> findByPhone(String phone);
+    
+    /**
+     * Find user by email
+     */
+    Optional<User> findByEmail(String email);
+    
+    /**
+     * Check if user exists by phone number
+     */
+    boolean existsByPhone(String phone);
+    
+    /**
+     * Check if user exists by email
+     */
+    boolean existsByEmail(String email);
+    
+    /**
      * Get all user IDs
      */
     Set<Long> getAllUserIds();

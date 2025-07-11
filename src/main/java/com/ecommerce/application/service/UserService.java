@@ -2,6 +2,7 @@ package com.ecommerce.application.service;
 
 import com.ecommerce.domain.user.User;
 import com.ecommerce.domain.user.UserNotFoundException;
+import com.ecommerce.domain.user.DuplicateUserException;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,19 @@ public class UserService {
     }
     
     /**
-     * Create user
+     * Create user with uniqueness validation
      */
     public User createUser(String username, String email, String phone, String currency) {
+        // Validate phone uniqueness
+        if (userRepository.existsByPhone(phone)) {
+            throw DuplicateUserException.forPhone(phone);
+        }
+        
+        // Validate email uniqueness
+        if (userRepository.existsByEmail(email)) {
+            throw DuplicateUserException.forEmail(email);
+        }
+        
         User user = new User(username, email, phone, currency);
         return userRepository.save(user);
     }

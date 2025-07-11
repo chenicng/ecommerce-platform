@@ -1,6 +1,7 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.user.User;
+import com.ecommerce.domain.user.DuplicateUserException;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,8 @@ class UserServiceTest {
     @Test
     void createUser_Success() {
         // Given
+        when(userRepository.existsByPhone("1234567890")).thenReturn(false);
+        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // When
@@ -49,7 +52,38 @@ class UserServiceTest {
         assertEquals("testuser", result.getUsername());
         assertEquals("test@example.com", result.getEmail());
         assertEquals("1234567890", result.getPhone());
+        verify(userRepository).existsByPhone("1234567890");
+        verify(userRepository).existsByEmail("test@example.com");
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void createUser_DuplicatePhone_ThrowsException() {
+        // Given
+        when(userRepository.existsByPhone("1234567890")).thenReturn(true);
+
+        // When & Then
+        DuplicateUserException exception = assertThrows(DuplicateUserException.class,
+            () -> userService.createUser("testuser", "test@example.com", "1234567890", "CNY"));
+        assertEquals("User with phone number '1234567890' already exists", exception.getMessage());
+        verify(userRepository).existsByPhone("1234567890");
+        verify(userRepository, never()).existsByEmail(anyString());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createUser_DuplicateEmail_ThrowsException() {
+        // Given
+        when(userRepository.existsByPhone("1234567890")).thenReturn(false);
+        when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
+
+        // When & Then
+        DuplicateUserException exception = assertThrows(DuplicateUserException.class,
+            () -> userService.createUser("testuser", "test@example.com", "1234567890", "CNY"));
+        assertEquals("User with email 'test@example.com' already exists", exception.getMessage());
+        verify(userRepository).existsByPhone("1234567890");
+        verify(userRepository).existsByEmail("test@example.com");
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test

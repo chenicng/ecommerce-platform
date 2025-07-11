@@ -1,6 +1,7 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.merchant.Merchant;
+import com.ecommerce.domain.merchant.DuplicateMerchantException;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.MerchantRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,8 @@ class MerchantServiceTest {
     @Test
     void createMerchant_Success() {
         // Given
+        when(merchantRepository.existsByBusinessLicense("BL123456")).thenReturn(false);
+        when(merchantRepository.existsByContactEmail("test@store.com")).thenReturn(false);
         when(merchantRepository.save(any(Merchant.class))).thenReturn(testMerchant);
 
         // When
@@ -48,7 +51,38 @@ class MerchantServiceTest {
         assertEquals("BL123456", result.getBusinessLicense());
         assertEquals("test@store.com", result.getContactEmail());
         assertEquals("1234567890", result.getContactPhone());
+        verify(merchantRepository).existsByBusinessLicense("BL123456");
+        verify(merchantRepository).existsByContactEmail("test@store.com");
         verify(merchantRepository).save(any(Merchant.class));
+    }
+
+    @Test
+    void createMerchant_DuplicateBusinessLicense_ThrowsException() {
+        // Given
+        when(merchantRepository.existsByBusinessLicense("BL123456")).thenReturn(true);
+
+        // When & Then
+        DuplicateMerchantException exception = assertThrows(DuplicateMerchantException.class,
+            () -> merchantService.createMerchant("Test Store", "BL123456", "test@store.com", "1234567890"));
+        assertEquals("Merchant with business license 'BL123456' already exists", exception.getMessage());
+        verify(merchantRepository).existsByBusinessLicense("BL123456");
+        verify(merchantRepository, never()).existsByContactEmail(anyString());
+        verify(merchantRepository, never()).save(any(Merchant.class));
+    }
+
+    @Test
+    void createMerchant_DuplicateContactEmail_ThrowsException() {
+        // Given
+        when(merchantRepository.existsByBusinessLicense("BL123456")).thenReturn(false);
+        when(merchantRepository.existsByContactEmail("test@store.com")).thenReturn(true);
+
+        // When & Then
+        DuplicateMerchantException exception = assertThrows(DuplicateMerchantException.class,
+            () -> merchantService.createMerchant("Test Store", "BL123456", "test@store.com", "1234567890"));
+        assertEquals("Merchant with contact email 'test@store.com' already exists", exception.getMessage());
+        verify(merchantRepository).existsByBusinessLicense("BL123456");
+        verify(merchantRepository).existsByContactEmail("test@store.com");
+        verify(merchantRepository, never()).save(any(Merchant.class));
     }
 
     @Test

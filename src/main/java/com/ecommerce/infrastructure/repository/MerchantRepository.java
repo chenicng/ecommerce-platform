@@ -26,6 +26,26 @@ public interface MerchantRepository {
     boolean existsById(Long id);
     
     /**
+     * Find merchant by business license
+     */
+    Optional<Merchant> findByBusinessLicense(String businessLicense);
+    
+    /**
+     * Find merchant by contact email
+     */
+    Optional<Merchant> findByContactEmail(String contactEmail);
+    
+    /**
+     * Check if merchant exists by business license
+     */
+    boolean existsByBusinessLicense(String businessLicense);
+    
+    /**
+     * Check if merchant exists by contact email
+     */
+    boolean existsByContactEmail(String contactEmail);
+    
+    /**
      * Delete merchant by ID
      */
     void deleteById(Long id);

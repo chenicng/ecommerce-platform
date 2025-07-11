@@ -2,6 +2,7 @@ package com.ecommerce.application.service;
 
 import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.domain.merchant.MerchantNotFoundException;
+import com.ecommerce.domain.merchant.DuplicateMerchantException;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.MerchantRepository;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,20 @@ public class MerchantService {
     }
     
     /**
-     * Create merchant
+     * Create merchant with uniqueness validation
      */
     public Merchant createMerchant(String merchantName, String businessLicense,
                                  String contactEmail, String contactPhone) {
+        // Validate business license uniqueness
+        if (merchantRepository.existsByBusinessLicense(businessLicense)) {
+            throw DuplicateMerchantException.forBusinessLicense(businessLicense);
+        }
+        
+        // Validate contact email uniqueness
+        if (merchantRepository.existsByContactEmail(contactEmail)) {
+            throw DuplicateMerchantException.forContactEmail(contactEmail);
+        }
+        
         Merchant merchant = new Merchant(merchantName, businessLicense, contactEmail, contactPhone);
         return merchantRepository.save(merchant);
     }

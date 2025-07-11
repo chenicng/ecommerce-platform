@@ -57,6 +57,32 @@ public class MockUserRepository implements UserRepository {
     }
     
     @Override
+    public Optional<User> findByPhone(String phone) {
+        return storage.values().stream()
+                .filter(user -> phone.equals(user.getPhone()))
+                .findFirst();
+    }
+    
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return storage.values().stream()
+                .filter(user -> email.equals(user.getEmail()))
+                .findFirst();
+    }
+    
+    @Override
+    public boolean existsByPhone(String phone) {
+        return storage.values().stream()
+                .anyMatch(user -> phone.equals(user.getPhone()));
+    }
+    
+    @Override
+    public boolean existsByEmail(String email) {
+        return storage.values().stream()
+                .anyMatch(user -> email.equals(user.getEmail()));
+    }
+
+    @Override
     public boolean existsById(Long id) {
         return storage.containsKey(id);
     }

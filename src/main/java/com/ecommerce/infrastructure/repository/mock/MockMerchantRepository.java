@@ -52,6 +52,32 @@ public class MockMerchantRepository implements MerchantRepository {
     }
     
     @Override
+    public Optional<Merchant> findByBusinessLicense(String businessLicense) {
+        return storage.values().stream()
+                .filter(merchant -> businessLicense.equals(merchant.getBusinessLicense()))
+                .findFirst();
+    }
+    
+    @Override
+    public Optional<Merchant> findByContactEmail(String contactEmail) {
+        return storage.values().stream()
+                .filter(merchant -> contactEmail.equals(merchant.getContactEmail()))
+                .findFirst();
+    }
+    
+    @Override
+    public boolean existsByBusinessLicense(String businessLicense) {
+        return storage.values().stream()
+                .anyMatch(merchant -> businessLicense.equals(merchant.getBusinessLicense()));
+    }
+    
+    @Override
+    public boolean existsByContactEmail(String contactEmail) {
+        return storage.values().stream()
+                .anyMatch(merchant -> contactEmail.equals(merchant.getContactEmail()));
+    }
+    
+    @Override
     public boolean existsById(Long id) {
         return storage.containsKey(id);
     }
