@@ -155,7 +155,7 @@ public class MerchantController {
     public ResponseEntity<Result<InventoryResponse>> addProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
             @PathVariable Long merchantId,
-            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
             @PathVariable String sku,
             @Valid @RequestBody AddInventoryRequest request) {
         logger.info("Adding inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
@@ -190,7 +190,7 @@ public class MerchantController {
     public ResponseEntity<Result<InventoryResponse>> reduceProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
             @PathVariable Long merchantId,
-            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
             @PathVariable String sku,
             @Valid @RequestBody ReduceInventoryRequest request) {
         logger.info("Reducing inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
@@ -225,7 +225,7 @@ public class MerchantController {
     public ResponseEntity<Result<InventoryResponse>> setProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
             @PathVariable Long merchantId,
-            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
             @PathVariable String sku,
             @Valid @RequestBody SetInventoryRequest request) {
         logger.info("Setting inventory for merchant {}, product {}: quantity={}", merchantId, sku, request.getQuantity());
@@ -455,7 +455,7 @@ public class MerchantController {
     public ResponseEntity<Result<ProductResponse>> getMerchantProduct(
             @Parameter(description = "Merchant ID", required = true, example = "1")
             @PathVariable Long merchantId,
-            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
             @PathVariable String sku) {
         logger.info("Getting product {} for merchant {}", sku, merchantId);
         

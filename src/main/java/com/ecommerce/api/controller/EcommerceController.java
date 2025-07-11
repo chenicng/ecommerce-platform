@@ -112,7 +112,7 @@ public class EcommerceController {
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ResponseEntity<Result<ProductDetailResponse>> getProductBySku(
-            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
             @PathVariable String sku) {
         logger.info("Getting product details for SKU: {}", sku);
         
@@ -219,7 +219,7 @@ public class EcommerceController {
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ResponseEntity<Result<InventoryResponse>> getProductInventory(
-            @Parameter(description = "Product SKU", required = true, example = "IPHONE-15-PRO")
+            @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
             @PathVariable String sku) {
         logger.info("Checking inventory for product: {}", sku);
         
