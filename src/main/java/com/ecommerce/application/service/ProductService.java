@@ -63,6 +63,7 @@ public class ProductService {
     /**
      * Save product
      */
+    @Transactional
     public void saveProduct(Product product) {
         productRepository.save(product);
     }
@@ -76,13 +77,6 @@ public class ProductService {
         Product product = getProductBySku(sku);
         product.addInventory(quantity);
         productRepository.save(product);
-    }
-    
-    /**
-     * Add product inventory (alias for backward compatibility)
-     */
-    public void addProductInventory(String sku, int quantity) {
-        addInventory(sku, quantity);
     }
     
     /**
@@ -167,7 +161,17 @@ public class ProductService {
     }
     
     /**
+     * Add product inventory (alias for addInventory)
+     * This method is used by the MerchantController
+     */
+    @Transactional
+    public void addProductInventory(String sku, int quantity) {
+        addInventory(sku, quantity);
+    }
+    
+    /**
      * Get all available products (alias for getAvailableProducts)
+     * This method is used by the EcommerceController
      */
     @Transactional(readOnly = true)
     public List<Product> getAllAvailableProducts() {

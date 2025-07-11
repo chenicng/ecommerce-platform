@@ -56,6 +56,7 @@ public class MerchantService {
     /**
      * Save merchant
      */
+    @Transactional
     public void saveMerchant(Merchant merchant) {
         merchantRepository.save(merchant);
     }

@@ -147,11 +147,15 @@ public class SettlementService {
     
     /**
      * Get settlement by merchant ID and date
+     * 
+     * Note: This is a placeholder implementation for demo purposes.
+     * In a real implementation, this would query the repository with:
+     * settlementRepository.findByMerchantIdAndSettlementDate(merchantId, settlementDate)
      */
     @Transactional(readOnly = true)
     public Optional<Settlement> getSettlementByMerchantAndDate(Long merchantId, LocalDate settlementDate) {
-        // This would need to be implemented in the repository layer
-        // For now, we'll return empty as this is a demo implementation
+        // Demo implementation - always return empty to simulate first-time settlement
+        // This ensures the settlement logic calculates from beginning of day
         return Optional.empty();
     }
     
@@ -185,8 +189,8 @@ public class SettlementService {
     
     /**
      * Save settlement
-     * Single operation, no explicit transaction needed
      */
+    @Transactional
     public void saveSettlement(Settlement settlement) {
         settlementRepository.save(settlement);
     }

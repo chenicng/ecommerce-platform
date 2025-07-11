@@ -51,67 +51,21 @@ public class EcommerceService {
      */
     @Transactional
     public PurchaseResponse processPurchase(PurchaseRequest request) {
-        // 1. Get and validate related entities
-        User user = userService.getUserById(request.getUserId());
-        Product product = productService.getProductBySku(request.getSku());
-        Merchant merchant = merchantService.getMerchantById(product.getMerchantId());
-        
-        // 2. Business validation
-        validatePurchaseRequest(user, product, merchant, request.getQuantity());
-        
-        // 3. Calculate total price
-        Money totalPrice = product.calculateTotalPrice(request.getQuantity());
-        
-        // 4. Check user balance
-        if (!user.canAfford(totalPrice)) {
-            throw new com.ecommerce.domain.user.InsufficientBalanceException(
-                "Insufficient balance. Required: " + totalPrice + ", Available: " + user.getBalance());
-        }
-        
-        // 5. Check product inventory
-        if (!product.hasEnoughInventory(request.getQuantity())) {
-            throw new com.ecommerce.domain.product.InsufficientInventoryException(
-                "Insufficient inventory. Required: " + request.getQuantity() + ", Available: " + product.getAvailableInventory());
-        }
-        
         try {
-            // 6. Create order
-            String orderNumber = generateOrderNumber();
-            Order order = new Order(orderNumber, user.getId(), merchant.getId());
-            order.addOrderItem(product.getSku(), product.getName(), product.getPrice(), request.getQuantity());
+            // 1. Validate and prepare purchase entities
+            PurchaseContext context = preparePurchaseContext(request);
             
-            // 7. Reduce inventory first (before confirming order)
-            product.reduceInventory(request.getQuantity());
+            // 2. Validate business rules
+            validatePurchaseBusinessRules(context);
             
-            // 8. Confirm order (now that inventory is reserved)
-            order.confirm();
+            // 3. Execute purchase transaction
+            Order order = executePurchaseTransaction(context);
             
-            // 9. Deduct user account
-            user.deduct(totalPrice);
+            // 4. Save all changes
+            savePurchaseChanges(context, order);
             
-            // 10. Add merchant income
-            merchant.receiveIncome(totalPrice);
-            
-            // 11. Process payment and complete order
-            order.processPayment();
-            order.complete();
-            
-            // 12. Save all changes
-            userService.saveUser(user);
-            productService.saveProduct(product);
-            merchantService.saveMerchant(merchant);
-            orderService.saveOrder(order);
-            
-            // 13. Return result
-            return new PurchaseResponse(
-                order.getOrderNumber(),
-                user.getId(),
-                merchant.getId(),
-                product.getSku(),
-                product.getName(),
-                request.getQuantity(),
-                totalPrice
-            );
+            // 5. Return response
+            return createPurchaseResponse(context, order);
             
         } catch (com.ecommerce.api.exception.BusinessException e) {
             // Business exceptions should be re-thrown as-is to preserve error codes
@@ -121,6 +75,103 @@ public class EcommerceService {
             throw new com.ecommerce.api.exception.BusinessException(
                 com.ecommerce.api.dto.ErrorCode.INTERNAL_ERROR, 
                 "Purchase failed: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Prepare purchase context with all required entities
+     */
+    private PurchaseContext preparePurchaseContext(PurchaseRequest request) {
+        User user = userService.getUserById(request.getUserId());
+        Product product = productService.getProductBySku(request.getSku());
+        Merchant merchant = merchantService.getMerchantById(product.getMerchantId());
+        Money totalPrice = product.calculateTotalPrice(request.getQuantity());
+        
+        return new PurchaseContext(user, product, merchant, request.getQuantity(), totalPrice);
+    }
+    
+    /**
+     * Validate all business rules for the purchase
+     */
+    private void validatePurchaseBusinessRules(PurchaseContext context) {
+        // Validate entities are active
+        validatePurchaseRequest(context.user, context.product, context.merchant, context.quantity);
+        
+        // Check user balance
+        if (!context.user.canAfford(context.totalPrice)) {
+            throw new com.ecommerce.domain.user.InsufficientBalanceException(
+                "Insufficient balance. Required: " + context.totalPrice + ", Available: " + context.user.getBalance());
+        }
+        
+        // Check product inventory
+        if (!context.product.hasEnoughInventory(context.quantity)) {
+            throw new com.ecommerce.domain.product.InsufficientInventoryException(
+                "Insufficient inventory. Required: " + context.quantity + ", Available: " + context.product.getAvailableInventory());
+        }
+    }
+    
+    /**
+     * Execute the core purchase transaction
+     */
+    private Order executePurchaseTransaction(PurchaseContext context) {
+        // Create order
+        String orderNumber = generateOrderNumber();
+        Order order = new Order(orderNumber, context.user.getId(), context.merchant.getId());
+        order.addOrderItem(context.product.getSku(), context.product.getName(), 
+                          context.product.getPrice(), context.quantity);
+        
+        // Execute transaction steps
+        context.product.reduceInventory(context.quantity);
+        order.confirm();
+        context.user.deduct(context.totalPrice);
+        context.merchant.receiveIncome(context.totalPrice);
+        order.processPayment();
+        order.complete();
+        
+        return order;
+    }
+    
+    /**
+     * Save all changes from the purchase
+     */
+    private void savePurchaseChanges(PurchaseContext context, Order order) {
+        userService.saveUser(context.user);
+        productService.saveProduct(context.product);
+        merchantService.saveMerchant(context.merchant);
+        orderService.saveOrder(order);
+    }
+    
+    /**
+     * Create purchase response
+     */
+    private PurchaseResponse createPurchaseResponse(PurchaseContext context, Order order) {
+        return new PurchaseResponse(
+            order.getOrderNumber(),
+            context.user.getId(),
+            context.merchant.getId(),
+            context.product.getSku(),
+            context.product.getName(),
+            context.quantity,
+            context.totalPrice
+        );
+    }
+    
+    /**
+     * Inner class to hold purchase context data
+     */
+    private static class PurchaseContext {
+        final User user;
+        final Product product;
+        final Merchant merchant;
+        final int quantity;
+        final Money totalPrice;
+        
+        PurchaseContext(User user, Product product, Merchant merchant, int quantity, Money totalPrice) {
+            this.user = user;
+            this.product = product;
+            this.merchant = merchant;
+            this.quantity = quantity;
+            this.totalPrice = totalPrice;
         }
     }
     
