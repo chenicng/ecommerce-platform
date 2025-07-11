@@ -180,4 +180,92 @@ class ProductTest {
         assertNotNull(product.getInventory());
         assertEquals(ProductStatus.ACTIVE, product.getStatus());
     }
+
+    @Test
+    void shouldCreateProductWithDefaultConstructor() {
+        Product product = new Product();
+        
+        assertNotNull(product);
+        assertNull(product.getSku());
+        assertNull(product.getName());
+        assertNull(product.getDescription());
+        assertNull(product.getPrice());
+        assertNull(product.getMerchantId());
+        assertNull(product.getInventory());
+        assertNull(product.getStatus());
+    }
+
+    @Test
+    void shouldSetSkuUsingPackagePrivateMethod() {
+        Product product = new Product();
+        
+        product.setSku("TEST-SKU");
+        
+        assertEquals("TEST-SKU", product.getSku());
+    }
+
+    @Test
+    void shouldSetNameUsingPackagePrivateMethod() {
+        Product product = new Product();
+        
+        product.setName("Test Product Name");
+        
+        assertEquals("Test Product Name", product.getName());
+    }
+
+    @Test
+    void shouldSetDescriptionUsingPackagePrivateMethod() {
+        Product product = new Product();
+        
+        product.setDescription("Test Description");
+        
+        assertEquals("Test Description", product.getDescription());
+    }
+
+    @Test
+    void shouldSetPriceUsingPackagePrivateMethod() {
+        Product product = new Product();
+        Money price = Money.of("99.99", "USD");
+        
+        product.setPrice(price);
+        
+        assertEquals(price, product.getPrice());
+    }
+
+    @Test
+    void shouldSetMerchantIdUsingPackagePrivateMethod() {
+        Product product = new Product();
+        
+        product.setMerchantId(123L);
+        
+        assertEquals(123L, product.getMerchantId());
+    }
+
+    @Test
+    void shouldSetInventoryUsingPackagePrivateMethod() {
+        Product product = new Product();
+        ProductInventory inventory = new ProductInventory(50);
+        
+        product.setInventory(inventory);
+        
+        assertEquals(inventory, product.getInventory());
+        assertEquals(50, product.getAvailableInventory());
+    }
+
+    @Test
+    void shouldSetStatusUsingPackagePrivateMethod() {
+        Product product = new Product();
+        
+        product.setStatus(ProductStatus.INACTIVE);
+        
+        assertEquals(ProductStatus.INACTIVE, product.getStatus());
+        assertFalse(product.isActive());
+    }
+
+    @Test
+    void shouldVerifyInheritanceFromBaseEntity() {
+        Product product = new Product();
+        
+        assertTrue(product instanceof com.ecommerce.domain.BaseEntity);
+    }
 }

@@ -448,4 +448,128 @@ class GlobalExceptionHandlerTest {
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), response.getBody().getCode());
         assertEquals("Endpoint 'POST /api/v1/users/999/orders' not found", response.getBody().getMessage());
     }
+
+    @Test
+    void handleHttpRequestMethodNotSupportedException_ShouldReturn405() {
+        // Arrange
+        org.springframework.web.HttpRequestMethodNotSupportedException exception = 
+            new org.springframework.web.HttpRequestMethodNotSupportedException("DELETE");
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleHttpRequestMethodNotSupportedException(exception);
+        
+        // Assert
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.OPERATION_NOT_ALLOWED.getCode(), response.getBody().getCode());
+        assertEquals("HTTP method 'DELETE' is not supported for this endpoint", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleHttpMediaTypeNotAcceptableException_ShouldReturn406() {
+        // Arrange
+        org.springframework.web.HttpMediaTypeNotAcceptableException exception = 
+            new org.springframework.web.HttpMediaTypeNotAcceptableException("Media type not acceptable");
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleHttpMediaTypeNotAcceptableException(exception);
+        
+        // Assert
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.UNSUPPORTED_API_VERSION.getCode(), response.getBody().getCode());
+        assertEquals("Requested media type is not supported", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleHttpMessageNotReadableException_ShouldReturn400() {
+        // Arrange
+        org.springframework.http.converter.HttpMessageNotReadableException exception = 
+            new org.springframework.http.converter.HttpMessageNotReadableException("JSON parse error");
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleHttpMessageNotReadableException(exception);
+        
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.VALIDATION_ERROR.getCode(), response.getBody().getCode());
+        assertEquals("Invalid request format", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleBusinessException_WithMerchantNotFound_ShouldReturn404() {
+        // Arrange - "Merchant not found" contains "not found" so it maps to RESOURCE_NOT_FOUND
+        RuntimeException exception = new RuntimeException("Merchant not found");
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleBusinessException(exception, mockRequest);
+        
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), response.getBody().getCode());
+        assertEquals("Merchant not found", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleBusinessException_WithInvalidSettlementDate_ShouldReturn500() {
+        // Arrange - "Invalid settlement date" contains "settlement" so it maps to SETTLEMENT_FAILED
+        RuntimeException exception = new RuntimeException("Invalid settlement date");
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleBusinessException(exception, mockRequest);
+        
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.SETTLEMENT_FAILED.getCode(), response.getBody().getCode());
+        assertEquals("Invalid settlement date", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleBusinessException_WithInternalError_ShouldReturn500() {
+        // Arrange
+        RuntimeException exception = new RuntimeException("Internal error");
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleBusinessException(exception, mockRequest);
+        
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), response.getBody().getCode());
+        assertEquals("Internal error", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleBusinessException_WithSettlementFailed_ShouldReturn500() {
+        // Arrange
+        RuntimeException exception = new RuntimeException("Settlement failed");
+        
+        // Act
+        ResponseEntity<Result<Void>> response = handler.handleBusinessException(exception, mockRequest);
+        
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.SETTLEMENT_FAILED.getCode(), response.getBody().getCode());
+        assertEquals("Settlement failed", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleUnexpectedException_WithNullWebRequest_ShouldHandleGracefully() {
+        // Arrange
+        Exception exception = new Exception("Test exception");
+        
+        // Act
+        ResponseEntity<Result<String>> response = handler.handleUnexpectedException(exception, null);
+        
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), response.getBody().getCode());
+        assertEquals("Internal server error occurred", response.getBody().getMessage());
+        assertEquals("Unknown request", response.getBody().getData());
+    }
 } 

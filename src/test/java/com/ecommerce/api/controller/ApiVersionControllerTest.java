@@ -125,4 +125,31 @@ class ApiVersionControllerTest {
                 .andExpect(jsonPath("$.data.isSupported").value(true))
                 .andExpect(jsonPath("$.data.currentVersion").value(ApiVersionConfig.DEFAULT_VERSION));
     }
+
+    @Test
+    void testCheckVersionCompatibility_EmptyStringParameter() throws Exception {
+        // This test covers the case where an empty string is passed as a path parameter
+        // Note: This is different from the empty path test above which returns 404
+        mockMvc.perform(get("/api/version/compatibility/ "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Version parameter cannot be null or empty"));
+    }
+
+    @Test
+    void testCheckVersionCompatibility_ZeroVersion() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requestedVersion").value("v0"))
+                .andExpect(jsonPath("$.data.isSupported").value(false))
+                .andExpect(jsonPath("$.data.recommendation").exists());
+    }
+
+    @Test
+    void testCheckVersionCompatibility_NegativeVersion() throws Exception {
+        mockMvc.perform(get("/api/version/compatibility/-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')"));
+    }
 } 

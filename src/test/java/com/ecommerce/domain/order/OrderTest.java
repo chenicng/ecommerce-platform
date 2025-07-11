@@ -4,6 +4,10 @@ import com.ecommerce.domain.Money;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 class OrderTest {
 
     @Test
@@ -270,5 +274,105 @@ class OrderTest {
         assertEquals(OrderStatus.COMPLETED, order.getStatus());
         assertTrue(order.isCompleted());
         assertNotNull(order.getCompletedTime());
+    }
+
+    @Test
+    void shouldCreateOrderWithDefaultConstructor() {
+        Order order = new Order();
+        
+        assertNotNull(order);
+        assertNull(order.getOrderNumber());
+        assertNull(order.getUserId());
+        assertNull(order.getMerchantId());
+        assertTrue(order.getItems().isEmpty());
+        assertEquals(Money.zero("CNY"), order.getTotalAmount());
+        assertNull(order.getStatus());
+        assertNull(order.getOrderTime());
+        assertNull(order.getCompletedTime());
+    }
+
+    @Test
+    void shouldSetOrderNumberUsingPackagePrivateMethod() {
+        Order order = new Order();
+        
+        order.setOrderNumber("TEST-ORDER-001");
+        
+        assertEquals("TEST-ORDER-001", order.getOrderNumber());
+    }
+
+    @Test
+    void shouldSetUserIdUsingPackagePrivateMethod() {
+        Order order = new Order();
+        
+        order.setUserId(999L);
+        
+        assertEquals(999L, order.getUserId());
+    }
+
+    @Test
+    void shouldSetMerchantIdUsingPackagePrivateMethod() {
+        Order order = new Order();
+        
+        order.setMerchantId(888L);
+        
+        assertEquals(888L, order.getMerchantId());
+    }
+
+    @Test
+    void shouldSetItemsUsingPackagePrivateMethod() {
+        Order order = new Order();
+        List<OrderItem> items = new ArrayList<>();
+        items.add(new OrderItem("SKU001", "Product", Money.of("10.00", "CNY"), 1));
+        
+        order.setItems(items);
+        
+        assertEquals(1, order.getItems().size());
+        assertEquals("SKU001", order.getItems().get(0).getSku());
+    }
+
+    @Test
+    void shouldSetTotalAmountUsingPackagePrivateMethod() {
+        Order order = new Order();
+        Money totalAmount = Money.of("100.00", "CNY");
+        
+        order.setTotalAmount(totalAmount);
+        
+        assertEquals(totalAmount, order.getTotalAmount());
+    }
+
+    @Test
+    void shouldSetStatusUsingPackagePrivateMethod() {
+        Order order = new Order();
+        
+        order.setStatus(OrderStatus.CONFIRMED);
+        
+        assertEquals(OrderStatus.CONFIRMED, order.getStatus());
+    }
+
+    @Test
+    void shouldSetOrderTimeUsingPackagePrivateMethod() {
+        Order order = new Order();
+        LocalDateTime orderTime = LocalDateTime.of(2023, 1, 1, 10, 0);
+        
+        order.setOrderTime(orderTime);
+        
+        assertEquals(orderTime, order.getOrderTime());
+    }
+
+    @Test
+    void shouldSetCompletedTimeUsingPackagePrivateMethod() {
+        Order order = new Order();
+        LocalDateTime completedTime = LocalDateTime.of(2023, 1, 1, 11, 0);
+        
+        order.setCompletedTime(completedTime);
+        
+        assertEquals(completedTime, order.getCompletedTime());
+    }
+
+    @Test
+    void shouldVerifyInheritanceFromBaseEntity() {
+        Order order = new Order();
+        
+        assertTrue(order instanceof com.ecommerce.domain.BaseEntity);
     }
 }

@@ -148,4 +148,133 @@ class UserAccountTest {
         // Then
         assertEquals(Money.of("0.00", "CNY"), result.getBalance());
     }
+
+    @Test
+    void shouldThrowExceptionWhenConstructorReceivesNullBalance() {
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> new UserAccount(null));
+        assertEquals("Balance cannot be null", exception.getMessage());
+    }
+
+    @Test
+    void shouldGenerateCorrectHashCode() {
+        // Given
+        Money balance1 = Money.of("100.00", "USD");
+        Money balance2 = Money.of("100.00", "USD");
+        Money balance3 = Money.of("200.00", "USD");
+        
+        UserAccount account1 = new UserAccount(balance1);
+        UserAccount account2 = new UserAccount(balance2);
+        UserAccount account3 = new UserAccount(balance3);
+        
+        // Then
+        assertEquals(account1.hashCode(), account2.hashCode());
+        assertNotEquals(account1.hashCode(), account3.hashCode());
+    }
+
+    @Test
+    void shouldGenerateCorrectToString() {
+        // Given
+        Money balance = Money.of("150.75", "EUR");
+        UserAccount account = new UserAccount(balance);
+        
+        // When
+        String result = account.toString();
+        
+        // Then
+        assertNotNull(result);
+        assertTrue(result.contains("UserAccount"));
+        assertTrue(result.contains("balance"));
+        assertTrue(result.contains("150.75"));
+        assertTrue(result.contains("EUR"));
+    }
+
+    @Test
+    void shouldHandleEqualsWithSameObject() {
+        // Given
+        UserAccount account = new UserAccount(Money.of("100.00", "USD"));
+        
+        // When & Then
+        assertEquals(account, account);
+    }
+
+    @Test
+    void shouldHandleEqualsWithNull() {
+        // Given
+        UserAccount account = new UserAccount(Money.of("100.00", "USD"));
+        
+        // When & Then
+        assertNotEquals(account, null);
+    }
+
+    @Test
+    void shouldHandleEqualsWithDifferentClass() {
+        // Given
+        UserAccount account = new UserAccount(Money.of("100.00", "USD"));
+        String differentObject = "not a UserAccount";
+        
+        // When & Then
+        assertNotEquals(account, differentObject);
+    }
+
+    @Test
+    void shouldHandleEqualsWithDifferentBalance() {
+        // Given
+        UserAccount account1 = new UserAccount(Money.of("100.00", "USD"));
+        UserAccount account2 = new UserAccount(Money.of("200.00", "USD"));
+        
+        // When & Then
+        assertNotEquals(account1, account2);
+    }
+
+    @Test
+    void shouldHandleEqualsWithSameBalance() {
+        // Given
+        UserAccount account1 = new UserAccount(Money.of("100.00", "USD"));
+        UserAccount account2 = new UserAccount(Money.of("100.00", "USD"));
+        
+        // When & Then
+        assertEquals(account1, account2);
+    }
+
+    @Test
+    void shouldMaintainImmutabilityInAllOperations() {
+        // Given
+        Money initialBalance = Money.of("100.00", "USD");
+        UserAccount originalAccount = new UserAccount(initialBalance);
+        
+        // When
+        UserAccount afterAdd = originalAccount.addBalance(Money.of("50.00", "USD"));
+        UserAccount afterDeduct = originalAccount.deduct(Money.of("25.00", "USD"));
+        
+        // Then
+        assertEquals(Money.of("100.00", "USD"), originalAccount.getBalance());
+        assertEquals(Money.of("150.00", "USD"), afterAdd.getBalance());
+        assertEquals(Money.of("75.00", "USD"), afterDeduct.getBalance());
+    }
+
+    @Test
+    void shouldHandleZeroBalance() {
+        // Given
+        UserAccount account = new UserAccount(Money.zero("USD"));
+        
+        // When & Then
+        assertEquals(Money.zero("USD"), account.getBalance());
+        assertFalse(account.hasEnoughBalance(Money.of("0.01", "USD")));
+        assertTrue(account.hasEnoughBalance(Money.zero("USD")));
+    }
+
+    @Test
+    void shouldHandleLargeAmounts() {
+        // Given
+        Money largeAmount = Money.of("999999.99", "USD");
+        UserAccount account = new UserAccount(largeAmount);
+        
+        // When
+        UserAccount afterAdd = account.addBalance(Money.of("0.01", "USD"));
+        
+        // Then
+        assertEquals(Money.of("1000000.00", "USD"), afterAdd.getBalance());
+    }
 }

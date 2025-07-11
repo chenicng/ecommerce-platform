@@ -387,4 +387,121 @@ class ProductServiceTest {
         assertNotNull(result);
         verify(productRepository).findAll();
     }
+
+    @Test
+    void setInventory_ReduceInventory() {
+        // Given - current inventory is 50, set to 30 (reduce by 20)
+        when(productRepository.findBySku("IPHONE15")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        // When
+        productService.setInventory("IPHONE15", 30);
+
+        // Then
+        verify(productRepository).findBySku("IPHONE15");
+        verify(productRepository).save(testProduct);
+    }
+
+    @Test
+    void setInventory_IncreaseInventory() {
+        // Given - current inventory is 50, set to 100 (increase by 50)
+        when(productRepository.findBySku("IPHONE15")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        // When
+        productService.setInventory("IPHONE15", 100);
+
+        // Then
+        verify(productRepository).findBySku("IPHONE15");
+        verify(productRepository).save(testProduct);
+    }
+
+    @Test
+    void setInventory_SameInventory() {
+        // Given - current inventory is 50, set to 50 (no change)
+        when(productRepository.findBySku("IPHONE15")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        // When
+        productService.setInventory("IPHONE15", 50);
+
+        // Then
+        verify(productRepository).findBySku("IPHONE15");
+        verify(productRepository).save(testProduct);
+    }
+
+    @Test
+    void searchProductsByName_WithDescriptionMatch() {
+        // Given - create products with different descriptions
+        Product productWithDescription = new Product("TABLET", "iPad Pro", "Professional tablet device", Money.of(3000.00, "CNY"), 1L, 20);
+        List<Product> products = Arrays.asList(testProduct, testProduct2, productWithDescription);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When - search by description keyword
+        List<Product> result = productService.searchProductsByName("tablet");
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("TABLET", result.get(0).getSku());
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    void searchProductsByName_WithWhitespaceSearchTerm() {
+        // Given
+        List<Product> products = Arrays.asList(testProduct, testProduct2);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When
+        List<Product> result = productService.searchProductsByName("   ");
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    void searchAvailableProducts_WithDescriptionMatch() {
+        // Given - create products with different descriptions
+        Product productWithDescription = new Product("TABLET", "iPad Pro", "Professional tablet device", Money.of(3000.00, "CNY"), 1L, 20);
+        List<Product> products = Arrays.asList(testProduct, testProduct2, productWithDescription);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When - search by description keyword
+        List<Product> result = productService.searchAvailableProducts("tablet");
+
+        // Then
+        assertNotNull(result);
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    void searchAvailableProducts_WithWhitespaceSearchTerm() {
+        // Given
+        List<Product> products = Arrays.asList(testProduct, testProduct2);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When
+        List<Product> result = productService.searchAvailableProducts("   ");
+
+        // Then
+        assertNotNull(result);
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    void searchAvailableProducts_NullSearchTerm() {
+        // Given
+        List<Product> products = Arrays.asList(testProduct, testProduct2);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When
+        List<Product> result = productService.searchAvailableProducts(null);
+
+        // Then
+        assertNotNull(result);
+        verify(productRepository).findAll();
+    }
 } 

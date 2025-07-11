@@ -5,13 +5,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RequestLoggingAspectTest {
@@ -20,6 +24,12 @@ class RequestLoggingAspectTest {
 
     @Mock
     private org.aspectj.lang.ProceedingJoinPoint joinPoint;
+
+    @Mock
+    private HttpServletRequest httpRequest;
+
+    @Mock
+    private ServletRequestAttributes servletRequestAttributes;
 
     @BeforeEach
     void setUp() {
@@ -664,6 +674,153 @@ class RequestLoggingAspectTest {
         
         // Then
         assertEquals(responseWithSensitiveData, result);
+    }
+
+    @Test
+    void testLogApiRequest_WithHttpRequestContext() throws Throwable {
+        // Given
+        when(servletRequestAttributes.getRequest()).thenReturn(httpRequest);
+        when(httpRequest.getRequestURI()).thenReturn("/api/test");
+        when(httpRequest.getMethod()).thenReturn("POST");
+        when(httpRequest.getQueryString()).thenReturn("param1=value1&param2=value2");
+        when(httpRequest.getHeader("X-Request-ID")).thenReturn("test-request-123");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"test parameter"});
+        when(joinPoint.proceed()).thenReturn("Success result");
+
+        try (MockedStatic<RequestContextHolder> mockedStatic = mockStatic(RequestContextHolder.class)) {
+            mockedStatic.when(RequestContextHolder::getRequestAttributes).thenReturn(servletRequestAttributes);
+            
+            // When
+            Object result = aspect.logApiRequest(joinPoint);
+            
+            // Then
+            assertEquals("Success result", result);
+        }
+    }
+
+    @Test
+    void testLogApiRequest_WithNullRequestContext() throws Throwable {
+        // Given
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"test parameter"});
+        when(joinPoint.proceed()).thenReturn("Success result");
+
+        try (MockedStatic<RequestContextHolder> mockedStatic = mockStatic(RequestContextHolder.class)) {
+            mockedStatic.when(RequestContextHolder::getRequestAttributes).thenReturn(null);
+            
+            // When
+            Object result = aspect.logApiRequest(joinPoint);
+            
+            // Then
+            assertEquals("Success result", result);
+        }
+    }
+
+    @Test
+    void testLogApiRequest_WithNullHttpRequest() throws Throwable {
+        // Given
+        when(servletRequestAttributes.getRequest()).thenReturn(null);
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"test parameter"});
+        when(joinPoint.proceed()).thenReturn("Success result");
+
+        try (MockedStatic<RequestContextHolder> mockedStatic = mockStatic(RequestContextHolder.class)) {
+            mockedStatic.when(RequestContextHolder::getRequestAttributes).thenReturn(servletRequestAttributes);
+            
+            // When
+            Object result = aspect.logApiRequest(joinPoint);
+            
+            // Then
+            assertEquals("Success result", result);
+        }
+    }
+
+    @Test
+    void testLogApiRequest_WithNullQueryString() throws Throwable {
+        // Given
+        when(servletRequestAttributes.getRequest()).thenReturn(httpRequest);
+        when(httpRequest.getRequestURI()).thenReturn("/api/test");
+        when(httpRequest.getMethod()).thenReturn("GET");
+        when(httpRequest.getQueryString()).thenReturn(null);
+        when(httpRequest.getHeader("X-Request-ID")).thenReturn("test-request-456");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"test parameter"});
+        when(joinPoint.proceed()).thenReturn("Success result");
+
+        try (MockedStatic<RequestContextHolder> mockedStatic = mockStatic(RequestContextHolder.class)) {
+            mockedStatic.when(RequestContextHolder::getRequestAttributes).thenReturn(servletRequestAttributes);
+            
+            // When
+            Object result = aspect.logApiRequest(joinPoint);
+            
+            // Then
+            assertEquals("Success result", result);
+        }
+    }
+
+    @Test
+    void testLogApiRequest_WithExceptionInParameterSerialization() throws Throwable {
+        // Given
+        Object problematicArg = new Object() {
+            @Override
+            public String toString() {
+                throw new RuntimeException("Serialization error");
+            }
+            
+            // This will cause Jackson to fail when trying to serialize
+            public Object getCircularReference() {
+                return this;
+            }
+        };
+        
+        when(servletRequestAttributes.getRequest()).thenReturn(httpRequest);
+        when(httpRequest.getRequestURI()).thenReturn("/api/test");
+        when(httpRequest.getMethod()).thenReturn("POST");
+        when(httpRequest.getQueryString()).thenReturn(null);
+        when(httpRequest.getHeader("X-Request-ID")).thenReturn("test-request-789");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{problematicArg});
+        when(joinPoint.proceed()).thenReturn("Success result");
+
+        try (MockedStatic<RequestContextHolder> mockedStatic = mockStatic(RequestContextHolder.class)) {
+            mockedStatic.when(RequestContextHolder::getRequestAttributes).thenReturn(servletRequestAttributes);
+            
+            // When
+            Object result = aspect.logApiRequest(joinPoint);
+            
+            // Then
+            assertEquals("Success result", result);
+        }
+    }
+
+    @Test
+    void testLogApiRequest_WithExceptionInResponseSerialization() throws Throwable {
+        // Given
+        Object problematicResponse = new Object() {
+            @Override
+            public String toString() {
+                throw new RuntimeException("Response serialization error");
+            }
+            
+            // This will cause Jackson to fail when trying to serialize
+            public Object getCircularReference() {
+                return this;
+            }
+        };
+        
+        when(servletRequestAttributes.getRequest()).thenReturn(httpRequest);
+        when(httpRequest.getRequestURI()).thenReturn("/api/test");
+        when(httpRequest.getMethod()).thenReturn("POST");
+        when(httpRequest.getQueryString()).thenReturn(null);
+        when(httpRequest.getHeader("X-Request-ID")).thenReturn("test-request-999");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"normal parameter"});
+        when(joinPoint.proceed()).thenReturn(problematicResponse);
+
+        try (MockedStatic<RequestContextHolder> mockedStatic = mockStatic(RequestContextHolder.class)) {
+            mockedStatic.when(RequestContextHolder::getRequestAttributes).thenReturn(servletRequestAttributes);
+            
+            // When
+            Object result = aspect.logApiRequest(joinPoint);
+            
+            // Then
+            assertEquals(problematicResponse, result);
+        }
     }
 
     // Helper class for testing

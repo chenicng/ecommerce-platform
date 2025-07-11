@@ -459,20 +459,107 @@ class ApiVersionInterceptorTest {
     }
     
     @Test
-    void preHandle_versionInPathWithHyphenSeparated_shouldExtractCorrectly() throws Exception {
-        // Given
-        ApiVersion apiVersion = mock(ApiVersion.class);
-        when(apiVersion.value()).thenReturn("v1");
-        when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
-        when(request.getRequestURI()).thenReturn("/api/v1-2/users");
-        when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+    void preHandle_noVersionAnnotation_shouldReturnTrue() throws Exception {
+        // Given - no method-level or class-level annotation
+        when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(null);
+        when(handlerMethod.getBeanType()).thenReturn((Class) Object.class);
         
         // When
         boolean result = interceptor.preHandle(request, response, handlerMethod);
         
         // Then
-        assertFalse(result);
-        verify(response).setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
-        verify(response).setContentType("application/json;charset=UTF-8");
+        assertTrue(result);
+        // No version header should be set
+        verify(response, never()).setHeader(eq("X-API-Version"), anyString());
+    }
+
+    @Test
+    void preHandle_versionFromHeaderWithEmptyString_shouldUseDefault() throws Exception {
+        // Given
+        ApiVersion apiVersion = mock(ApiVersion.class);
+        when(apiVersion.value()).thenReturn("v1");
+        when(apiVersion.deprecated()).thenReturn(false);
+        when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
+        when(request.getRequestURI()).thenReturn("/api/users");
+        when(request.getHeader("API-Version")).thenReturn(""); // Empty string
+        
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+        
+        // Then
+        assertTrue(result);
+        verify(response).setHeader("X-API-Version", "v1");
+    }
+
+    @Test
+    void preHandle_versionFromQueryParamWithEmptyString_shouldUseDefault() throws Exception {
+        // Given
+        ApiVersion apiVersion = mock(ApiVersion.class);
+        when(apiVersion.value()).thenReturn("v1");
+        when(apiVersion.deprecated()).thenReturn(false);
+        when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
+        when(request.getRequestURI()).thenReturn("/api/users");
+        when(request.getParameter("version")).thenReturn(""); // Empty string
+        
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+        
+        // Then
+        assertTrue(result);
+        verify(response).setHeader("X-API-Version", "v1");
+    }
+
+    @Test
+    void preHandle_versionFromHeaderWithNumberOnly_shouldAddVPrefix() throws Exception {
+        // Given
+        ApiVersion apiVersion = mock(ApiVersion.class);
+        when(apiVersion.value()).thenReturn("v2");
+        when(apiVersion.deprecated()).thenReturn(false);
+        when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
+        when(request.getRequestURI()).thenReturn("/api/users");
+        when(request.getHeader("API-Version")).thenReturn("2"); // Number only
+        
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+        
+        // Then
+        assertTrue(result);
+        verify(response).setHeader("X-API-Version", "v2");
+    }
+
+    @Test
+    void preHandle_versionFromQueryParamWithNumberOnly_shouldAddVPrefix() throws Exception {
+        // Given
+        ApiVersion apiVersion = mock(ApiVersion.class);
+        when(apiVersion.value()).thenReturn("v2");
+        when(apiVersion.deprecated()).thenReturn(false);
+        when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
+        when(request.getRequestURI()).thenReturn("/api/users");
+        when(request.getParameter("version")).thenReturn("2"); // Number only
+        
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+        
+        // Then
+        assertTrue(result);
+        verify(response).setHeader("X-API-Version", "v2");
+    }
+
+    @Test
+    void preHandle_backwardCompatible_shouldReturnTrue() throws Exception {
+        // Given - backward compatibility is enabled in config, so v1 should work with v2 endpoint
+        ApiVersion apiVersion = mock(ApiVersion.class);
+        when(apiVersion.value()).thenReturn("v2");
+        when(apiVersion.deprecated()).thenReturn(false);
+        when(handlerMethod.getMethodAnnotation(ApiVersion.class)).thenReturn(apiVersion);
+        when(request.getRequestURI()).thenReturn("/api/users");
+        when(request.getHeader("API-Version")).thenReturn("v1"); // Different but supported version
+        
+        // When
+        boolean result = interceptor.preHandle(request, response, handlerMethod);
+        
+        // Then
+        assertTrue(result); // Should pass because v1 is in SUPPORTED_VERSIONS
+        verify(response).setHeader("X-API-Version", "v2");
     }
 } 

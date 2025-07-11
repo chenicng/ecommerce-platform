@@ -3,6 +3,7 @@ package com.ecommerce.domain.settlement;
 import com.ecommerce.domain.Money;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SettlementTest {
@@ -255,6 +256,202 @@ class SettlementTest {
         
         assertEquals(Money.of("0.01", "CNY"), settlement.getDifference());
         assertEquals(SettlementStatus.SURPLUS, settlement.getStatus());
+    }
+
+    @Test
+    void testDefaultConstructor() {
+        // Test the protected default constructor
+        Settlement settlement = new Settlement();
+        
+        // Default constructor should set base entity fields
+        assertNotNull(settlement);
+        assertNull(settlement.getMerchantId());
+        assertNull(settlement.getSettlementDate());
+        assertNull(settlement.getExpectedIncome());
+        assertNull(settlement.getActualBalance());
+        assertNull(settlement.getDifference());
+        assertNull(settlement.getStatus());
+        assertNull(settlement.getNotes());
+    }
+
+    @Test
+    void testPackagePrivateSetters() {
+        Settlement settlement = new Settlement();
+        
+        // Test setMerchantId
+        settlement.setMerchantId(100L);
+        assertEquals(100L, settlement.getMerchantId());
+        
+        // Test setSettlementDate
+        LocalDate date = LocalDate.of(2024, 2, 15);
+        settlement.setSettlementDate(date);
+        assertEquals(date, settlement.getSettlementDate());
+        
+        // Test setExpectedIncome
+        Money expectedIncome = Money.of("500.00", "CNY");
+        settlement.setExpectedIncome(expectedIncome);
+        assertEquals(expectedIncome, settlement.getExpectedIncome());
+        
+        // Test setActualBalance
+        Money actualBalance = Money.of("600.00", "CNY");
+        settlement.setActualBalance(actualBalance);
+        assertEquals(actualBalance, settlement.getActualBalance());
+        
+        // Test setDifference
+        Money difference = Money.of("100.00", "CNY");
+        settlement.setDifference(difference);
+        assertEquals(difference, settlement.getDifference());
+        
+        // Test setStatus
+        settlement.setStatus(SettlementStatus.SURPLUS);
+        assertEquals(SettlementStatus.SURPLUS, settlement.getStatus());
+        
+        // Test setNotes
+        settlement.setNotes("Test notes");
+        assertEquals("Test notes", settlement.getNotes());
+        
+        // Test setNotes with null
+        settlement.setNotes(null);
+        assertNull(settlement.getNotes());
+    }
+
+    @Test
+    void testSettlementStatusDeterminationWithNullDifference() {
+        Settlement settlement = new Settlement();
+        settlement.setDifference(null);
+        settlement.setStatus(SettlementStatus.MATCHED);
+        
+        assertEquals(SettlementStatus.MATCHED, settlement.getStatus());
+        assertTrue(settlement.isMatched());
+        assertFalse(settlement.hasSurplus());
+        assertFalse(settlement.hasDeficit());
+    }
+
+    @Test
+    void testSettlementStatusDeterminationWithDeficit() {
+        Settlement settlement = new Settlement();
+        settlement.setStatus(SettlementStatus.DEFICIT);
+        
+        assertEquals(SettlementStatus.DEFICIT, settlement.getStatus());
+        assertFalse(settlement.isMatched());
+        assertFalse(settlement.hasSurplus());
+        assertTrue(settlement.hasDeficit());
+    }
+
+    @Test
+    void testSettlementWithZeroAmounts() {
+        Money zeroAmount = Money.zero("CNY");
+        Settlement settlement = new Settlement(
+            1L, LocalDate.now(), 
+            zeroAmount, 
+            zeroAmount
+        );
+        
+        assertEquals(zeroAmount, settlement.getExpectedIncome());
+        assertEquals(zeroAmount, settlement.getActualBalance());
+        assertEquals(zeroAmount, settlement.getDifference());
+        assertEquals(SettlementStatus.MATCHED, settlement.getStatus());
+        assertTrue(settlement.isMatched());
+    }
+
+    @Test
+    void testSettlementWithDifferentCurrencies() {
+        Settlement settlement = new Settlement(
+            1L, LocalDate.now(), 
+            Money.of("1000.00", "USD"), 
+            Money.of("1200.00", "USD")
+        );
+        
+        assertEquals(Money.of("1000.00", "USD"), settlement.getExpectedIncome());
+        assertEquals(Money.of("1200.00", "USD"), settlement.getActualBalance());
+        assertEquals(Money.of("200.00", "USD"), settlement.getDifference());
+        assertEquals(SettlementStatus.SURPLUS, settlement.getStatus());
+    }
+
+    @Test
+    void testAddNotesWithWhitespace() {
+        Settlement settlement = createTestSettlement();
+        String notesWithWhitespace = "  Settlement notes with whitespace  ";
+        
+        settlement.addNotes(notesWithWhitespace);
+        
+        assertEquals(notesWithWhitespace, settlement.getNotes());
+    }
+
+    @Test
+    void testAddNotesWithSpecialCharacters() {
+        Settlement settlement = createTestSettlement();
+        String notesWithSpecialChars = "Settlement notes with special chars: !@#$%^&*()";
+        
+        settlement.addNotes(notesWithSpecialChars);
+        
+        assertEquals(notesWithSpecialChars, settlement.getNotes());
+    }
+
+    @Test
+    void testAddNotesWithVeryLongString() {
+        Settlement settlement = createTestSettlement();
+        String longNotes = "A".repeat(1000);
+        
+        settlement.addNotes(longNotes);
+        
+        assertEquals(longNotes, settlement.getNotes());
+    }
+
+    @Test
+    void testSettlementInheritanceFromBaseEntity() {
+        Settlement settlement = createTestSettlement();
+        
+        // Test that Settlement inherits from BaseEntity
+        // ID can be null for new entities until persisted
+        assertNotNull(settlement.getCreatedAt());
+        assertNotNull(settlement.getUpdatedAt());
+        assertNotNull(settlement.getVersion());
+        
+        // Test that adding notes marks the entity as updated
+        LocalDateTime originalUpdatedAt = settlement.getUpdatedAt();
+        Long originalVersion = settlement.getVersion();
+        
+        // Wait a bit to ensure different timestamp
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        settlement.addNotes("Updated notes");
+        
+        // Verify entity was marked as updated
+        assertTrue(settlement.getUpdatedAt().isAfter(originalUpdatedAt) || 
+                  settlement.getVersion() > originalVersion);
+    }
+
+    @Test
+    void testSettlementWithExactlyZeroDifference() {
+        // Test the edge case where difference is exactly zero
+        Settlement settlement = new Settlement(
+            1L, LocalDate.now(), 
+            Money.of("100.00", "CNY"), 
+            Money.of("100.00", "CNY")
+        );
+        
+        assertTrue(settlement.getDifference().isZero());
+        assertEquals(SettlementStatus.MATCHED, settlement.getStatus());
+        assertTrue(settlement.isMatched());
+    }
+
+    @Test
+    void testSettlementWithMinimalPositiveDifference() {
+        // Test the smallest possible positive difference
+        Settlement settlement = new Settlement(
+            1L, LocalDate.now(), 
+            Money.of("100.00", "CNY"), 
+            Money.of("100.01", "CNY")
+        );
+        
+        assertEquals(Money.of("0.01", "CNY"), settlement.getDifference());
+        assertEquals(SettlementStatus.SURPLUS, settlement.getStatus());
+        assertTrue(settlement.hasSurplus());
     }
 
     private Settlement createTestSettlement() {

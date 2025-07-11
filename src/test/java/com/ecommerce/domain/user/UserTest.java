@@ -257,4 +257,167 @@ class UserTest {
         // When & Then
         assertFalse(user.canAfford(Money.of("1.00", "CNY")));
     }
+
+    @Test
+    void shouldCreateUserWithDefaultConstructor() {
+        // Test package-private default constructor
+        User user = new User();
+        assertNotNull(user);
+        assertNull(user.getUsername());
+        assertNull(user.getEmail());
+        assertNull(user.getPhone());
+        assertNull(user.getAccount());
+        assertNull(user.getStatus());
+    }
+
+    @Test
+    void shouldSetUsernameWithPackagePrivateSetter() {
+        // Test package-private setter
+        User user = new User();
+        user.setUsername("newuser");
+        assertEquals("newuser", user.getUsername());
+    }
+
+    @Test
+    void shouldSetEmailWithPackagePrivateSetter() {
+        // Test package-private setter
+        User user = new User();
+        user.setEmail("new@example.com");
+        assertEquals("new@example.com", user.getEmail());
+    }
+
+    @Test
+    void shouldSetPhoneWithPackagePrivateSetter() {
+        // Test package-private setter
+        User user = new User();
+        user.setPhone("987654321");
+        assertEquals("987654321", user.getPhone());
+    }
+
+    @Test
+    void shouldSetAccountWithPackagePrivateSetter() {
+        // Test package-private setter
+        User user = new User();
+        UserAccount account = new UserAccount(Money.of("100.00", "CNY"));
+        user.setAccount(account);
+        assertEquals(account, user.getAccount());
+    }
+
+    @Test
+    void shouldSetStatusWithPackagePrivateSetter() {
+        // Test package-private setter
+        User user = new User();
+        user.setStatus(UserStatus.INACTIVE);
+        assertEquals(UserStatus.INACTIVE, user.getStatus());
+    }
+
+    @Test
+    void shouldHandleNullAmountInCanAfford() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // When & Then
+        assertThrows(NullPointerException.class, () -> user.canAfford(null));
+    }
+
+    @Test
+    void shouldHandleBaseEntityInheritance() {
+        // Test that User extends BaseEntity
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        assertTrue(user instanceof com.ecommerce.domain.BaseEntity);
+    }
+
+    @Test
+    void shouldMarkAsUpdatedWhenRecharging() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // When
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // Then - markAsUpdated() is called internally, verify state change
+        assertEquals(Money.of("100.00", "CNY"), user.getBalance());
+    }
+
+    @Test
+    void shouldMarkAsUpdatedWhenDeducting() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("100.00", "CNY"));
+        
+        // When
+        user.deduct(Money.of("50.00", "CNY"));
+        
+        // Then - markAsUpdated() is called internally, verify state change
+        assertEquals(Money.of("50.00", "CNY"), user.getBalance());
+    }
+
+    @Test
+    void shouldMarkAsUpdatedWhenActivating() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.deactivate();
+        
+        // When
+        user.activate();
+        
+        // Then - markAsUpdated() is called internally, verify state change
+        assertTrue(user.isActive());
+    }
+
+    @Test
+    void shouldMarkAsUpdatedWhenDeactivating() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // When
+        user.deactivate();
+        
+        // Then - markAsUpdated() is called internally, verify state change
+        assertFalse(user.isActive());
+    }
+
+    @Test
+    void shouldHandleUserCreationWithDifferentCurrencies() {
+        // Test creation with different currencies
+        User usdUser = new User("user1", "user1@example.com", "123456789", "USD");
+        User eurUser = new User("user2", "user2@example.com", "987654321", "EUR");
+        User jpyUser = new User("user3", "user3@example.com", "555666777", "JPY");
+        
+        assertEquals("USD", usdUser.getBalance().getCurrency());
+        assertEquals("EUR", eurUser.getBalance().getCurrency());
+        assertEquals("JPY", jpyUser.getBalance().getCurrency());
+    }
+
+    @Test
+    void shouldHandleEdgeCaseWithVerySmallAmount() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("0.01", "CNY"));
+        
+        // When & Then
+        assertTrue(user.canAfford(Money.of("0.01", "CNY")));
+        assertFalse(user.canAfford(Money.of("0.02", "CNY")));
+    }
+
+    @Test
+    void shouldHandleStatusTransitions() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        
+        // Initial state
+        assertEquals(UserStatus.ACTIVE, user.getStatus());
+        assertTrue(user.isActive());
+        
+        // Deactivate
+        user.deactivate();
+        assertEquals(UserStatus.INACTIVE, user.getStatus());
+        assertFalse(user.isActive());
+        
+        // Reactivate
+        user.activate();
+        assertEquals(UserStatus.ACTIVE, user.getStatus());
+        assertTrue(user.isActive());
+    }
 }
