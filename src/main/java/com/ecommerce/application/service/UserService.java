@@ -1,6 +1,7 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.user.User;
+import com.ecommerce.domain.user.UserNotFoundException;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
     
     /**

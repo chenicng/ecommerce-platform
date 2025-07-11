@@ -254,11 +254,10 @@ public class MerchantController {
         if (!merchantService.merchantExists(merchantId)) {
             throw new RuntimeException("Merchant not found with id: " + merchantId);
         }
-        
         // Validate product exists and belongs to this merchant
         Product product = productService.getProductBySku(sku);
         if (!product.getMerchantId().equals(merchantId)) {
-            throw new RuntimeException("Product does not belong to this merchant");
+            throw new IllegalArgumentException("Product does not belong to this merchant");
         }
     }
     

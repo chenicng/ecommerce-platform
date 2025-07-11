@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 /**
  * Global Exception Handler
@@ -35,6 +38,45 @@ public class GlobalExceptionHandler {
         Result<Void> result = Result.error(ErrorCode.RESOURCE_NOT_FOUND, message);
         
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+    
+    /**
+     * Handle HTTP method not supported exceptions
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Result<Void>> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        logger.warn("HTTP method not supported: {}", e.getMethod());
+        
+        String message = String.format("HTTP method '%s' is not supported for this endpoint", e.getMethod());
+        Result<Void> result = Result.error(ErrorCode.OPERATION_NOT_ALLOWED, message);
+        
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(result);
+    }
+    
+    /**
+     * Handle media type not acceptable exceptions
+     */
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<Result<Void>> handleHttpMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException e) {
+        logger.warn("Media type not acceptable: {}", e.getMessage());
+        
+        String message = "Requested media type is not supported";
+        Result<Void> result = Result.error(ErrorCode.UNSUPPORTED_API_VERSION, message);
+        
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(result);
+    }
+    
+    /**
+     * Handle HTTP message not readable exceptions (JSON parsing errors)
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Result<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        logger.warn("Message not readable: {}", e.getMessage());
+        
+        String message = "Invalid request format";
+        Result<Void> result = Result.error(ErrorCode.VALIDATION_ERROR, message);
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
     
     /**
@@ -141,7 +183,7 @@ public class GlobalExceptionHandler {
             case UNSUPPORTED_API_VERSION:
                 return HttpStatus.NOT_ACCEPTABLE; // 406
             default:
-                return HttpStatus.BAD_REQUEST; // 400
+                return HttpStatus.INTERNAL_SERVER_ERROR; // 500 for unknown errors
         }
     }
     

@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * User Controller (API v1)
@@ -54,7 +55,9 @@ public class UserController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid request data", 
-                    content = @Content(schema = @Schema(implementation = Result.class)))
+                    content = @Content(schema = @Schema(implementation = Result.class))),
+        @ApiResponse(responseCode = "409", description = "User already exists"),
+        @ApiResponse(responseCode = "413", description = "Request too large")
     })
     public ResponseEntity<Result<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
         logger.info("Creating user: {}", request.getUsername());
@@ -123,7 +126,7 @@ public class UserController {
     })
     public ResponseEntity<Result<BalanceResponse>> rechargeUser(
             @Parameter(description = "User ID", required = true, example = "1")
-            @PathVariable Long userId, 
+            @PathVariable Long userId,
             @Valid @RequestBody RechargeRequest request) {
         logger.info("Processing recharge for user {}: amount={}", userId, request.getAmount());
         
@@ -246,8 +249,9 @@ public class UserController {
         @DecimalMin(value = "0.01", message = "Recharge amount must be positive")
         private BigDecimal amount;
         
+        @NotNull(message = "Currency is required")
         @NotBlank(message = "Currency is required")
-        private String currency = "CNY";
+        private String currency;
         
         // Getters and Setters
         public BigDecimal getAmount() { return amount; }

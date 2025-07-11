@@ -1,6 +1,7 @@
 package com.ecommerce.api.controller;
 
 import com.ecommerce.api.dto.Result;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,6 +42,12 @@ public class HealthController {
         healthInfo.put("service", "ecommerce-platform");
         healthInfo.put("version", "1.0.0");
         
-        return ResponseEntity.ok(Result.successWithMessage("System is healthy", healthInfo));
+        // Add proper headers including Date
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Date", LocalDateTime.now().format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss")));
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(Result.successWithMessage("System is healthy", healthInfo));
     }
 } 

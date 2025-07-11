@@ -43,21 +43,21 @@ class ErrorCodeTest {
     }
     
     @Test
-    void fromMessage_WithNullMessage_ShouldReturnBusinessError() {
+    void fromMessage_WithNullMessage_ShouldReturnInternalError() {
         // Act
         ErrorCode result = ErrorCode.fromMessage(null);
         
         // Assert
-        assertEquals(ErrorCode.BUSINESS_ERROR, result);
+        assertEquals(ErrorCode.INTERNAL_ERROR, result);
     }
     
     @Test
-    void fromMessage_WithEmptyMessage_ShouldReturnBusinessError() {
+    void fromMessage_WithEmptyMessage_ShouldReturnInternalError() {
         // Act
         ErrorCode result = ErrorCode.fromMessage("");
         
         // Assert
-        assertEquals(ErrorCode.BUSINESS_ERROR, result);
+        assertEquals(ErrorCode.INTERNAL_ERROR, result);
     }
     
     @Test
@@ -125,14 +125,14 @@ class ErrorCodeTest {
     }
     
     @Test
-    void fromMessage_WithGenericMessage_ShouldReturnBusinessError() {
+    void fromMessage_WithGenericMessage_ShouldReturnInternalError() {
         // Test generic messages that don't match any specific pattern
-        assertEquals(ErrorCode.BUSINESS_ERROR, ErrorCode.fromMessage("Some random error"));
-        assertEquals(ErrorCode.BUSINESS_ERROR, ErrorCode.fromMessage("Validation failed"));
-        assertEquals(ErrorCode.BUSINESS_ERROR, ErrorCode.fromMessage("Database connection failed"));
-        assertEquals(ErrorCode.BUSINESS_ERROR, ErrorCode.fromMessage("Unknown error occurred"));
-        assertEquals(ErrorCode.BUSINESS_ERROR, ErrorCode.fromMessage(""));
-        assertEquals(ErrorCode.BUSINESS_ERROR, ErrorCode.fromMessage("   "));
+        assertEquals(ErrorCode.INTERNAL_ERROR, ErrorCode.fromMessage("Some random error"));
+        assertEquals(ErrorCode.INTERNAL_ERROR, ErrorCode.fromMessage("Validation failed"));
+        assertEquals(ErrorCode.INTERNAL_ERROR, ErrorCode.fromMessage("Database connection failed"));
+        assertEquals(ErrorCode.INTERNAL_ERROR, ErrorCode.fromMessage("Unknown error occurred"));
+        assertEquals(ErrorCode.INTERNAL_ERROR, ErrorCode.fromMessage(""));
+        assertEquals(ErrorCode.INTERNAL_ERROR, ErrorCode.fromMessage("   "));
     }
     
     @Test

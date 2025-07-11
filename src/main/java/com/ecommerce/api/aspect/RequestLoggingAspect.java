@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * Provides comprehensive request tracing and monitoring capabilities with enhanced data masking.
  * 
  * Features:
- * - Truncates long messages to 256 characters
+ * - Truncates long messages to 1024 characters
  * - Masks sensitive information (passwords, tokens, etc.)
  * - Masks phone numbers and email addresses
  * - Configurable sensitive field patterns
@@ -38,7 +38,7 @@ public class RequestLoggingAspect {
     private static final ObjectMapper objectMapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     
     // Configuration constants
-    private static final int MAX_LOG_LENGTH = 256;
+    private static final int MAX_LOG_LENGTH = 1024;
     private static final String TRUNCATE_SUFFIX = "...[TRUNCATED]";
     
     // Configurable sensitive fields for automatic masking
@@ -117,11 +117,7 @@ public class RequestLoggingAspect {
             Result<?> res = (Result<?>) body;
             String dataContent = "null";
             if (res.getData() != null) {
-                try {
-                    dataContent = objectMapper.writeValueAsString(res.getData());
-                } catch (Exception e) {
-                    dataContent = String.valueOf(res.getData());
-                }
+                dataContent = String.valueOf(res.getData());
             }
             return String.format("{code: %s, message: %s, data: %s}", res.getCode(), res.getMessage(), dataContent);
         }

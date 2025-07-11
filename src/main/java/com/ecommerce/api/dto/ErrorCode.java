@@ -30,7 +30,12 @@ public enum ErrorCode {
     // Settlement related errors
     SETTLEMENT_FAILED("SETTLEMENT_FAILED", "Settlement execution failed"),
     MERCHANT_NOT_FOUND("MERCHANT_NOT_FOUND", "Merchant not found"),
-    INVALID_SETTLEMENT_DATE("INVALID_SETTLEMENT_DATE", "Invalid settlement date");
+    INVALID_SETTLEMENT_DATE("INVALID_SETTLEMENT_DATE", "Invalid settlement date"),
+    
+    // Security and Rate Limiting
+    RATE_LIMIT_EXCEEDED("RATE_LIMIT_EXCEEDED", "Rate limit exceeded"),
+    INPUT_TOO_LARGE("INPUT_TOO_LARGE", "Input data too large"),
+    INVALID_CURRENCY("INVALID_CURRENCY", "Invalid currency format");
     
     private final String code;
     private final String defaultMessage;
@@ -52,8 +57,8 @@ public enum ErrorCode {
      * Determine error code based on exception message
      */
     public static ErrorCode fromMessage(String message) {
-        if (message == null) {
-            return BUSINESS_ERROR;
+        if (message == null || message.trim().isEmpty()) {
+            return INTERNAL_ERROR;
         }
         
         String lowerMessage = message.toLowerCase();
@@ -71,12 +76,16 @@ public enum ErrorCode {
             return RESOURCE_INACTIVE;
         } else if (lowerMessage.contains("cannot cancel")) {
             return OPERATION_NOT_ALLOWED;
+        } else if (lowerMessage.contains("not belong")) {
+            return VALIDATION_ERROR;
         } else if (lowerMessage.contains("settlement")) {
             return SETTLEMENT_FAILED;
         } else if (lowerMessage.contains("merchant not found")) {
             return MERCHANT_NOT_FOUND;
-        } else {
+        } else if (lowerMessage.contains("business error") || lowerMessage.contains("business logic error")) {
             return BUSINESS_ERROR;
+        } else {
+            return INTERNAL_ERROR;
         }
     }
 } 

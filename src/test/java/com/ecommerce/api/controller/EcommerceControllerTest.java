@@ -694,8 +694,8 @@ class EcommerceControllerTest {
         // When & Then
         mockMvc.perform(get(API_BASE_PATH + "/products")
                 .param("search", "test"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("BUSINESS_ERROR"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
                 .andExpect(jsonPath("$.message").value("Search failed"));
 
         verify(productService).searchAvailableProducts("test");

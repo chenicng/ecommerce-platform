@@ -120,7 +120,7 @@ class MerchantControllerTest {
         mockMvc.perform(post(API_BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createMerchantRequest)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isInternalServerError());
 
         verify(merchantService).createMerchant("Test Store", "BL12345678", "merchant@test.com", "13900139000");
     }

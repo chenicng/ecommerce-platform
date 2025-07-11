@@ -204,7 +204,29 @@ class UserTest {
         user.deduct(Money.of("100.00", "CNY"));
         
         // Then
-        assertEquals(Money.of("0.00", "CNY"), user.getBalance());
+        assertTrue(user.getBalance().isZero());
+    }
+    
+    @Test
+    void shouldHandleLargeAmountOperations() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "CNY");
+        user.recharge(Money.of("999999.99", "CNY"));
+        
+        // When
+        user.deduct(Money.of("999999.99", "CNY"));
+        
+        // Then
+        assertTrue(user.getBalance().isZero());
+    }
+    
+    @Test
+    void shouldHandleCurrencyCaseInsensitivity() {
+        // Given
+        User user = new User("testuser", "test@example.com", "123456789", "cny");
+        
+        // Then
+        assertEquals("CNY", user.getBalance().getCurrency());
     }
 
     @Test

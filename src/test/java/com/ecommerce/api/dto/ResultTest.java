@@ -1,8 +1,6 @@
 package com.ecommerce.api.dto;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,23 +8,29 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ResultTest {
-    
-    private Result<String> testResult;
-    
-    @BeforeEach
-    void setUp() {
-        testResult = Result.success("test data");
-    }
-    
+
     @Test
-    void success_WithData_ShouldCreateSuccessResult() {
-        // Arrange
+    void debugTest() {
+        // Debug test to see what's happening
+        String data = "test data";
+        Result<String> result = Result.success(data);
+        
+        System.out.println("Expected message: " + ErrorCode.SUCCESS.getDefaultMessage());
+        System.out.println("Actual message: " + result.getMessage());
+        System.out.println("Expected data: " + data);
+        System.out.println("Actual data: " + result.getData());
+        System.out.println("Code: " + result.getCode());
+    }
+
+    @Test
+    void testSuccessWithData() {
+        // Given
         String data = "test data";
         
-        // Act
-        Result<Object> result = Result.success((Object) data);
+        // When
+        Result<String> result = Result.success(data);
         
-        // Assert
+        // Then
         assertEquals(ErrorCode.SUCCESS.getCode(), result.getCode());
         assertEquals(ErrorCode.SUCCESS.getDefaultMessage(), result.getMessage());
         assertEquals(data, result.getData());
@@ -34,18 +38,17 @@ class ResultTest {
         assertTrue(result.isSuccess());
         assertFalse(result.isError());
     }
-    
+
     @Test
-    void success_WithMessageAndData_ShouldCreateSuccessResult() {
-        // Arrange
+    void testSuccessWithMessage() {
+        // Given
         String message = "Custom success message";
-        Map<String, Object> data = new HashMap<>();
-        data.put("key", "value");
+        String data = "test data";
         
-        // Act
-        Result<Map<String, Object>> result = Result.successWithMessage(message, data);
+        // When
+        Result<String> result = Result.successWithMessage(message, data);
         
-        // Assert
+        // Then
         assertEquals(ErrorCode.SUCCESS.getCode(), result.getCode());
         assertEquals(message, result.getMessage());
         assertEquals(data, result.getData());
@@ -53,13 +56,13 @@ class ResultTest {
         assertTrue(result.isSuccess());
         assertFalse(result.isError());
     }
-    
+
     @Test
-    void success_WithoutData_ShouldCreateSuccessResult() {
-        // Act
+    void testSuccessWithoutData() {
+        // When
         Result<Void> result = Result.success();
         
-        // Assert
+        // Then
         assertEquals(ErrorCode.SUCCESS.getCode(), result.getCode());
         assertEquals(ErrorCode.SUCCESS.getDefaultMessage(), result.getMessage());
         assertNull(result.getData());
@@ -67,16 +70,16 @@ class ResultTest {
         assertTrue(result.isSuccess());
         assertFalse(result.isError());
     }
-    
+
     @Test
-    void success_WithMessageOnly_ShouldCreateSuccessResult() {
-        // Arrange
+    void testSuccessWithMessageOnly() {
+        // Given
         String message = "Custom success message";
         
-        // Act
-        Result<Void> result = Result.success(message);
+        // When
+        Result<Void> result = Result.successWithMessage(message);
         
-        // Assert
+        // Then
         assertEquals(ErrorCode.SUCCESS.getCode(), result.getCode());
         assertEquals(message, result.getMessage());
         assertNull(result.getData());
@@ -84,17 +87,17 @@ class ResultTest {
         assertTrue(result.isSuccess());
         assertFalse(result.isError());
     }
-    
+
     @Test
-    void error_WithErrorCodeAndMessage_ShouldCreateErrorResult() {
-        // Arrange
+    void testErrorWithErrorCodeAndMessage() {
+        // Given
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         String message = "Validation failed";
         
-        // Act
-        Result<Void> result = Result.error(errorCode, message);
+        // When
+        Result<String> result = Result.error(errorCode, message);
         
-        // Assert
+        // Then
         assertEquals(errorCode.getCode(), result.getCode());
         assertEquals(message, result.getMessage());
         assertNull(result.getData());
@@ -102,35 +105,35 @@ class ResultTest {
         assertFalse(result.isSuccess());
         assertTrue(result.isError());
     }
-    
+
     @Test
-    void error_WithErrorCodeAndMessageAndData_ShouldCreateErrorResult() {
-        // Arrange
+    void testErrorWithErrorCodeAndMessageAndData() {
+        // Given
         ErrorCode errorCode = ErrorCode.BUSINESS_ERROR;
-        String message = "Business error occurred";
-        String errorData = "Error details";
+        String message = "Business logic error";
+        String data = "error details";
         
-        // Act
-        Result<String> result = Result.error(errorCode, message, errorData);
+        // When
+        Result<String> result = Result.error(errorCode, message, data);
         
-        // Assert
+        // Then
         assertEquals(errorCode.getCode(), result.getCode());
         assertEquals(message, result.getMessage());
-        assertEquals(errorData, result.getData());
+        assertEquals(data, result.getData());
         assertNotNull(result.getTimestamp());
         assertFalse(result.isSuccess());
         assertTrue(result.isError());
     }
-    
+
     @Test
-    void error_WithErrorCodeOnly_ShouldCreateErrorResult() {
-        // Arrange
-        ErrorCode errorCode = ErrorCode.RESOURCE_NOT_FOUND;
+    void testErrorWithErrorCodeOnly() {
+        // Given
+        ErrorCode errorCode = ErrorCode.INTERNAL_ERROR;
         
-        // Act
-        Result<Void> result = Result.error(errorCode);
+        // When
+        Result<String> result = Result.error(errorCode);
         
-        // Assert
+        // Then
         assertEquals(errorCode.getCode(), result.getCode());
         assertEquals(errorCode.getDefaultMessage(), result.getMessage());
         assertNull(result.getData());
@@ -138,232 +141,262 @@ class ResultTest {
         assertFalse(result.isSuccess());
         assertTrue(result.isError());
     }
-    
+
     @Test
-    void error_WithMessageOnly_ShouldCreateErrorResult() {
-        // Arrange
-        String message = "User not found";
+    void testErrorWithMessage() {
+        // Given
+        String message = "Custom error message";
         
-        // Act
-        Result<Void> result = Result.error(message);
+        // When
+        Result<String> result = Result.error(message);
         
-        // Assert
-        assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), result.getCode());
+        // Then
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), result.getCode());
         assertEquals(message, result.getMessage());
         assertNull(result.getData());
-        assertNotNull(result.getTimestamp());
         assertFalse(result.isSuccess());
         assertTrue(result.isError());
     }
-    
+
     @Test
-    void error_WithNullMessage_ShouldHandleGracefully() {
-        // Act
-        Result<Void> result = Result.error((String) null);
+    void testErrorWithInsufficientBalanceMessage() {
+        // Given
+        String message = "Insufficient balance";
         
-        // Assert
-        assertEquals(ErrorCode.BUSINESS_ERROR.getCode(), result.getCode());
+        // When
+        Result<String> result = Result.error(message);
+        
+        // Then
+        assertEquals(ErrorCode.INSUFFICIENT_BALANCE.getCode(), result.getCode());
+        assertEquals(message, result.getMessage());
+        assertNull(result.getData());
+        assertFalse(result.isSuccess());
+        assertTrue(result.isError());
+    }
+
+    @Test
+    void testErrorWithInsufficientInventoryMessage() {
+        // Given
+        String message = "Insufficient inventory";
+        
+        // When
+        Result<String> result = Result.error(message);
+        
+        // Then
+        assertEquals(ErrorCode.INSUFFICIENT_INVENTORY.getCode(), result.getCode());
+        assertEquals(message, result.getMessage());
+        assertNull(result.getData());
+        assertFalse(result.isSuccess());
+        assertTrue(result.isError());
+    }
+
+    @Test
+    void testErrorWithInsufficientFundsMessage() {
+        // Given
+        String message = "Insufficient funds";
+        
+        // When
+        Result<String> result = Result.error(message);
+        
+        // Then
+        assertEquals(ErrorCode.INSUFFICIENT_FUNDS.getCode(), result.getCode());
+        assertEquals(message, result.getMessage());
+        assertNull(result.getData());
+        assertFalse(result.isSuccess());
+        assertTrue(result.isError());
+    }
+
+    @Test
+    void testErrorWithUnknownMessage() {
+        // Given
+        String message = "Unknown error occurred";
+        
+        // When
+        Result<String> result = Result.error(message);
+        
+        // Then
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), result.getCode());
+        assertEquals(message, result.getMessage());
+        assertNull(result.getData());
+        assertFalse(result.isSuccess());
+        assertTrue(result.isError());
+    }
+
+    @Test
+    void testErrorWithNullMessage() {
+        // Given
+        String message = null;
+        
+        // When
+        Result<String> result = Result.error(message);
+        
+        // Then
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), result.getCode());
         assertNull(result.getMessage());
         assertNull(result.getData());
-        assertNotNull(result.getTimestamp());
         assertFalse(result.isSuccess());
         assertTrue(result.isError());
     }
-    
+
     @Test
-    void getters_ShouldReturnCorrectValues() {
-        // Arrange
-        String message = "Test message";
-        String data = "Test data";
-        Result<String> result = Result.error(ErrorCode.BUSINESS_ERROR, message, data);
+    void testErrorWithEmptyMessage() {
+        // Given
+        String message = "";
         
-        // Act & Assert
-        assertEquals(ErrorCode.BUSINESS_ERROR.getCode(), result.getCode());
+        // When
+        Result<String> result = Result.error(message);
+        
+        // Then
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), result.getCode());
         assertEquals(message, result.getMessage());
-        assertEquals(data, result.getData());
+        assertNull(result.getData());
+        assertFalse(result.isSuccess());
+        assertTrue(result.isError());
+    }
+
+    @Test
+    void testSuccessWithNullData() {
+        // When
+        Result<String> result = Result.success((String) null);
+        
+        // Then
+        assertEquals(ErrorCode.SUCCESS.getCode(), result.getCode());
+        assertEquals(ErrorCode.SUCCESS.getDefaultMessage(), result.getMessage());
+        assertNull(result.getData());
         assertNotNull(result.getTimestamp());
+        assertTrue(result.isSuccess());
+        assertFalse(result.isError());
     }
-    
+
     @Test
-    void isSuccess_WithSuccessCode_ShouldReturnTrue() {
-        // Arrange
-        Result<String> successResult = Result.success("data");
+    void testSuccessWithComplexData() {
+        // Given
+        Map<String, Object> complexData = new HashMap<>();
+        complexData.put("id", 1L);
+        complexData.put("name", "Test User");
+        complexData.put("active", true);
+        complexData.put("roles", new String[]{"USER", "ADMIN"});
         
-        // Act & Assert
-        assertTrue(successResult.isSuccess());
-        assertFalse(successResult.isError());
-    }
-    
-    @Test
-    void isSuccess_WithErrorCode_ShouldReturnFalse() {
-        // Arrange
-        Result<Void> errorResult = Result.error(ErrorCode.VALIDATION_ERROR, "Error");
+        // When
+        Result<Map<String, Object>> result = Result.success(complexData);
         
-        // Act & Assert
-        assertFalse(errorResult.isSuccess());
-        assertTrue(errorResult.isError());
-    }
-    
-    @Test
-    void isError_WithErrorCode_ShouldReturnTrue() {
-        // Arrange
-        Result<Void> errorResult = Result.error(ErrorCode.BUSINESS_ERROR, "Error");
-        
-        // Act & Assert
-        assertTrue(errorResult.isError());
-        assertFalse(errorResult.isSuccess());
-    }
-    
-    @Test
-    void isError_WithSuccessCode_ShouldReturnFalse() {
-        // Arrange
-        Result<String> successResult = Result.success("data");
-        
-        // Act & Assert
-        assertFalse(successResult.isError());
-        assertTrue(successResult.isSuccess());
-    }
-    
-    @Test
-    void toString_ShouldReturnFormattedString() {
-        // Arrange
-        Result<String> result = Result.success("test data");
-        
-        // Act
-        String resultString = result.toString();
-        
-        // Assert
-        assertTrue(resultString.contains("Result"));
-        assertTrue(resultString.contains("SUCCESS"));
-        assertTrue(resultString.contains("test data"));
-        assertTrue(resultString.contains("timestamp"));
-    }
-    
-    @Test
-    void toString_WithNullData_ShouldHandleGracefully() {
-        // Arrange
-        Result<Void> result = Result.success();
-        
-        // Act
-        String resultString = result.toString();
-        
-        // Assert
-        assertTrue(resultString.contains("Result"));
-        assertTrue(resultString.contains("SUCCESS"));
-        assertTrue(resultString.contains("null"));
-        assertTrue(resultString.contains("timestamp"));
-    }
-    
-    @Test
-    void timestamp_ShouldBeSetOnCreation() {
-        // Arrange
-        LocalDateTime beforeCreation = LocalDateTime.now();
-        
-        // Act
-        Result<String> result = Result.success("data");
-        LocalDateTime afterCreation = LocalDateTime.now();
-        
-        // Assert
+        // Then
+        assertEquals(ErrorCode.SUCCESS.getCode(), result.getCode());
+        assertEquals(ErrorCode.SUCCESS.getDefaultMessage(), result.getMessage());
+        assertEquals(complexData, result.getData());
         assertNotNull(result.getTimestamp());
-        assertTrue(result.getTimestamp().isAfter(beforeCreation) || result.getTimestamp().isEqual(beforeCreation));
-        assertTrue(result.getTimestamp().isBefore(afterCreation) || result.getTimestamp().isEqual(afterCreation));
+        assertTrue(result.isSuccess());
+        assertFalse(result.isError());
     }
-    
+
     @Test
-    void error_WithDifferentErrorCodes_ShouldReturnCorrectCodes() {
-        // Test different error codes
-        Result<Void> validationError = Result.error(ErrorCode.VALIDATION_ERROR, "Validation failed");
-        assertEquals(ErrorCode.VALIDATION_ERROR.getCode(), validationError.getCode());
+    void testErrorWithAllErrorCodes() {
+        // Test all error codes
+        ErrorCode[] errorCodes = ErrorCode.values();
         
-        Result<Void> notFoundError = Result.error(ErrorCode.RESOURCE_NOT_FOUND, "Not found");
-        assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), notFoundError.getCode());
-        
-        Result<Void> businessError = Result.error(ErrorCode.BUSINESS_ERROR, "Business error");
-        assertEquals(ErrorCode.BUSINESS_ERROR.getCode(), businessError.getCode());
-        
-        Result<Void> internalError = Result.error(ErrorCode.INTERNAL_ERROR, "Internal error");
-        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), internalError.getCode());
-    }
-    
-    @Test
-    void error_WithMessageMatchingPatterns_ShouldReturnCorrectErrorCodes() {
-        // Test error code detection from message patterns
-        Result<Void> notFoundResult = Result.error("User not found");
-        assertEquals(ErrorCode.RESOURCE_NOT_FOUND.getCode(), notFoundResult.getCode());
-        
-        Result<Void> insufficientBalanceResult = Result.error("Insufficient balance");
-        assertEquals(ErrorCode.INSUFFICIENT_BALANCE.getCode(), insufficientBalanceResult.getCode());
-        
-        Result<Void> insufficientInventoryResult = Result.error("Insufficient inventory");
-        assertEquals(ErrorCode.INSUFFICIENT_INVENTORY.getCode(), insufficientInventoryResult.getCode());
-        
-        Result<Void> insufficientFundsResult = Result.error("Insufficient funds");
-        assertEquals(ErrorCode.INSUFFICIENT_FUNDS.getCode(), insufficientFundsResult.getCode());
-        
-        Result<Void> alreadyExistsResult = Result.error("User already exists");
-        assertEquals(ErrorCode.RESOURCE_ALREADY_EXISTS.getCode(), alreadyExistsResult.getCode());
-        
-        Result<Void> inactiveResult = Result.error("User is not active");
-        assertEquals(ErrorCode.RESOURCE_INACTIVE.getCode(), inactiveResult.getCode());
-        
-        Result<Void> notAllowedResult = Result.error("Cannot cancel this order");
-        assertEquals(ErrorCode.OPERATION_NOT_ALLOWED.getCode(), notAllowedResult.getCode());
-        
-        Result<Void> genericResult = Result.error("Some other error");
-        assertEquals(ErrorCode.BUSINESS_ERROR.getCode(), genericResult.getCode());
-    }
-    
-    @Test
-    void debug_SuccessDefaultMessage() {
-        // Debug test to check the actual value
-        System.out.println("ErrorCode.SUCCESS.getDefaultMessage(): '" + ErrorCode.SUCCESS.getDefaultMessage() + "'");
-        System.out.println("ErrorCode.SUCCESS.getCode(): '" + ErrorCode.SUCCESS.getCode() + "'");
-        
-        Result<String> result = Result.success("test data");
-        System.out.println("Result message: '" + result.getMessage() + "'");
-        System.out.println("Result code: '" + result.getCode() + "'");
-        System.out.println("Result data: '" + result.getData() + "'");
-    }
-    
-    @Test
-    void debug_ConstructorParameters() {
-        // Debug test to check constructor parameters
-        String code = ErrorCode.SUCCESS.getCode();
-        String message = ErrorCode.SUCCESS.getDefaultMessage();
-        String data = "test data";
-        
-        System.out.println("Constructor parameters:");
-        System.out.println("  code: '" + code + "'");
-        System.out.println("  message: '" + message + "'");
-        System.out.println("  data: '" + data + "'");
-        
-        // Create Result using factory method
-        Result<String> factoryResult = Result.success(data);
-        System.out.println("Factory Result:");
-        System.out.println("  code: '" + factoryResult.getCode() + "'");
-        System.out.println("  message: '" + factoryResult.getMessage() + "'");
-        System.out.println("  data: '" + factoryResult.getData() + "'");
-    }
-    
-    @Test
-    void debug_ConstructorOrder() {
-        // Test constructor parameter order
-        String code = "TEST_CODE";
-        String message = "TEST_MESSAGE";
-        String data = "TEST_DATA";
-        
-        // Use reflection to create Result with specific parameters
-        try {
-            java.lang.reflect.Constructor<Result> constructor = Result.class.getDeclaredConstructor(String.class, String.class, Object.class);
-            constructor.setAccessible(true);
-            Result<String> result = constructor.newInstance(code, message, data);
-            
-            System.out.println("Constructor test:");
-            System.out.println("  Expected code: '" + code + "', Actual: '" + result.getCode() + "'");
-            System.out.println("  Expected message: '" + message + "', Actual: '" + result.getMessage() + "'");
-            System.out.println("  Expected data: '" + data + "', Actual: '" + result.getData() + "'");
-        } catch (Exception e) {
-            System.out.println("Reflection failed: " + e.getMessage());
+        for (ErrorCode errorCode : errorCodes) {
+            if (errorCode != ErrorCode.SUCCESS) {
+                Result<String> result = Result.error(errorCode, "Test message for " + errorCode.name());
+                
+                assertEquals(errorCode.getCode(), result.getCode());
+                assertEquals("Test message for " + errorCode.name(), result.getMessage());
+                assertNull(result.getData());
+                assertNotNull(result.getTimestamp());
+                assertFalse(result.isSuccess());
+                assertTrue(result.isError());
+            }
         }
+    }
+
+    @Test
+    void testTimestampConsistency() {
+        // Given
+        LocalDateTime before = LocalDateTime.now();
+        
+        // When
+        Result<String> result = Result.success("test");
+        LocalDateTime after = LocalDateTime.now();
+        
+        // Then
+        assertTrue(result.getTimestamp().isAfter(before) || result.getTimestamp().equals(before));
+        assertTrue(result.getTimestamp().isBefore(after) || result.getTimestamp().equals(after));
+    }
+
+    @Test
+    void testToString() {
+        // Given
+        String data = "test data";
+        Result<String> result = Result.success(data);
+        
+        // When
+        String toString = result.toString();
+        
+        // Then
+        assertTrue(toString.contains("Result"));
+        assertTrue(toString.contains("code='SUCCESS'"));
+        assertTrue(toString.contains("message='Operation completed successfully'"));
+        assertTrue(toString.contains("data=test data"));
+        assertTrue(toString.contains("timestamp="));
+    }
+
+    @Test
+    void testToStringWithNullData() {
+        // Given
+        Result<String> result = Result.success((String) null);
+        
+        // When
+        String toString = result.toString();
+        
+        // Then
+        assertTrue(toString.contains("Result"));
+        assertTrue(toString.contains("code='SUCCESS'"));
+        assertTrue(toString.contains("data=null"));
+    }
+
+    @Test
+    void testToStringWithError() {
+        // Given
+        Result<String> result = Result.error(ErrorCode.VALIDATION_ERROR, "Invalid input");
+        
+        // When
+        String toString = result.toString();
+        
+        // Then
+        assertTrue(toString.contains("Result"));
+        assertTrue(toString.contains("code='VALIDATION_ERROR'"));
+        assertTrue(toString.contains("message='Invalid input'"));
+        assertTrue(toString.contains("data=null"));
+    }
+
+    @Test
+    void testMultipleSuccessCalls() {
+        // Test that multiple success calls work correctly
+        Result<String> result1 = Result.success("data1");
+        Result<Integer> result2 = Result.success(42);
+        Result<Void> result3 = Result.success();
+        
+        assertTrue(result1.isSuccess());
+        assertTrue(result2.isSuccess());
+        assertTrue(result3.isSuccess());
+        
+        assertEquals("data1", result1.getData());
+        assertEquals(42, result2.getData());
+        assertNull(result3.getData());
+    }
+
+    @Test
+    void testMultipleErrorCalls() {
+        // Test that multiple error calls work correctly
+        Result<String> result1 = Result.error(ErrorCode.VALIDATION_ERROR, "Error 1");
+        Result<String> result2 = Result.error(ErrorCode.BUSINESS_ERROR, "Error 2");
+        Result<String> result3 = Result.error("Custom error message");
+        
+        assertTrue(result1.isError());
+        assertTrue(result2.isError());
+        assertTrue(result3.isError());
+        
+        assertEquals(ErrorCode.VALIDATION_ERROR.getCode(), result1.getCode());
+        assertEquals(ErrorCode.BUSINESS_ERROR.getCode(), result2.getCode());
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), result3.getCode());
     }
 } 

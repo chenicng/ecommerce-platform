@@ -40,6 +40,18 @@ logging:
     max-size: 100MB
     max-history: 30
 
+# Security Configuration
+security:
+  # Request rate limiting
+  rate-limit:
+    enabled: true
+    max-requests-per-minute: 100
+  
+  # Input validation
+  validation:
+    max-string-length: 1000
+    max-request-size: 10485760  # 10MB in bytes
+
 # Actuator Monitoring Endpoint Configuration
 management:
   endpoints:

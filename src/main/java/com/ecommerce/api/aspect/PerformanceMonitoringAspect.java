@@ -10,77 +10,39 @@ import org.springframework.stereotype.Component;
 /**
  * Performance Monitoring Aspect
  * 
- * Monitors and logs performance metrics for controller methods.
- * Provides execution time tracking and slow query detection.
+ * Monitors execution time of critical business operations
+ * and logs warnings for slow operations
  */
 @Aspect
 @Component
 public class PerformanceMonitoringAspect {
     
     private static final Logger logger = LoggerFactory.getLogger(PerformanceMonitoringAspect.class);
+    private static final long SLOW_OPERATION_THRESHOLD_MS = 1000; // 1 second
     
-    // Threshold for slow API warning (in milliseconds)
-    private static final long SLOW_API_THRESHOLD = 2000; // 2 seconds
-    
-    /**
-     * Monitor all controller methods
-     */
-    @Around("execution(* com.ecommerce.api.controller..*.*(..))")
-    public Object monitorApiPerformance(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = System.currentTimeMillis();
-        String methodName = joinPoint.getSignature().toShortString();
-        
-        try {
-            logger.debug("API call started: {}", methodName);
-            
-            // Execute the method
-            Object result = joinPoint.proceed();
-            
-            long executionTime = System.currentTimeMillis() - startTime;
-            
-            // Log performance metrics
-            if (executionTime > SLOW_API_THRESHOLD) {
-                logger.warn("Slow API detected: {} - Execution time: {}ms", methodName, executionTime);
-            } else {
-                logger.info("API completed: {} - Execution time: {}ms", methodName, executionTime);
-            }
-            
-            return result;
-            
-        } catch (Exception e) {
-            long executionTime = System.currentTimeMillis() - startTime;
-            logger.error("API failed: {} - Execution time: {}ms, Error: {}", 
-                        methodName, executionTime, e.getMessage());
-            throw e;
-        }
-    }
-    
-    /**
-     * Monitor service layer methods for business logic performance
-     */
-    @Around("execution(* com.ecommerce.application.service..*.*(..))")
+    @Around("execution(* com.ecommerce.application.service.*.*(..))")
     public Object monitorServicePerformance(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
-        String methodName = joinPoint.getSignature().toShortString();
+        String methodName = joinPoint.getSignature().getName();
+        String className = joinPoint.getTarget().getClass().getSimpleName();
         
         try {
             Object result = joinPoint.proceed();
-            
             long executionTime = System.currentTimeMillis() - startTime;
             
-            // Only log slow service operations to avoid noise
-            if (executionTime > 1000) { // 1 second threshold for services
-                logger.warn("Slow service operation: {} - Execution time: {}ms", methodName, executionTime);
+            if (executionTime > SLOW_OPERATION_THRESHOLD_MS) {
+                logger.warn("Slow operation detected: {}.{} took {}ms", 
+                    className, methodName, executionTime);
             } else {
-                logger.debug("Service completed: {} - Execution time: {}ms", methodName, executionTime);
+                logger.debug("Operation completed: {}.{} took {}ms", 
+                    className, methodName, executionTime);
             }
             
             return result;
-            
-        } catch (Exception e) {
+        } catch (Throwable e) {
             long executionTime = System.currentTimeMillis() - startTime;
-            logger.error("Service failed: {} - Execution time: {}ms, Error: {}", 
-                        methodName, executionTime, e.getMessage());
+            logger.error("Operation failed: {}.{} took {}ms with error: {}", 
+                className, methodName, executionTime, e.getMessage());
             throw e;
         }
     }

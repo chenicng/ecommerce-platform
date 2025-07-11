@@ -46,7 +46,7 @@ public class Result<T> {
     /**
      * Create success response with custom message and no data
      */
-    public static <Void> Result<Void> success(String message) {
+    public static <Void> Result<Void> successWithMessage(String message) {
         return new Result<>(ErrorCode.SUCCESS.getCode(), message, null);
     }
     
