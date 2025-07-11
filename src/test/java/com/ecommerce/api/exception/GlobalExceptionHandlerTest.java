@@ -7,10 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.lang.reflect.Method;
 
@@ -210,5 +214,113 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), response.getBody().getCode());
         assertEquals("Internal server error occurred", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleUnexpectedException_WithNullRequest_ShouldReturn500() {
+        // Arrange
+        Exception exception = new Exception("Unexpected error");
+        
+        // Act
+        ResponseEntity<Result<String>> response = handler.handleUnexpectedException(exception, null);
+        
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), response.getBody().getCode());
+        assertEquals("Internal server error occurred", response.getBody().getMessage());
+    }
+
+    @Test
+    void determineHttpStatus_WithResourceInactive_ShouldReturnForbidden() {
+        // This tests the switch case in determineHttpStatus method
+        BusinessException exception = new BusinessException(ErrorCode.RESOURCE_INACTIVE, "Resource inactive");
+        
+        ResponseEntity<Result<Void>> response = handler.handleBusinessException(exception, mockRequest);
+        
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    void determineHttpStatus_WithUnsupportedApiVersion_ShouldReturnNotAcceptable() {
+        BusinessException exception = new BusinessException(ErrorCode.UNSUPPORTED_API_VERSION, "API version not supported");
+        
+        ResponseEntity<Result<Void>> response = handler.handleBusinessException(exception, mockRequest);
+        
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+    }
+
+    @Test
+    void determineHttpStatus_WithInternalError_ShouldReturnInternalServerError() {
+        BusinessException exception = new BusinessException(ErrorCode.INTERNAL_ERROR, "Internal error");
+        
+        ResponseEntity<Result<Void>> response = handler.handleBusinessException(exception, mockRequest);
+        
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void buildUserFriendlyValidationMessage_WithProductNameField_ShouldReturnCustomMessage() {
+        // This tests different field mappings in buildUserFriendlyValidationMessage
+        FieldError fieldError = new FieldError("object", "productName", "must not be blank");
+        org.springframework.validation.BeanPropertyBindingResult bindingResult = 
+            new org.springframework.validation.BeanPropertyBindingResult(new Object(), "object");
+        bindingResult.addError(fieldError);
+        
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
+            methodParameter, bindingResult
+        );
+        
+        ResponseEntity<Result<Void>> response = handler.handleValidationException(exception);
+        
+        assertEquals("must not be blank", response.getBody().getMessage());
+    }
+
+    @Test
+    void buildUserFriendlyValidationMessage_WithEmailField_ShouldReturnCustomMessage() {
+        FieldError fieldError = new FieldError("object", "email", "must be a well-formed email address");
+        org.springframework.validation.BeanPropertyBindingResult bindingResult = 
+            new org.springframework.validation.BeanPropertyBindingResult(new Object(), "object");
+        bindingResult.addError(fieldError);
+        
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
+            methodParameter, bindingResult
+        );
+        
+        ResponseEntity<Result<Void>> response = handler.handleValidationException(exception);
+        
+        assertEquals("Valid email address is required", response.getBody().getMessage());
+    }
+
+    @Test
+    void buildUserFriendlyValidationMessage_WithPhoneField_ShouldReturnCustomMessage() {
+        FieldError fieldError = new FieldError("object", "phone", "invalid format");
+        org.springframework.validation.BeanPropertyBindingResult bindingResult = 
+            new org.springframework.validation.BeanPropertyBindingResult(new Object(), "object");
+        bindingResult.addError(fieldError);
+        
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
+            methodParameter, bindingResult
+        );
+        
+        ResponseEntity<Result<Void>> response = handler.handleValidationException(exception);
+        
+        assertEquals("Valid phone number is required", response.getBody().getMessage());
+    }
+
+    @Test
+    void buildUserFriendlyValidationMessage_WithAmountField_ShouldReturnCustomMessage() {
+        FieldError fieldError = new FieldError("object", "amount", "must be positive");
+        org.springframework.validation.BeanPropertyBindingResult bindingResult = 
+            new org.springframework.validation.BeanPropertyBindingResult(new Object(), "object");
+        bindingResult.addError(fieldError);
+        
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
+            methodParameter, bindingResult
+        );
+        
+        ResponseEntity<Result<Void>> response = handler.handleValidationException(exception);
+        
+        assertEquals("Amount must be a positive number", response.getBody().getMessage());
     }
 } 

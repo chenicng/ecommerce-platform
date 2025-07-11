@@ -16,10 +16,14 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+
+import com.ecommerce.domain.order.Order;
 
 @ExtendWith(MockitoExtension.class)
 class SettlementServiceTest {
@@ -311,5 +315,171 @@ class SettlementServiceTest {
         assertEquals("Database error", exception.getMessage());
         
         verify(settlementRepository).save(settlement);
+    }
+
+    @Test
+    void executeMerchantSettlement_WithMerchantNotFound_ShouldHandleGracefully() {
+        // Arrange
+        Long merchantId = 999L;
+        LocalDate settlementDate = LocalDate.of(2023, 12, 25);
+        
+        when(merchantService.getMerchantBalance(merchantId))
+            .thenThrow(new RuntimeException("Merchant not found"));
+        
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> {
+            settlementService.executeMerchantSettlement(merchantId, settlementDate);
+        });
+        
+        verify(merchantService).getMerchantBalance(merchantId);
+    }
+
+    @Test
+    void executeMerchantSettlement_WithDifferentCurrencies_ShouldHandleCorrectly() {
+        // Arrange
+        Long merchantId = 1L;
+        LocalDate settlementDate = LocalDate.of(2023, 12, 25);
+        
+        Merchant merchant = new Merchant("Test Merchant", "LICENSE-001", "test@merchant.com", "13800001111", "USD");
+        merchant.setId(merchantId);
+        merchant.receiveIncome(Money.of("100.00", "USD"));
+        
+        when(merchantService.getMerchantBalance(merchantId)).thenReturn(null); // Simulate null balance
+        when(orderService.getCompletedOrdersByMerchantAndDateRange(eq(merchantId), any(), any()))
+            .thenReturn(Collections.emptyList());
+        when(settlementRepository.save(any(Settlement.class))).thenAnswer(invocation -> {
+            Settlement settlement = invocation.getArgument(0);
+            settlement.setId(1L);
+            return settlement;
+        });
+        
+        // Act
+        Settlement result = settlementService.executeMerchantSettlement(merchantId, settlementDate);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(Money.of("0.00", "CNY"), result.getExpectedIncome()); // Should default to CNY
+        assertNull(result.getActualBalance()); // Should be null
+        verify(settlementRepository).save(any(Settlement.class));
+    }
+
+    @Test
+    void executeSettlement_WithNoActiveMerchants_ShouldCompleteGracefully() {
+        // Arrange
+        when(merchantService.getAllActiveMerchants()).thenReturn(Collections.emptyList());
+        
+        // Act & Assert - should not throw exception
+        assertDoesNotThrow(() -> settlementService.executeSettlement());
+        
+        verify(merchantService).getAllActiveMerchants();
+        verify(settlementRepository, never()).save(any());
+    }
+
+    @Test
+    void getSettlementById_WithValidId_ShouldReturnSettlement() {
+        // Arrange
+        Long settlementId = 1L;
+        Settlement settlement = new Settlement(1L, LocalDate.now(), 
+            Money.of("100.00", "CNY"), Money.of("100.00", "CNY"));
+        settlement.setId(settlementId);
+        
+        when(settlementRepository.findById(settlementId)).thenReturn(Optional.of(settlement));
+        
+        // Act
+        Settlement result = settlementService.getSettlementById(settlementId);
+        
+        // Assert
+        assertEquals(settlement, result);
+        verify(settlementRepository).findById(settlementId);
+    }
+
+    @Test
+    void getSettlementById_WithInvalidId_ShouldThrowException() {
+        // Arrange
+        Long settlementId = 999L;
+        when(settlementRepository.findById(settlementId)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            settlementService.getSettlementById(settlementId);
+        });
+        
+        assertTrue(exception.getMessage().contains("Settlement not found"));
+        verify(settlementRepository).findById(settlementId);
+    }
+
+    @Test
+    void saveSettlement_ShouldDelegateToRepository() {
+        // Arrange
+        Settlement settlement = new Settlement(1L, LocalDate.now(), 
+            Money.of("100.00", "CNY"), Money.of("100.00", "CNY"));
+        
+        // Act
+        settlementService.saveSettlement(settlement);
+        
+        // Assert
+        verify(settlementRepository).save(settlement);
+    }
+
+    @Test
+    void calculateExpectedIncomeFromOrders_WithEmptyList_ShouldReturnZero() {
+        // This tests the private method indirectly through executeMerchantSettlement
+        // Arrange
+        Long merchantId = 1L;
+        LocalDate settlementDate = LocalDate.of(2023, 12, 25);
+        
+        when(merchantService.getMerchantBalance(merchantId)).thenReturn(Money.zero("CNY"));
+        when(orderService.getCompletedOrdersByMerchantAndDateRange(eq(merchantId), any(), any()))
+            .thenReturn(Collections.emptyList());
+        when(settlementRepository.save(any(Settlement.class))).thenAnswer(invocation -> {
+            Settlement settlement = invocation.getArgument(0);
+            settlement.setId(1L);
+            return settlement;
+        });
+        
+        // Act
+        Settlement result = settlementService.executeMerchantSettlement(merchantId, settlementDate);
+        
+        // Assert
+        assertEquals(Money.zero("CNY"), result.getExpectedIncome());
+    }
+
+    @Test
+    void calculateExpectedIncomeFromOrders_WithMultipleOrders_ShouldSumCorrectly() {
+        // This tests the private method indirectly through executeMerchantSettlement
+        // Arrange
+        Long merchantId = 1L;
+        LocalDate settlementDate = LocalDate.of(2023, 12, 25);
+        
+        // Create completed orders
+        Order order1 = new Order("ORD-001", 1L, merchantId);
+        order1.addOrderItem("SKU-001", "Product 1", Money.of("50.00", "CNY"), 1);
+        order1.confirm();
+        order1.processPayment();
+        order1.complete();
+        
+        Order order2 = new Order("ORD-002", 2L, merchantId);
+        order2.addOrderItem("SKU-002", "Product 2", Money.of("75.00", "CNY"), 2);
+        order2.confirm();
+        order2.processPayment();
+        order2.complete();
+        
+        List<Order> completedOrders = Arrays.asList(order1, order2);
+        
+        when(merchantService.getMerchantBalance(merchantId)).thenReturn(Money.of("200.00", "CNY"));
+        when(orderService.getCompletedOrdersByMerchantAndDateRange(eq(merchantId), any(), any()))
+            .thenReturn(completedOrders);
+        when(settlementRepository.save(any(Settlement.class))).thenAnswer(invocation -> {
+            Settlement settlement = invocation.getArgument(0);
+            settlement.setId(1L);
+            return settlement;
+        });
+        
+        // Act
+        Settlement result = settlementService.executeMerchantSettlement(merchantId, settlementDate);
+        
+        // Assert
+        // Expected income should be 50.00 + 150.00 = 200.00 CNY
+        assertEquals(Money.of("200.00", "CNY"), result.getExpectedIncome());
     }
 } 

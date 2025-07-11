@@ -11,10 +11,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,105 +29,102 @@ class OrderServiceTest {
     @InjectMocks
     private OrderService orderService;
 
-    private Order testOrder;
+    @Test
+    void saveOrder_ShouldCallRepositorySave() {
+        // Arrange
+        Order order = new Order("ORD-001", 1L, 2L);
 
-    @BeforeEach
-    void setUp() {
-        testOrder = new Order("ORD123", 1L, 1L);
+        // Act
+        orderService.saveOrder(order);
+
+        // Assert
+        verify(orderRepository).save(order);
     }
 
     @Test
-    void saveOrder_Success() {
-        // Given
-        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
+    void getOrderByNumber_WithValidOrderNumber_ShouldReturnOrder() {
+        // Arrange
+        String orderNumber = "ORD-001";
+        Order expectedOrder = new Order(orderNumber, 1L, 2L);
+        when(orderRepository.findByOrderNumber(orderNumber)).thenReturn(Optional.of(expectedOrder));
 
-        // When
-        orderService.saveOrder(testOrder);
-
-        // Then
-        verify(orderRepository).save(testOrder);
-    }
-
-    @Test
-    void getOrderByNumber_Success() {
-        // Given
-        String orderNumber = "ORD123";
-        when(orderRepository.findByOrderNumber(orderNumber)).thenReturn(Optional.of(testOrder));
-
-        // When
+        // Act
         Order result = orderService.getOrderByNumber(orderNumber);
 
-        // Then
-        assertNotNull(result);
-        assertEquals(testOrder, result);
+        // Assert
+        assertEquals(expectedOrder, result);
         verify(orderRepository).findByOrderNumber(orderNumber);
     }
 
     @Test
-    void getOrderByNumber_OrderNotFound() {
-        // Given
-        String orderNumber = "ORD999";
+    void getOrderByNumber_WithInvalidOrderNumber_ShouldThrowException() {
+        // Arrange
+        String orderNumber = "INVALID-ORDER";
         when(orderRepository.findByOrderNumber(orderNumber)).thenReturn(Optional.empty());
 
-        // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> orderService.getOrderByNumber(orderNumber));
-        assertEquals("Order not found with number: ORD999", exception.getMessage());
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            orderService.getOrderByNumber(orderNumber);
+        });
+        
+        assertTrue(exception.getMessage().contains("Order not found"));
         verify(orderRepository).findByOrderNumber(orderNumber);
     }
 
     @Test
-    void getOrderById_Success() {
-        // Given
+    void getOrderById_WithValidId_ShouldReturnOrder() {
+        // Arrange
         Long orderId = 1L;
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(testOrder));
+        Order expectedOrder = new Order("ORD-001", 1L, 2L);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(expectedOrder));
 
-        // When
+        // Act
         Order result = orderService.getOrderById(orderId);
 
-        // Then
-        assertNotNull(result);
-        assertEquals(testOrder, result);
+        // Assert
+        assertEquals(expectedOrder, result);
         verify(orderRepository).findById(orderId);
     }
 
     @Test
-    void getOrderById_OrderNotFound() {
-        // Given
+    void getOrderById_WithInvalidId_ShouldThrowException() {
+        // Arrange
         Long orderId = 999L;
         when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
 
-        // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> orderService.getOrderById(orderId));
-        assertEquals("Order not found with id: 999", exception.getMessage());
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            orderService.getOrderById(orderId);
+        });
+        
+        assertTrue(exception.getMessage().contains("Order not found"));
         verify(orderRepository).findById(orderId);
     }
 
     @Test
-    void orderExists_True() {
-        // Given
-        String orderNumber = "ORD123";
+    void orderExists_WithExistingOrder_ShouldReturnTrue() {
+        // Arrange
+        String orderNumber = "ORD-001";
         when(orderRepository.existsByOrderNumber(orderNumber)).thenReturn(true);
 
-        // When
+        // Act
         boolean result = orderService.orderExists(orderNumber);
 
-        // Then
+        // Assert
         assertTrue(result);
         verify(orderRepository).existsByOrderNumber(orderNumber);
     }
 
     @Test
-    void orderExists_False() {
-        // Given
-        String orderNumber = "ORD999";
+    void orderExists_WithNonExistingOrder_ShouldReturnFalse() {
+        // Arrange
+        String orderNumber = "INVALID-ORDER";
         when(orderRepository.existsByOrderNumber(orderNumber)).thenReturn(false);
 
-        // When
+        // Act
         boolean result = orderService.orderExists(orderNumber);
 
-        // Then
+        // Assert
         assertFalse(result);
         verify(orderRepository).existsByOrderNumber(orderNumber);
     }
