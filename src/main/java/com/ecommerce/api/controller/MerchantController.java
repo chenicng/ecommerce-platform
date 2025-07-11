@@ -81,7 +81,7 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Merchant name is required\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Merchant name is required\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<MerchantResponse>> createMerchant(@Valid @RequestBody CreateMerchantRequest request) {
         logger.info("Creating merchant with name: {}", request.getMerchantName());
@@ -130,13 +130,13 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"SKU is required\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"SKU is required\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "Merchant not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Merchant Not Found",
-                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<ProductResponse>> createProduct(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -192,13 +192,13 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Quantity must be positive\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Quantity must be positive\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "Merchant or product not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Product Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> addProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -242,13 +242,13 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Insufficient Inventory",
-                                         value = "{\"code\":\"INSUFFICIENT_INVENTORY\",\"message\":\"Insufficient product inventory\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"INSUFFICIENT_INVENTORY\",\"message\":\"Insufficient product inventory\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "Merchant or product not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Product Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> reduceProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -292,13 +292,13 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Quantity cannot be negative\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Quantity cannot be negative\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "Merchant or product not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Product Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> setProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -357,7 +357,7 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Merchant Not Found",
-                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<IncomeResponse>> getMerchantIncome(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -395,7 +395,7 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Merchant Not Found",
-                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<SettlementResponse>> executeSettlement(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -491,7 +491,7 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Merchant Not Found",
-                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<MerchantProductListResponse>> getMerchantProducts(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -573,7 +573,7 @@ public class MerchantController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Product Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<ProductResponse>> getMerchantProduct(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -703,7 +703,7 @@ public class MerchantController {
     
     @Schema(description = "Product creation request")
     public static class CreateProductRequest {
-        @Schema(description = "Product SKU", example = "PHONE-001", required = true)
+        @Schema(description = "Product SKU", example = "PHONE-003", required = true)
         @NotBlank(message = "SKU is required")
         @Size(min = 3, max = 50, message = "SKU must be between 3 and 50 characters")
         @Pattern(regexp = "^[A-Z0-9-]+$", message = "SKU can only contain uppercase letters, numbers and hyphens")

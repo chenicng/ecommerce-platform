@@ -66,19 +66,19 @@ public class EcommerceController {
                                      schema = @Schema(implementation = Result.class),
                                      examples = @ExampleObject(
                                          name = "Success Response",
-                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Purchase completed successfully\",\"data\":{\"orderNumber\":\"ORD-2025-001\",\"userId\":1,\"merchantId\":1,\"productSku\":\"PHONE-001\",\"quantity\":1,\"totalAmount\":999.00,\"currency\":\"CNY\",\"orderStatus\":\"COMPLETED\"},\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Purchase completed successfully\",\"data\":{\"orderNumber\":\"ORD-2025-001\",\"userId\":1,\"merchantId\":1,\"sku\":\"PHONE-001\",\"quantity\":1,\"totalAmount\":999.00,\"currency\":\"CNY\",\"orderStatus\":\"COMPLETED\"},\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "400", description = "Invalid request data or business validation failed",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Insufficient Balance",
-                                         value = "{\"code\":\"INSUFFICIENT_BALANCE\",\"message\":\"Insufficient user balance\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"INSUFFICIENT_BALANCE\",\"message\":\"Insufficient user balance\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "User, product, or merchant not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Product Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<PurchaseResponse>> purchaseProduct(@Valid @RequestBody PurchaseRequest request) {
         logger.info("Processing purchase request: {}", request);
@@ -108,13 +108,13 @@ public class EcommerceController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Reason is required\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Reason is required\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "Order not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Order Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Order not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Order not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<Map<String, Object>>> cancelOrder(
             @Parameter(description = "Order number", required = true, example = "ORD-2025-001")
@@ -151,7 +151,7 @@ public class EcommerceController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Product Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<ProductDetailResponse>> getProductBySku(
             @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
@@ -268,7 +268,7 @@ public class EcommerceController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Product Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> getProductInventory(
             @Parameter(description = "Product SKU", required = true, example = "PHONE-001")

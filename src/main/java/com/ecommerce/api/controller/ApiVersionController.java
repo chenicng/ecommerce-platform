@@ -97,7 +97,7 @@ public class ApiVersionController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Invalid Version Format",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<Map<String, Object>>> checkVersionCompatibility(
             @Parameter(description = "API version to check (e.g., 'v1', 'v2')", required = true, example = "v1")

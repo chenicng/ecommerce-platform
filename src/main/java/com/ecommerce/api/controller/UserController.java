@@ -69,19 +69,19 @@ public class UserController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Username is required\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Username is required\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "409", description = "User already exists",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "User Already Exists",
-                                         value = "{\"code\":\"RESOURCE_ALREADY_EXISTS\",\"message\":\"User already exists\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"RESOURCE_ALREADY_EXISTS\",\"message\":\"User already exists\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "413", description = "Request too large",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Request Too Large",
-                                         value = "{\"code\":\"INPUT_TOO_LARGE\",\"message\":\"Request too large\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"INPUT_TOO_LARGE\",\"message\":\"Request too large\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
         logger.info("Creating user: {}", request.getUsername());
@@ -125,7 +125,7 @@ public class UserController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "User Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<UserResponse>> getUserById(
             @Parameter(description = "User ID", required = true, example = "1")
@@ -165,13 +165,13 @@ public class UserController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "Validation Error",
-                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Recharge amount must be positive\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}"))),
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Recharge amount must be positive\",\"timestamp\":\"2025-07-11T12:00:00\"}"))),
         @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", 
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "User Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<BalanceResponse>> rechargeUser(
             @Parameter(description = "User ID", required = true, example = "1")
@@ -214,7 +214,7 @@ public class UserController {
                                      schema = @Schema(implementation = ErrorResponse.class),
                                      examples = @ExampleObject(
                                          name = "User Not Found",
-                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-07-11T12:00:00\"}")))
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"timestamp\":\"2025-07-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<BalanceResponse>> getUserBalance(
             @Parameter(description = "User ID", required = true, example = "1")
