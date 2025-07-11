@@ -489,15 +489,19 @@ public class MerchantController {
     // DTO classes
     @Schema(description = "Merchant creation request")
     public static class CreateMerchantRequest {
+        @Schema(description = "Merchant name", example = "Apple Store", required = true)
         @NotBlank(message = "Merchant name is required")
         private String merchantName;
         
+        @Schema(description = "Business license number", example = "BL123456789", required = true)
         @NotBlank(message = "Business license is required")
         private String businessLicense;
         
+        @Schema(description = "Contact email", example = "contact@applestore.com", required = true)
         @NotBlank(message = "Contact email is required")
         private String contactEmail;
         
+        @Schema(description = "Contact phone", example = "13800138000", required = true)
         @NotBlank(message = "Contact phone is required")
         private String contactPhone;
         
@@ -512,15 +516,33 @@ public class MerchantController {
         public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
     }
     
+    @Schema(description = "Merchant information response")
     public static class MerchantResponse {
+        @Schema(description = "Merchant ID", example = "1")
         private Long id;
+        
+        @Schema(description = "Merchant name", example = "Apple Store")
         private String merchantName;
+        
+        @Schema(description = "Business license number", example = "BL123456789")
         private String businessLicense;
+        
+        @Schema(description = "Contact email", example = "contact@applestore.com")
         private String contactEmail;
+        
+        @Schema(description = "Contact phone", example = "13800138000")
         private String contactPhone;
+        
+        @Schema(description = "Current balance", example = "1000.00")
         private BigDecimal balance;
+        
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        
+        @Schema(description = "Total income", example = "5000.00")
         private BigDecimal totalIncome;
+        
+        @Schema(description = "Merchant status", example = "ACTIVE")
         private String status;
         
         public MerchantResponse(Long id, String merchantName, String businessLicense,
@@ -551,20 +573,26 @@ public class MerchantController {
     
     @Schema(description = "Product creation request")
     public static class CreateProductRequest {
+        @Schema(description = "Product SKU", example = "PHONE-001", required = true)
         @NotBlank(message = "SKU is required")
         private String sku;
         
+        @Schema(description = "Product name", example = "iPhone 15 Pro", required = true)
         @NotBlank(message = "Product name is required")
         private String name;
         
+        @Schema(description = "Product description", example = "Latest iPhone with advanced features")
         private String description;
         
+        @Schema(description = "Product price", example = "999.00", required = true)
         @DecimalMin(value = "0.01", message = "Price must be positive")
         private BigDecimal price;
         
+        @Schema(description = "Currency code", example = "CNY", required = true)
         @NotBlank(message = "Currency is required")
         private String currency = "CNY";
         
+        @Schema(description = "Initial inventory quantity", example = "100")
         @Min(value = 0, message = "Initial inventory cannot be negative")
         private int initialInventory;
         
@@ -583,15 +611,33 @@ public class MerchantController {
         public void setInitialInventory(int initialInventory) { this.initialInventory = initialInventory; }
     }
     
+    @Schema(description = "Product information response")
     public static class ProductResponse {
+        @Schema(description = "Product ID", example = "1")
         private Long id;
+        
+        @Schema(description = "Product SKU", example = "PHONE-001")
         private String sku;
+        
+        @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String name;
+        
+        @Schema(description = "Product description", example = "Latest iPhone with advanced features")
         private String description;
+        
+        @Schema(description = "Product price", example = "999.00")
         private BigDecimal price;
+        
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        
+        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
+        
+        @Schema(description = "Available inventory", example = "50")
         private int availableInventory;
+        
+        @Schema(description = "Product status", example = "ACTIVE")
         private String status;
         
         public ProductResponse(Long id, String sku, String name, String description,
@@ -620,7 +666,9 @@ public class MerchantController {
         public String getStatus() { return status; }
     }
     
+    @Schema(description = "Add inventory request")
     public static class AddInventoryRequest {
+        @Schema(description = "Quantity to add", example = "10", required = true)
         @Min(value = 1, message = "Quantity must be positive")
         private int quantity;
         
@@ -630,7 +678,9 @@ public class MerchantController {
         public void setQuantity(int quantity) { this.quantity = quantity; }
     }
     
+    @Schema(description = "Reduce inventory request")
     public static class ReduceInventoryRequest {
+        @Schema(description = "Quantity to reduce", example = "5", required = true)
         @Min(value = 1, message = "Quantity must be positive")
         private int quantity;
         
@@ -640,7 +690,9 @@ public class MerchantController {
         public void setQuantity(int quantity) { this.quantity = quantity; }
     }
     
+    @Schema(description = "Set inventory request")
     public static class SetInventoryRequest {
+        @Schema(description = "New inventory quantity", example = "20", required = true)
         @Min(value = 0, message = "Quantity cannot be negative")
         private int quantity;
         
@@ -650,10 +702,18 @@ public class MerchantController {
         public void setQuantity(int quantity) { this.quantity = quantity; }
     }
     
+    @Schema(description = "Inventory operation response")
     public static class InventoryResponse {
+        @Schema(description = "Product SKU", example = "PHONE-001")
         private String sku;
+        
+        @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String productName;
+        
+        @Schema(description = "Available inventory", example = "50")
         private int availableInventory;
+        
+        @Schema(description = "Product availability", example = "true")
         private boolean available;
         
         public InventoryResponse(String sku, String productName, int availableInventory,
@@ -671,10 +731,18 @@ public class MerchantController {
         public boolean isAvailable() { return available; }
     }
     
+    @Schema(description = "Merchant income response")
     public static class IncomeResponse {
+        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
+        
+        @Schema(description = "Current balance", example = "1000.00")
         private BigDecimal currentBalance;
+        
+        @Schema(description = "Total income", example = "5000.00")
         private BigDecimal totalIncome;
+        
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
         
         public IncomeResponse(Long merchantId, BigDecimal currentBalance,
@@ -692,11 +760,21 @@ public class MerchantController {
         public String getCurrency() { return currency; }
     }
     
+    @Schema(description = "Merchant product list response")
     public static class MerchantProductListResponse {
+        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
+        
+        @Schema(description = "Product list")
         private List<ProductResponse> products;
+        
+        @Schema(description = "Total product count", example = "10")
         private int totalCount;
+        
+        @Schema(description = "Status filter applied", example = "ACTIVE")
         private String statusFilter;
+        
+        @Schema(description = "Search term applied", example = "iPhone")
         private String searchTerm;
         
         public MerchantProductListResponse(Long merchantId, List<ProductResponse> products, 
@@ -718,7 +796,7 @@ public class MerchantController {
 
     @Schema(description = "Settlement request")
     public static class SettlementRequest {
-        @Schema(description = "Date for which to execute settlement (YYYY-MM-DD)", example = "2023-10-27")
+        @Schema(description = "Date for which to execute settlement (YYYY-MM-DD)", example = "2025-07-11")
         private LocalDate settlementDate;
 
         public LocalDate getSettlementDate() {
@@ -730,13 +808,27 @@ public class MerchantController {
         }
     }
 
+    @Schema(description = "Settlement operation response")
     public static class SettlementResponse {
+        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
+        
+        @Schema(description = "Settlement date", example = "2025-07-11")
         private LocalDate settlementDate;
+        
+        @Schema(description = "Expected income", example = "1000.00")
         private BigDecimal expectedIncome;
+        
+        @Schema(description = "Actual balance", example = "1000.00")
         private BigDecimal actualBalance;
+        
+        @Schema(description = "Difference amount", example = "0.00")
         private BigDecimal difference;
+        
+        @Schema(description = "Settlement status", example = "COMPLETED")
         private String status;
+        
+        @Schema(description = "Settlement notes", example = "Settlement completed successfully")
         private String notes;
 
         public SettlementResponse(Long merchantId, LocalDate settlementDate, BigDecimal expectedIncome, BigDecimal actualBalance, BigDecimal difference, String status, String notes) {
@@ -808,7 +900,7 @@ public class MerchantController {
 
     @Schema(description = "Global Settlement request")
     public static class GlobalSettlementRequest {
-        @Schema(description = "Date for which to execute global settlement (YYYY-MM-DD)", example = "2023-10-27")
+        @Schema(description = "Date for which to execute global settlement (YYYY-MM-DD)", example = "2025-07-11")
         private LocalDate settlementDate;
 
         public LocalDate getSettlementDate() {
@@ -820,8 +912,12 @@ public class MerchantController {
         }
     }
 
+    @Schema(description = "Global settlement response")
     public static class GlobalSettlementResponse {
+        @Schema(description = "Settlement date", example = "2025-07-11")
         private LocalDate settlementDate;
+        
+        @Schema(description = "Settlement execution time", example = "2025-07-11T02:00:00")
         private LocalDateTime settlementTime;
 
         public GlobalSettlementResponse(LocalDate settlementDate, LocalDateTime settlementTime) {

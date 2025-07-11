@@ -240,15 +240,34 @@ public class EcommerceController {
     // DTO classes for product queries
     @Schema(description = "Product detail response")
     public static class ProductDetailResponse {
+        @Schema(description = "Product ID", example = "1")
         private Long id;
+        
+        @Schema(description = "Product SKU", example = "PHONE-001")
         private String sku;
+        
+        @Schema(description = "Product name", example = "iPhone 15 Pro")
         private String name;
+        
+        @Schema(description = "Product description", example = "Latest iPhone with advanced features")
         private String description;
+        
+        @Schema(description = "Product price", example = "999.00")
         private BigDecimal price;
+        
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        
+        @Schema(description = "Merchant ID", example = "1")
         private Long merchantId;
+        
+        @Schema(description = "Available inventory", example = "50")
         private int availableInventory;
+        
+        @Schema(description = "Product status", example = "ACTIVE")
         private String status;
+        
+        @Schema(description = "Product availability", example = "true")
         private boolean available;
         
         public ProductDetailResponse(Long id, String sku, String name, String description,

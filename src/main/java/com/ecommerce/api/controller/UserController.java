@@ -195,13 +195,16 @@ public class UserController {
     // DTO classes
     @Schema(description = "User creation request")
     public static class CreateUserRequest {
+        @Schema(description = "Username", example = "john_doe", required = true)
         @NotBlank(message = "Username is required")
         private String username;
         
+        @Schema(description = "Email address", example = "john.doe@example.com", required = true)
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
         private String email;
         
+        @Schema(description = "Phone number", example = "13800138000", required = true)
         @NotBlank(message = "Phone is required")
         private String phone;
         
@@ -214,13 +217,27 @@ public class UserController {
         public void setPhone(String phone) { this.phone = phone; }
     }
     
+    @Schema(description = "User information response")
     public static class UserResponse {
+        @Schema(description = "User ID", example = "1")
         private Long id;
+        
+        @Schema(description = "Username", example = "john_doe")
         private String username;
+        
+        @Schema(description = "Email address", example = "john.doe@example.com")
         private String email;
+        
+        @Schema(description = "Phone number", example = "13800138000")
         private String phone;
+        
+        @Schema(description = "Account balance", example = "100.00")
         private BigDecimal balance;
+        
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
+        
+        @Schema(description = "User status", example = "ACTIVE")
         private String status;
         
         public UserResponse(Long id, String username, String email, String phone, 
@@ -246,9 +263,11 @@ public class UserController {
     
     @Schema(description = "User account recharge request")
     public static class RechargeRequest {
+        @Schema(description = "Recharge amount", example = "100.00", required = true)
         @DecimalMin(value = "0.01", message = "Recharge amount must be positive")
         private BigDecimal amount;
         
+        @Schema(description = "Currency code", example = "CNY", required = true)
         @NotNull(message = "Currency is required")
         @NotBlank(message = "Currency is required")
         private String currency;
@@ -260,11 +279,21 @@ public class UserController {
         public void setCurrency(String currency) { this.currency = currency; }
     }
     
+    @Schema(description = "User account recharge response")
     public static class RechargeResponse {
+        @Schema(description = "User ID", example = "1")
         private Long userId;
+        
+        @Schema(description = "Recharged amount", example = "100.00")
         private BigDecimal rechargeAmount;
+        
+        @Schema(description = "Recharge currency", example = "CNY")
         private String rechargeCurrency;
+        
+        @Schema(description = "New account balance", example = "200.00")
         private BigDecimal newBalance;
+        
+        @Schema(description = "Balance currency", example = "CNY")
         private String balanceCurrency;
         
         public RechargeResponse() {}
@@ -287,9 +316,15 @@ public class UserController {
         public String getBalanceCurrency() { return balanceCurrency; }
     }
     
+    @Schema(description = "User balance response")
     public static class BalanceResponse {
+        @Schema(description = "User ID", example = "1")
         private Long userId;
+        
+        @Schema(description = "Current balance", example = "100.00")
         private BigDecimal balance;
+        
+        @Schema(description = "Currency code", example = "CNY")
         private String currency;
         
         public BalanceResponse(Long userId, BigDecimal balance, String currency) {

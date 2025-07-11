@@ -3,18 +3,23 @@ package com.ecommerce.application.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Purchase Request DTO
  */
+@Schema(description = "Product purchase request")
 public class PurchaseRequest {
     
+    @Schema(description = "User ID", example = "1", required = true)
     @NotNull(message = "User ID is required")
     private Long userId;
     
+    @Schema(description = "Product SKU", example = "PHONE-001", required = true)
     @NotBlank(message = "SKU is required")
     private String sku;
     
+    @Schema(description = "Purchase quantity", example = "2", required = true)
     @Min(value = 1, message = "Quantity must be positive")
     private int quantity;
     

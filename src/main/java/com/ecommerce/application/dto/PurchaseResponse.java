@@ -1,18 +1,33 @@
 package com.ecommerce.application.dto;
 
 import com.ecommerce.domain.Money;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Purchase Response DTO
  */
+@Schema(description = "Product purchase response")
 public class PurchaseResponse {
     
+    @Schema(description = "Order number", example = "ORD20250101001")
     private String orderNumber;
+    
+    @Schema(description = "User ID", example = "1")
     private Long userId;
+    
+    @Schema(description = "Merchant ID", example = "1")
     private Long merchantId;
+    
+    @Schema(description = "Product SKU", example = "PHONE-001")
     private String sku;
+    
+    @Schema(description = "Product name", example = "iPhone 15 Pro")
     private String productName;
+    
+    @Schema(description = "Purchase quantity", example = "2")
     private int quantity;
+    
+    @Schema(description = "Total amount", example = "2000.00")
     private Money totalAmount;
     
     // Constructor
