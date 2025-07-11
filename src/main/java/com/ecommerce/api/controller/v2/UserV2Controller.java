@@ -25,6 +25,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import com.ecommerce.api.dto.ErrorResponse;
 
 /**
  * User Controller V2 (API v2)
@@ -57,8 +59,18 @@ public class UserV2Controller {
     @PostMapping
     @Operation(summary = "Create User (V2)", description = "Register a new user with enhanced response including registration time and status")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data")
+        @ApiResponse(responseCode = "200", description = "User created successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"User created successfully\",\"data\":{\"id\":1,\"username\":\"john_doe\",\"email\":\"john.doe@example.com\",\"phone\":\"13800138000\",\"balance\":0.00,\"currency\":\"CNY\",\"status\":\"ACTIVE\",\"registrationTime\":\"2025-01-11T12:00:00\",\"lastLoginTime\":\"2025-01-11T12:00:00\",\"isActive\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Validation Error",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Username is required\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<UserV2Response>> createUser(@Valid @RequestBody CreateUserRequest request) {
         logger.info("Creating user (V2): {}", request.getUsername());
@@ -95,8 +107,18 @@ public class UserV2Controller {
     @GetMapping("/{userId}")
     @Operation(summary = "Get User (V2)", description = "Retrieve user information by ID with enhanced response including registration time and additional fields")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "200", description = "User retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"id\":1,\"username\":\"john_doe\",\"email\":\"john.doe@example.com\",\"phone\":\"13800138000\",\"balance\":100.00,\"currency\":\"CNY\",\"status\":\"ACTIVE\",\"registrationTime\":\"2025-01-11T12:00:00\",\"lastLoginTime\":\"2025-01-11T12:00:00\",\"isActive\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "User Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<UserV2Response>> getUserById(
             @Parameter(description = "User ID", required = true, example = "1")
@@ -130,8 +152,18 @@ public class UserV2Controller {
     @GetMapping("/{userId}/balance")
     @Operation(summary = "Get User Balance (V2)", description = "Retrieve user balance with enhanced response including last update time")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Balance retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "200", description = "Balance retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"userId\":1,\"balance\":100.00,\"currency\":\"CNY\",\"lastUpdateTime\":\"2025-01-11T12:00:00\",\"accountStatus\":\"ACTIVE\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "User Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<BalanceV2Response>> getUserBalance(
             @Parameter(description = "User ID", required = true, example = "1")
@@ -157,9 +189,24 @@ public class UserV2Controller {
     @PostMapping("/{userId}/recharge")
     @Operation(summary = "Recharge User Account (V2)", description = "Recharge user account with enhanced response including transaction details")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Recharge completed successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "200", description = "Recharge completed successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Recharge completed successfully\",\"data\":{\"userId\":1,\"rechargeAmount\":100.00,\"rechargeCurrency\":\"CNY\",\"newBalance\":200.00,\"balanceCurrency\":\"CNY\",\"transactionTime\":\"2025-01-11T12:00:00\",\"transactionStatus\":\"COMPLETED\",\"resultCode\":\"SUCCESS\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Validation Error",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Recharge amount must be positive\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "User Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"User not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<RechargeV2Response>> rechargeUser(
             @Parameter(description = "User ID", required = true, example = "1")

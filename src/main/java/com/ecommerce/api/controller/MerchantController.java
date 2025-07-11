@@ -37,6 +37,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import com.ecommerce.api.dto.ErrorResponse;
 import com.ecommerce.domain.settlement.Settlement;
 
 /**
@@ -68,9 +70,18 @@ public class MerchantController {
     @PostMapping
     @Operation(summary = "Create Merchant", description = "Register a new merchant with business information")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Merchant created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data", 
-                    content = @Content(schema = @Schema(implementation = Result.class)))
+        @ApiResponse(responseCode = "200", description = "Merchant created successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Merchant created successfully\",\"data\":{\"id\":1,\"merchantName\":\"Apple Store\",\"businessLicense\":\"BL123456789\",\"contactEmail\":\"contact@applestore.com\",\"contactPhone\":\"13800138000\",\"balance\":0.00,\"currency\":\"CNY\",\"totalIncome\":0.00,\"status\":\"ACTIVE\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Validation Error",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Merchant name is required\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<MerchantResponse>> createMerchant(@Valid @RequestBody CreateMerchantRequest request) {
         logger.info("Creating merchant with name: {}", request.getMerchantName());
@@ -108,9 +119,24 @@ public class MerchantController {
     @PostMapping("/{merchantId}/products")
     @Operation(summary = "Create Product", description = "Create a new product for a specific merchant")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Product created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data"),
-        @ApiResponse(responseCode = "404", description = "Merchant not found")
+        @ApiResponse(responseCode = "200", description = "Product created successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Product created successfully\",\"data\":{\"id\":1,\"sku\":\"PHONE-001\",\"name\":\"iPhone 15 Pro\",\"description\":\"Latest iPhone with advanced features\",\"price\":999.00,\"currency\":\"CNY\",\"merchantId\":1,\"availableInventory\":100,\"status\":\"ACTIVE\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Validation Error",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"SKU is required\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Merchant Not Found",
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<ProductResponse>> createProduct(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -155,9 +181,24 @@ public class MerchantController {
     @PostMapping("/{merchantId}/products/{sku}/inventory/add")
     @Operation(summary = "Add Product Inventory", description = "Add inventory quantity to a specific product")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Inventory added successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data"),
-        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+        @ApiResponse(responseCode = "200", description = "Inventory added successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Inventory added successfully\",\"data\":{\"sku\":\"PHONE-001\",\"productName\":\"iPhone 15 Pro\",\"availableInventory\":110,\"available\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Validation Error",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Quantity must be positive\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Product Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> addProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -190,9 +231,24 @@ public class MerchantController {
     @PostMapping("/{merchantId}/products/{sku}/inventory/reduce")
     @Operation(summary = "Reduce Product Inventory", description = "Reduce inventory quantity for a specific product")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Inventory reduced successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data or insufficient inventory"),
-        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+        @ApiResponse(responseCode = "200", description = "Inventory reduced successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"sku\":\"PHONE-001\",\"productName\":\"iPhone 15 Pro\",\"availableInventory\":95,\"available\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data or insufficient inventory",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Insufficient Inventory",
+                                         value = "{\"code\":\"INSUFFICIENT_INVENTORY\",\"message\":\"Insufficient product inventory\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Product Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> reduceProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -225,9 +281,24 @@ public class MerchantController {
     @PutMapping("/{merchantId}/products/{sku}/inventory")
     @Operation(summary = "Set Product Inventory", description = "Set inventory quantity to absolute value for a specific product")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Inventory set successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data"),
-        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+        @ApiResponse(responseCode = "200", description = "Inventory set successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"sku\":\"PHONE-001\",\"productName\":\"iPhone 15 Pro\",\"availableInventory\":50,\"available\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Validation Error",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Quantity cannot be negative\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Product Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> setProductInventory(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -275,8 +346,18 @@ public class MerchantController {
     @GetMapping("/{merchantId}/income")
     @Operation(summary = "Get Merchant Income", description = "Retrieve merchant's current balance and total income")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Income information retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Merchant not found")
+        @ApiResponse(responseCode = "200", description = "Income information retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"merchantId\":1,\"currentBalance\":1000.00,\"totalIncome\":5000.00,\"currency\":\"CNY\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Merchant Not Found",
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<IncomeResponse>> getMerchantIncome(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -303,8 +384,18 @@ public class MerchantController {
     @PostMapping("/{merchantId}/settlement")
     @Operation(summary = "Execute Settlement", description = "Manually trigger settlement for a specific merchant")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Settlement executed successfully"),
-        @ApiResponse(responseCode = "404", description = "Merchant not found")
+        @ApiResponse(responseCode = "200", description = "Settlement executed successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Settlement executed successfully\",\"data\":{\"merchantId\":1,\"settlementDate\":\"2025-07-11\",\"expectedIncome\":1000.00,\"actualBalance\":1000.00,\"difference\":0.00,\"status\":\"COMPLETED\",\"notes\":\"Settlement completed successfully\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Merchant Not Found",
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<SettlementResponse>> executeSettlement(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -343,7 +434,12 @@ public class MerchantController {
     @PostMapping("/settlement/global")
     @Operation(summary = "Execute Global Settlement", description = "Manually trigger settlement for all merchants")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Global settlement executed successfully")
+        @ApiResponse(responseCode = "200", description = "Global settlement executed successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"settlementDate\":\"2025-07-11\",\"settlementTime\":\"2025-07-11T02:00:00\"},\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<GlobalSettlementResponse>> executeGlobalSettlement(
             @RequestBody(required = false) GlobalSettlementRequest request) {
@@ -384,8 +480,18 @@ public class MerchantController {
     @GetMapping("/{merchantId}/products")
     @Operation(summary = "Get Merchant Products", description = "Retrieve all products for a specific merchant with optional filtering")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Merchant not found")
+        @ApiResponse(responseCode = "200", description = "Products retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"merchantId\":1,\"products\":[{\"id\":1,\"sku\":\"PHONE-001\",\"name\":\"iPhone 15 Pro\",\"description\":\"Latest iPhone with advanced features\",\"price\":999.00,\"currency\":\"CNY\",\"merchantId\":1,\"availableInventory\":100,\"status\":\"ACTIVE\"}],\"totalCount\":1,\"statusFilter\":\"ACTIVE\",\"searchTerm\":null},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Merchant Not Found",
+                                         value = "{\"code\":\"MERCHANT_NOT_FOUND\",\"message\":\"Merchant not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<MerchantProductListResponse>> getMerchantProducts(
             @Parameter(description = "Merchant ID", required = true, example = "1")
@@ -456,8 +562,18 @@ public class MerchantController {
     @GetMapping("/{merchantId}/products/{sku}")
     @Operation(summary = "Get Merchant Product", description = "Retrieve specific product details for a merchant")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Product retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Merchant or product not found")
+        @ApiResponse(responseCode = "200", description = "Product retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"id\":1,\"sku\":\"PHONE-001\",\"name\":\"iPhone 15 Pro\",\"description\":\"Latest iPhone with advanced features\",\"price\":999.00,\"currency\":\"CNY\",\"merchantId\":1,\"availableInventory\":100,\"status\":\"ACTIVE\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Merchant or product not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Product Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<ProductResponse>> getMerchantProduct(
             @Parameter(description = "Merchant ID", required = true, example = "1")

@@ -23,6 +23,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import com.ecommerce.api.dto.ErrorResponse;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -59,9 +61,24 @@ public class EcommerceController {
     @ApiTimeout(value = 10, unit = TimeUnit.SECONDS, message = "Purchase operation timeout")
     @Operation(summary = "Purchase Product", description = "Process product purchase with inventory and payment validation")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Purchase completed successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data or business validation failed"),
-        @ApiResponse(responseCode = "404", description = "User, product, or merchant not found")
+        @ApiResponse(responseCode = "200", description = "Purchase completed successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Purchase completed successfully\",\"data\":{\"orderNumber\":\"ORD-2025-001\",\"userId\":1,\"merchantId\":1,\"productSku\":\"PHONE-001\",\"quantity\":1,\"totalAmount\":999.00,\"currency\":\"CNY\",\"orderStatus\":\"COMPLETED\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data or business validation failed",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Insufficient Balance",
+                                         value = "{\"code\":\"INSUFFICIENT_BALANCE\",\"message\":\"Insufficient user balance\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "User, product, or merchant not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Product Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<PurchaseResponse>> purchaseProduct(@Valid @RequestBody PurchaseRequest request) {
         logger.info("Processing purchase request: {}", request);
@@ -80,9 +97,24 @@ public class EcommerceController {
     @PostMapping("/orders/{orderNumber}/cancel")
     @Operation(summary = "Cancel Order", description = "Cancel an existing order with reason")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Order cancelled successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data"),
-        @ApiResponse(responseCode = "404", description = "Order not found")
+        @ApiResponse(responseCode = "200", description = "Order cancelled successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Order cancelled successfully\",\"data\":{\"orderNumber\":\"ORD-2025-001\",\"reason\":\"Customer request\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Validation Error",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Reason is required\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Order not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Order Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Order not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<Map<String, Object>>> cancelOrder(
             @Parameter(description = "Order number", required = true, example = "ORD-2025-001")
@@ -108,8 +140,18 @@ public class EcommerceController {
     @GetMapping("/products/{sku}")
     @Operation(summary = "Get Product Details", description = "Retrieve detailed product information by SKU")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Product details retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+        @ApiResponse(responseCode = "200", description = "Product details retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"id\":1,\"sku\":\"PHONE-001\",\"name\":\"iPhone 15 Pro\",\"description\":\"Latest iPhone with advanced features\",\"price\":999.00,\"currency\":\"CNY\",\"merchantId\":1,\"availableInventory\":100,\"status\":\"ACTIVE\",\"available\":true},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Product not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Product Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<ProductDetailResponse>> getProductBySku(
             @Parameter(description = "Product SKU", required = true, example = "PHONE-001")
@@ -215,8 +257,18 @@ public class EcommerceController {
     @GetMapping("/products/{sku}/inventory")
     @Operation(summary = "Get Product Inventory", description = "Check inventory status for a specific product")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Inventory information retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+        @ApiResponse(responseCode = "200", description = "Inventory information retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"sku\":\"PHONE-001\",\"productName\":\"iPhone 15 Pro\",\"availableInventory\":100,\"available\":true,\"status\":\"ACTIVE\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "404", description = "Product not found",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Product Not Found",
+                                         value = "{\"code\":\"RESOURCE_NOT_FOUND\",\"message\":\"Product not found\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<InventoryResponse>> getProductInventory(
             @Parameter(description = "Product SKU", required = true, example = "PHONE-001")

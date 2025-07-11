@@ -13,6 +13,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import com.ecommerce.api.dto.ErrorResponse;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -36,7 +40,12 @@ public class ApiVersionController {
     @Operation(summary = "Get API Version Information", 
                description = "Returns comprehensive API version information including supported versions, strategies, and compatibility settings")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Version information retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Version information retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"currentVersion\":\"v1\",\"supportedVersions\":[\"v1\",\"v2\"],\"timestamp\":\"2025-01-11T12:00:00\",\"strategy\":{\"urlPathVersioning\":true,\"headerVersioning\":true,\"queryParamVersioning\":true},\"compatibility\":{\"backwardCompatible\":true,\"deprecationWarning\":true}},\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<Map<String, Object>>> getVersionInfo() {
         Map<String, Object> versionInfo = new HashMap<>();
@@ -77,8 +86,18 @@ public class ApiVersionController {
     @Operation(summary = "Check Version Compatibility", 
                description = "Validates if a specific API version is supported and provides compatibility information")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Version compatibility information retrieved successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid version format")
+        @ApiResponse(responseCode = "200", description = "Version compatibility information retrieved successfully",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = Result.class),
+                                     examples = @ExampleObject(
+                                         name = "Success Response",
+                                         value = "{\"code\":\"SUCCESS\",\"message\":\"Operation completed successfully\",\"data\":{\"requestedVersion\":\"v1\",\"isSupported\":true,\"currentVersion\":\"v1\",\"supportedVersions\":[\"v1\",\"v2\"],\"timestamp\":\"2025-01-11T12:00:00\"},\"timestamp\":\"2025-01-11T12:00:00\"}"))),
+        @ApiResponse(responseCode = "400", description = "Invalid version format",
+                    content = @Content(mediaType = "application/json", 
+                                     schema = @Schema(implementation = ErrorResponse.class),
+                                     examples = @ExampleObject(
+                                         name = "Invalid Version Format",
+                                         value = "{\"code\":\"VALIDATION_ERROR\",\"message\":\"Invalid version format. Version must be a positive integer (e.g., 'v1', 'v2')\",\"data\":null,\"timestamp\":\"2025-01-11T12:00:00\"}")))
     })
     public ResponseEntity<Result<Map<String, Object>>> checkVersionCompatibility(
             @Parameter(description = "API version to check (e.g., 'v1', 'v2')", required = true, example = "v1")

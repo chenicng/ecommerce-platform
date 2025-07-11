@@ -1,17 +1,26 @@
 package com.ecommerce.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
 /**
  * Unified API Response Format
  * Provides consistent response structure for all API endpoints
  */
+@Schema(description = "Unified API response wrapper")
 public class Result<T> {
     
+    @Schema(description = "Response code", example = "SUCCESS")
     private String code;
+    
+    @Schema(description = "Response message", example = "Operation completed successfully")
     private String message;
+    
+    @Schema(description = "Response data")
     private T data;
+    
+    @Schema(description = "Response timestamp", example = "2025-07-11T12:00:00")
     private LocalDateTime timestamp;
     
     // Private constructor to enforce factory methods
