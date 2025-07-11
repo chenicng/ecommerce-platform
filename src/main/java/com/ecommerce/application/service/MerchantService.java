@@ -15,7 +15,6 @@ import java.util.List;
  * Manages merchant-related business operations
  */
 @Service
-@Transactional
 public class MerchantService {
     
     private final MerchantRepository merchantRepository;
@@ -26,7 +25,9 @@ public class MerchantService {
     
     /**
      * Create merchant with uniqueness validation
+     * Requires transaction due to validation + save operations
      */
+    @Transactional
     public Merchant createMerchant(String merchantName, String businessLicense,
                                  String contactEmail, String contactPhone) {
         // Validate business license uniqueness

@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import jakarta.validation.Valid;
 import org.springframework.context.annotation.Profile;
 
@@ -197,15 +200,20 @@ public class UserController {
     public static class CreateUserRequest {
         @Schema(description = "Username", example = "john_doe", required = true)
         @NotBlank(message = "Username is required")
+        @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+        @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers and underscores")
         private String username;
         
         @Schema(description = "Email address", example = "john.doe@example.com", required = true)
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
+        @Size(max = 100, message = "Email must not exceed 100 characters")
         private String email;
         
         @Schema(description = "Phone number", example = "13800138000", required = true)
         @NotBlank(message = "Phone is required")
+        @Pattern(regexp = "^1[3-9]\\d{9}$", message = "Invalid phone number format")
+        @Size(max = 20, message = "Phone number must not exceed 20 characters")
         private String phone;
         
         // Getters and Setters
@@ -264,12 +272,15 @@ public class UserController {
     @Schema(description = "User account recharge request")
     public static class RechargeRequest {
         @Schema(description = "Recharge amount", example = "100.00", required = true)
+        @NotNull(message = "Recharge amount is required")
         @DecimalMin(value = "0.01", message = "Recharge amount must be positive")
+        @DecimalMax(value = "999999.99", message = "Recharge amount must not exceed 999999.99")
         private BigDecimal amount;
         
         @Schema(description = "Currency code", example = "CNY", required = true)
-        @NotNull(message = "Currency is required")
         @NotBlank(message = "Currency is required")
+        @Size(min = 3, max = 3, message = "Currency code must be exactly 3 characters")
+        @Pattern(regexp = "^[A-Z]{3}$", message = "Currency code must be 3 uppercase letters")
         private String currency;
         
         // Getters and Setters

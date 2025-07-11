@@ -3,18 +3,43 @@ package com.ecommerce.domain.merchant;
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
 import com.ecommerce.domain.ResourceInactiveException;
+import jakarta.persistence.*;
 
 /**
  * Merchant Aggregate Root
  * Contains merchant basic information and income account
  */
+@Entity
+@Table(name = "merchants", indexes = {
+    @Index(name = "idx_merchant_name", columnList = "merchant_name"),
+    @Index(name = "idx_merchant_license", columnList = "business_license", unique = true),
+    @Index(name = "idx_merchant_email", columnList = "contact_email", unique = true)
+})
 public class Merchant extends BaseEntity {
     
+    @Column(name = "merchant_name", nullable = false, length = 100)
     private String merchantName;
+    
+    @Column(name = "business_license", nullable = false, length = 50, unique = true)
     private String businessLicense;
+    
+    @Column(name = "contact_email", nullable = false, length = 100, unique = true)
     private String contactEmail;
+    
+    @Column(name = "contact_phone", nullable = false, length = 20)
     private String contactPhone;
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "balance.amount", column = @Column(name = "balance_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "balance.currency", column = @Column(name = "balance_currency", length = 3)),
+        @AttributeOverride(name = "totalIncome.amount", column = @Column(name = "total_income_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "totalIncome.currency", column = @Column(name = "total_income_currency", length = 3))
+    })
     private MerchantAccount account;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     private MerchantStatus status;
     
     // Constructor

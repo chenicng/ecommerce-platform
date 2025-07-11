@@ -2,20 +2,53 @@ package com.ecommerce.domain.settlement;
 
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
 /**
  * Settlement Aggregate Root
  * Records daily settlement information for merchants
  */
+@Entity
+@Table(name = "settlements", indexes = {
+    @Index(name = "idx_settlement_date", columnList = "settlement_date"),
+    @Index(name = "idx_settlement_merchant_date", columnList = "merchant_id, settlement_date", unique = true),
+    @Index(name = "idx_settlement_status", columnList = "status")
+})
 public class Settlement extends BaseEntity {
     
+    @Column(name = "merchant_id", nullable = false)
     private Long merchantId;
+    
+    @Column(name = "settlement_date", nullable = false)
     private LocalDate settlementDate;
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "amount", column = @Column(name = "expected_income_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "currency", column = @Column(name = "expected_income_currency", length = 3))
+    })
     private Money expectedIncome;  // Expected income calculated from sales records
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "amount", column = @Column(name = "actual_balance_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "currency", column = @Column(name = "actual_balance_currency", length = 3))
+    })
     private Money actualBalance;   // Actual balance in merchant account
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "amount", column = @Column(name = "difference_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "currency", column = @Column(name = "difference_currency", length = 3))
+    })
     private Money difference;      // Difference amount
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     private SettlementStatus status;
+    
+    @Column(name = "notes", length = 1000)
     private String notes;
     
     // Constructor

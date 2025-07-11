@@ -17,6 +17,12 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -492,18 +498,25 @@ public class MerchantController {
     public static class CreateMerchantRequest {
         @Schema(description = "Merchant name", example = "Apple Store", required = true)
         @NotBlank(message = "Merchant name is required")
+        @Size(min = 2, max = 100, message = "Merchant name must be between 2 and 100 characters")
         private String merchantName;
         
         @Schema(description = "Business license number", example = "BL123456789", required = true)
         @NotBlank(message = "Business license is required")
+        @Size(min = 5, max = 50, message = "Business license must be between 5 and 50 characters")
+        @Pattern(regexp = "^[A-Z0-9]+$", message = "Business license can only contain uppercase letters and numbers")
         private String businessLicense;
         
         @Schema(description = "Contact email", example = "contact@applestore.com", required = true)
         @NotBlank(message = "Contact email is required")
+        @Email(message = "Invalid email format")
+        @Size(max = 100, message = "Email must not exceed 100 characters")
         private String contactEmail;
         
         @Schema(description = "Contact phone", example = "13800138000", required = true)
         @NotBlank(message = "Contact phone is required")
+        @Pattern(regexp = "^1[3-9]\\d{9}$", message = "Invalid phone number format")
+        @Size(max = 20, message = "Phone number must not exceed 20 characters")
         private String contactPhone;
         
         // Getters and Setters
@@ -576,25 +589,34 @@ public class MerchantController {
     public static class CreateProductRequest {
         @Schema(description = "Product SKU", example = "PHONE-001", required = true)
         @NotBlank(message = "SKU is required")
+        @Size(min = 3, max = 50, message = "SKU must be between 3 and 50 characters")
+        @Pattern(regexp = "^[A-Z0-9-]+$", message = "SKU can only contain uppercase letters, numbers and hyphens")
         private String sku;
         
         @Schema(description = "Product name", example = "iPhone 15 Pro", required = true)
         @NotBlank(message = "Product name is required")
+        @Size(min = 2, max = 200, message = "Product name must be between 2 and 200 characters")
         private String name;
         
         @Schema(description = "Product description", example = "Latest iPhone with advanced features")
+        @Size(max = 1000, message = "Product description must not exceed 1000 characters")
         private String description;
         
         @Schema(description = "Product price", example = "999.00", required = true)
+        @NotNull(message = "Price is required")
         @DecimalMin(value = "0.01", message = "Price must be positive")
+        @DecimalMax(value = "9999999.99", message = "Price must not exceed 9999999.99")
         private BigDecimal price;
         
         @Schema(description = "Currency code", example = "CNY", required = true)
         @NotBlank(message = "Currency is required")
+        @Size(min = 3, max = 3, message = "Currency code must be exactly 3 characters")
+        @Pattern(regexp = "^[A-Z]{3}$", message = "Currency code must be 3 uppercase letters")
         private String currency = "CNY";
         
         @Schema(description = "Initial inventory quantity", example = "100")
         @Min(value = 0, message = "Initial inventory cannot be negative")
+        @Max(value = 999999, message = "Initial inventory must not exceed 999999")
         private int initialInventory;
         
         // Getters and Setters

@@ -2,6 +2,7 @@ package com.ecommerce.domain.order;
 
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,15 +11,43 @@ import java.util.List;
  * Order Aggregate Root
  * Handles the complete process of user purchasing products
  */
+@Entity
+@Table(name = "orders", indexes = {
+    @Index(name = "idx_order_number", columnList = "order_number", unique = true),
+    @Index(name = "idx_order_user", columnList = "user_id"),
+    @Index(name = "idx_order_merchant", columnList = "merchant_id"),
+    @Index(name = "idx_order_status", columnList = "status"),
+    @Index(name = "idx_order_time", columnList = "order_time")
+})
 public class Order extends BaseEntity {
     
+    @Column(name = "order_number", nullable = false, length = 50, unique = true)
     private String orderNumber;
+    
+    @Column(name = "user_id", nullable = false)
     private Long userId;
+    
+    @Column(name = "merchant_id", nullable = false)
     private Long merchantId;
+    
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<OrderItem> items;
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "amount", column = @Column(name = "total_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "currency", column = @Column(name = "total_currency", length = 3))
+    })
     private Money totalAmount;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     private OrderStatus status;
+    
+    @Column(name = "order_time", nullable = false)
     private LocalDateTime orderTime;
+    
+    @Column(name = "completed_time")
     private LocalDateTime completedTime;
     
     // Constructor
@@ -47,6 +76,7 @@ public class Order extends BaseEntity {
         }
         
         OrderItem item = new OrderItem(sku, productName, unitPrice, quantity);
+        item.setOrder(this); // Set bidirectional relationship
         this.items.add(item);
         
         // Initialize totalAmount with first item's currency, or add to existing total

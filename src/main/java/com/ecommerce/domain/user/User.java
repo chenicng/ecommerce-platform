@@ -3,17 +3,36 @@ package com.ecommerce.domain.user;
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
 import com.ecommerce.domain.ResourceInactiveException;
+import jakarta.persistence.*;
 
 /**
  * User Aggregate Root
  * Contains user basic information and prepaid account
  */
+@Entity
+@Table(name = "users", indexes = {
+    @Index(name = "idx_user_email", columnList = "email", unique = true)
+})
 public class User extends BaseEntity {
     
+    @Column(name = "username", nullable = false, length = 50)
     private String username;
+    
+    @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
+    
+    @Column(name = "phone", nullable = false, length = 20)
     private String phone;
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "amount", column = @Column(name = "balance_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "currency", column = @Column(name = "balance_currency", length = 3))
+    })
     private UserAccount account;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     private UserStatus status;
     
     // Constructor

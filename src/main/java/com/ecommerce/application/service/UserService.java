@@ -14,7 +14,6 @@ import java.util.Set;
  * Manages user-related business operations
  */
 @Service
-@Transactional
 public class UserService {
     
     private final UserRepository userRepository;
@@ -25,7 +24,9 @@ public class UserService {
     
     /**
      * Create user with uniqueness validation
+     * Requires transaction due to validation + save operations
      */
+    @Transactional
     public User createUser(String username, String email, String phone, String currency) {
         // Validate phone uniqueness
         if (userRepository.existsByPhone(phone)) {
@@ -52,7 +53,9 @@ public class UserService {
     
     /**
      * User account recharge
+     * Requires transaction due to read + modify + save operations
      */
+    @Transactional
     public void rechargeUser(Long userId, Money amount) {
         User user = getUserById(userId);
         user.recharge(amount);

@@ -1,6 +1,8 @@
 package com.ecommerce.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -9,13 +11,23 @@ import java.util.Objects;
  * Money Value Object
  * Uses BigDecimal to ensure precision, follows immutability principle
  */
+@Embeddable
 public final class Money {
     
     private static final int DEFAULT_SCALE = 2;
     private static final RoundingMode DEFAULT_ROUNDING_MODE = RoundingMode.HALF_UP;
     
+    @Column(name = "amount", precision = 19, scale = 2, nullable = false)
     private final BigDecimal amount;
+    
+    @Column(name = "currency", length = 3, nullable = false)
     private final String currency;
+    
+    // Default constructor for JPA
+    protected Money() {
+        this.amount = BigDecimal.ZERO;
+        this.currency = "CNY";
+    }
     
     private Money(BigDecimal amount, String currency) {
         this.amount = amount.setScale(DEFAULT_SCALE, DEFAULT_ROUNDING_MODE);

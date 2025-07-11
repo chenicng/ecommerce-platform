@@ -1,15 +1,24 @@
 package com.ecommerce.domain.user;
 
 import com.ecommerce.domain.Money;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import java.util.Objects;
 
 /**
  * User Account Value Object
  * Contains user prepaid balance information
  */
+@Embeddable
 public final class UserAccount {
     
+    @Embedded
     private final Money balance;
+    
+    // Default constructor for JPA
+    protected UserAccount() {
+        this.balance = null;
+    }
     
     public UserAccount(Money balance) {
         if (balance == null) {

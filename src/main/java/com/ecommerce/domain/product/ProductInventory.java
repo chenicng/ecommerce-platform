@@ -1,14 +1,23 @@
 package com.ecommerce.domain.product;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.util.Objects;
 
 /**
  * Product Inventory Value Object
  * Manages product inventory quantity
  */
+@Embeddable
 public final class ProductInventory {
     
+    @Column(name = "quantity", nullable = false)
     private final int quantity;
+    
+    // Default constructor for JPA
+    protected ProductInventory() {
+        this.quantity = 0;
+    }
     
     public ProductInventory(int quantity) {
         if (quantity < 0) {

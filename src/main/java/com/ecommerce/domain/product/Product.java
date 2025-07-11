@@ -3,19 +3,47 @@ package com.ecommerce.domain.product;
 import com.ecommerce.domain.BaseEntity;
 import com.ecommerce.domain.Money;
 import com.ecommerce.domain.ResourceInactiveException;
+import jakarta.persistence.*;
 
 /**
  * Product Aggregate Root
  * Contains product basic information, price and inventory
  */
+@Entity
+@Table(name = "products", indexes = {
+    @Index(name = "idx_product_sku", columnList = "sku", unique = true),
+    @Index(name = "idx_product_merchant", columnList = "merchant_id"),
+    @Index(name = "idx_product_name", columnList = "name")
+})
 public class Product extends BaseEntity {
     
+    @Column(name = "sku", nullable = false, length = 50, unique = true)
     private String sku;
+    
+    @Column(name = "name", nullable = false, length = 200)
     private String name;
+    
+    @Column(name = "description", length = 1000)
     private String description;
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "amount", column = @Column(name = "price_amount", precision = 19, scale = 2)),
+        @AttributeOverride(name = "currency", column = @Column(name = "price_currency", length = 3))
+    })
     private Money price;
+    
+    @Column(name = "merchant_id", nullable = false)
     private Long merchantId;
+    
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "quantity", column = @Column(name = "inventory_quantity"))
+    })
     private ProductInventory inventory;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     private ProductStatus status;
     
     // Constructor

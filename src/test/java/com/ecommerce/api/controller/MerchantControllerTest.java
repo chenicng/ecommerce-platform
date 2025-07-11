@@ -762,11 +762,11 @@ class MerchantControllerTest {
         invalidRequest.setCurrency("CNY");
         invalidRequest.setInitialInventory(100);
 
-        // When & Then
+        // When & Then - Now expects 400 due to @NotNull validation on price
         mockMvc.perform(post(API_BASE_PATH + "/{merchantId}/products", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
 
         verify(productService, never()).createProduct(anyString(), anyString(), anyString(), any(), anyLong(), anyInt());
     }
@@ -779,13 +779,14 @@ class MerchantControllerTest {
         invalidRequest.setName("Test Product");
         invalidRequest.setDescription("Test Description");
         invalidRequest.setPrice(new BigDecimal("99.99"));
+        invalidRequest.setCurrency(""); // Set empty string to trigger @NotBlank validation
         invalidRequest.setInitialInventory(100);
 
-        // When & Then
+        // When & Then - Empty currency should trigger @NotBlank validation
         mockMvc.perform(post(API_BASE_PATH + "/{merchantId}/products", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
 
         verify(productService, never()).createProduct(anyString(), anyString(), anyString(), any(), anyLong(), anyInt());
     }
@@ -889,15 +890,16 @@ class MerchantControllerTest {
     }
 
     @Test
-    void setInventory_ValidationError_NullQuantity() throws Exception {
-        // Given
+    void setInventory_ValidationError_InvalidQuantity() throws Exception {
+        // Given - Use negative quantity to trigger @Min validation since int cannot be null
         MerchantController.SetInventoryRequest invalidRequest = new MerchantController.SetInventoryRequest();
+        invalidRequest.setQuantity(-1); // Negative quantity should trigger @Min(value = 0) validation
 
-        // When & Then
+        // When & Then - Negative quantity should trigger validation error
         mockMvc.perform(put(API_BASE_PATH + "/{merchantId}/products/{sku}/inventory", 1L, testProduct.getSku())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
 
         verify(productService, never()).setInventory(anyString(), anyInt());
     }

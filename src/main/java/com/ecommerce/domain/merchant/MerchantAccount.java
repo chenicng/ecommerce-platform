@@ -1,16 +1,28 @@
 package com.ecommerce.domain.merchant;
 
 import com.ecommerce.domain.Money;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import java.util.Objects;
 
 /**
  * Merchant Account Value Object
  * Contains merchant income and balance information
  */
+@Embeddable
 public final class MerchantAccount {
     
+    @Embedded
     private final Money balance;
+    
+    @Embedded
     private final Money totalIncome;
+    
+    // Default constructor for JPA
+    protected MerchantAccount() {
+        this.balance = null;
+        this.totalIncome = null;
+    }
     
     public MerchantAccount(Money balance) {
         this(balance, balance);

@@ -20,7 +20,6 @@ import java.util.Optional;
  * Handles business logic related to merchant settlement
  */
 @Service
-@Transactional
 public class SettlementService {
     
     private static final Logger logger = LoggerFactory.getLogger(SettlementService.class);
@@ -40,6 +39,7 @@ public class SettlementService {
     /**
      * Execute settlement for all active merchants (called by scheduler)
      * Improved logic: Calculate orders from yesterday settlement to now and compare with current balance
+     * No transaction needed - each merchant settlement has its own transaction
      */
     public void executeSettlement() {
         LocalDate settlementDate = LocalDate.now(); // Settle today's data
@@ -71,7 +71,9 @@ public class SettlementService {
      * Execute merchant settlement with improved logic
      * Validates: Orders from yesterday settlement to now should match current balance
      * If there was a settlement record yesterday, then: yesterday's balance + orders since yesterday = current balance
+     * Requires transaction for single merchant settlement atomicity
      */
+    @Transactional
     public Settlement executeMerchantSettlement(Long merchantId, LocalDate settlementDate) {
         logger.info("Executing settlement for merchant {} on date {}", merchantId, settlementDate);
         
@@ -183,6 +185,7 @@ public class SettlementService {
     
     /**
      * Save settlement
+     * Single operation, no explicit transaction needed
      */
     public void saveSettlement(Settlement settlement) {
         settlementRepository.save(settlement);

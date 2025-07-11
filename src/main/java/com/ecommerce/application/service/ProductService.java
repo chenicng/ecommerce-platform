@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
  * Manages product-related business operations
  */
 @Service
-@Transactional
 public class ProductService {
     
     private final ProductRepository productRepository;
@@ -27,7 +26,9 @@ public class ProductService {
     
     /**
      * Create product
+     * Requires transaction due to validation + save operations
      */
+    @Transactional
     public Product createProduct(String sku, String name, String description, 
                                Money price, Long merchantId, int initialInventory) {
         if (productRepository.existsBySku(sku)) {
@@ -68,7 +69,9 @@ public class ProductService {
     
     /**
      * Add product inventory
+     * Requires transaction due to read + modify + save operations
      */
+    @Transactional
     public void addInventory(String sku, int quantity) {
         Product product = getProductBySku(sku);
         product.addInventory(quantity);
@@ -84,7 +87,9 @@ public class ProductService {
     
     /**
      * Reduce product inventory
+     * Requires transaction due to read + modify + save operations
      */
+    @Transactional
     public void reduceInventory(String sku, int quantity) {
         Product product = getProductBySku(sku);
         product.reduceInventory(quantity);
@@ -93,7 +98,9 @@ public class ProductService {
     
     /**
      * Set product inventory to absolute value
+     * Requires transaction due to read + modify + save operations
      */
+    @Transactional
     public void setInventory(String sku, int quantity) {
         Product product = getProductBySku(sku);
         // Calculate the difference and adjust accordingly

@@ -17,7 +17,6 @@ import java.util.UUID;
  * Handles the complete business process of user purchasing products
  */
 @Service
-@Transactional
 public class EcommerceService {
     
     private final UserService userService;
@@ -36,7 +35,9 @@ public class EcommerceService {
     /**
      * Process purchase request
      * Complete business flow: validate -> create order -> deduct inventory -> confirm order -> deduct money -> add money -> complete order
+     * Requires transaction due to multiple atomic operations
      */
+    @Transactional
     public PurchaseResponse processPurchase(PurchaseRequest request) {
         // 1. Get and validate related entities
         User user = userService.getUserById(request.getUserId());
@@ -132,7 +133,9 @@ public class EcommerceService {
     
     /**
      * Cancel order with proper refund and inventory restore handling
+     * Requires transaction due to multiple atomic operations
      */
+    @Transactional
     public void cancelOrder(String orderNumber, String reason) {
         try {
             // 1. Get order

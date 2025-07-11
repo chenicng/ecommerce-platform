@@ -14,7 +14,6 @@ import java.util.List;
  * Manages order-related business operations
  */
 @Service
-@Transactional
 public class OrderService {
     
     private final OrderRepository orderRepository;
@@ -25,7 +24,9 @@ public class OrderService {
     
     /**
      * Save order
+     * Requires transaction for data consistency
      */
+    @Transactional
     public void saveOrder(Order order) {
         orderRepository.save(order);
     }
