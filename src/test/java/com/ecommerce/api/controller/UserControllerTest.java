@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
@@ -433,53 +434,325 @@ class UserControllerTest {
     }
 
     @Test
-    void testCreateUserRequest_SettersAndGetters() {
+    void rechargeBalance_InvalidAmount() throws Exception {
+        // Given
+        UserController.RechargeRequest request = new UserController.RechargeRequest();
+        request.setAmount(new BigDecimal("-100"));
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).rechargeUser(anyLong(), any());
+    }
+
+    // Test internal classes getter/setter methods
+    @Test
+    void testCreateUserRequest_GettersAndSetters() {
         UserController.CreateUserRequest request = new UserController.CreateUserRequest();
         
         request.setUsername("testuser");
         request.setEmail("test@example.com");
-        request.setPhone("13800138000");
+        request.setPhone("13900139000");
         
         assertEquals("testuser", request.getUsername());
         assertEquals("test@example.com", request.getEmail());
-        assertEquals("13800138000", request.getPhone());
+        assertEquals("13900139000", request.getPhone());
     }
 
     @Test
-    void testRechargeRequest_SettersAndGetters() {
+    void testRechargeRequest_GettersAndSetters() {
         UserController.RechargeRequest request = new UserController.RechargeRequest();
         
-        request.setAmount(new BigDecimal("100.00"));
-        request.setCurrency("USD");
-        
-        assertEquals(new BigDecimal("100.00"), request.getAmount());
-        assertEquals("USD", request.getCurrency());
+        request.setAmount(new BigDecimal("50.00"));
+        assertEquals(new BigDecimal("50.00"), request.getAmount());
     }
 
     @Test
-    void testUserResponse_ConstructorAndGetters() {
+    void testRechargeResponse_GettersAndSetters() {
+        UserController.RechargeResponse response = new UserController.RechargeResponse(
+            1L, new BigDecimal("50.00"), "CNY", new BigDecimal("150.00"), "CNY"
+        );
+        
+        assertEquals(1L, response.getUserId());
+        assertEquals(new BigDecimal("50.00"), response.getRechargeAmount());
+        assertEquals("CNY", response.getRechargeCurrency());
+        assertEquals(new BigDecimal("150.00"), response.getNewBalance());
+        assertEquals("CNY", response.getBalanceCurrency());
+    }
+
+    @Test
+    void testBalanceResponse_GettersAndSetters() {
+        UserController.BalanceResponse response = new UserController.BalanceResponse(
+            1L, new BigDecimal("200.00"), "CNY"
+        );
+        
+        assertEquals(1L, response.getUserId());
+        assertEquals(new BigDecimal("200.00"), response.getBalance());
+        assertEquals("CNY", response.getCurrency());
+    }
+
+    @Test
+    void testUserResponse_GettersAndSetters() {
         UserController.UserResponse response = new UserController.UserResponse(
-            1L, "testuser", "test@example.com", "13800138000", 
-            new BigDecimal("1000.00"), "CNY", "ACTIVE"
+            1L, "testuser", "test@example.com", "13812345678", 
+            new BigDecimal("100.00"), "CNY", "ACTIVE"
         );
         
         assertEquals(1L, response.getId());
         assertEquals("testuser", response.getUsername());
         assertEquals("test@example.com", response.getEmail());
-        assertEquals("13800138000", response.getPhone());
-        assertEquals(new BigDecimal("1000.00"), response.getBalance());
+        assertEquals("13812345678", response.getPhone());
+        assertEquals(new BigDecimal("100.00"), response.getBalance());
         assertEquals("CNY", response.getCurrency());
         assertEquals("ACTIVE", response.getStatus());
     }
 
     @Test
-    void testBalanceResponse_ConstructorAndGetters() {
-        UserController.BalanceResponse response = new UserController.BalanceResponse(
-            1L, new BigDecimal("1000.00"), "CNY"
+    void testUserResponse_ConstructorWithNullValues() {
+        UserController.UserResponse response = new UserController.UserResponse(
+            1L, null, null, null, null, null, null
         );
         
-        assertEquals(1L, response.getUserId());
-        assertEquals(new BigDecimal("1000.00"), response.getBalance());
-        assertEquals("CNY", response.getCurrency());
+        assertEquals(1L, response.getId());
+        assertNull(response.getUsername());
+        assertNull(response.getEmail());
+        assertNull(response.getPhone());
+        assertNull(response.getBalance());
+        assertNull(response.getCurrency());
+        assertNull(response.getStatus());
+    }
+
+    @Test
+    void testRechargeUser_ValidationError_NullAmount() throws Exception {
+        // Given
+        UserController.RechargeRequest invalidRequest = new UserController.RechargeRequest();
+        invalidRequest.setCurrency("CNY");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).rechargeUser(anyLong(), any());
+    }
+
+    @Test
+    void testRechargeUser_ValidationError_NegativeAmount() throws Exception {
+        // Given
+        UserController.RechargeRequest invalidRequest = new UserController.RechargeRequest();
+        invalidRequest.setAmount(new BigDecimal("-50.00"));
+        invalidRequest.setCurrency("CNY");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).rechargeUser(anyLong(), any());
+    }
+
+    @Test
+    void testRechargeUser_ValidationError_NullCurrency() throws Exception {
+        // Given
+        UserController.RechargeRequest invalidRequest = new UserController.RechargeRequest();
+        invalidRequest.setAmount(new BigDecimal("100.00"));
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).rechargeUser(anyLong(), any());
+    }
+
+    @Test
+    void testRechargeUser_ValidationError_EmptyCurrency() throws Exception {
+        // Given
+        UserController.RechargeRequest invalidRequest = new UserController.RechargeRequest();
+        invalidRequest.setAmount(new BigDecimal("100.00"));
+        invalidRequest.setCurrency("");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).rechargeUser(anyLong(), any());
+    }
+
+    @Test
+    void testRechargeUser_InvalidJson() throws Exception {
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("invalid json"))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).rechargeUser(anyLong(), any());
+    }
+
+    @Test
+    void testRechargeUser_ServiceException() throws Exception {
+        // Given
+        doThrow(new RuntimeException("Database error")).when(userService).rechargeUser(eq(1L), eq(Money.of("100.00", "CNY")));
+
+        UserController.RechargeRequest request = new UserController.RechargeRequest();
+        request.setAmount(new BigDecimal("100.00"));
+        request.setCurrency("CNY");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError());
+
+        verify(userService).rechargeUser(eq(1L), eq(Money.of("100.00", "CNY")));
+    }
+
+    @Test
+    void testRechargeUser_UserNotFound() throws Exception {
+        // Given
+        doThrow(new RuntimeException("User not found")).when(userService).rechargeUser(eq(999L), eq(Money.of("100.00", "CNY")));
+
+        UserController.RechargeRequest request = new UserController.RechargeRequest();
+        request.setAmount(new BigDecimal("100.00"));
+        request.setCurrency("CNY");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 999L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+
+        verify(userService).rechargeUser(eq(999L), eq(Money.of("100.00", "CNY")));
+    }
+
+    @Test
+    void testGetUser_ServiceException() throws Exception {
+        // Given
+        when(userService.getUserById(1L)).thenThrow(new RuntimeException("Database error"));
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/{userId}", 1L))
+                .andExpect(status().isInternalServerError());
+
+        verify(userService).getUserById(1L);
+    }
+
+    @Test
+    void testGetUser_UserNotFound() throws Exception {
+        // Given
+        when(userService.getUserById(999L)).thenThrow(new RuntimeException("User not found"));
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/{userId}", 999L))
+                .andExpect(status().isNotFound());
+
+        verify(userService).getUserById(999L);
+    }
+
+    @Test
+    void testGetUser_UserExistsButGetUserThrowsException() throws Exception {
+        // Given
+        when(userService.getUserById(1L)).thenThrow(new RuntimeException("User not found"));
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/{userId}", 1L))
+                .andExpect(status().isNotFound());
+
+        verify(userService).getUserById(1L);
+    }
+
+    @Test
+    void testRechargeUser_ZeroAmount() throws Exception {
+        // Given
+        doNothing().when(userService).rechargeUser(eq(1L), eq(Money.of("0.00", "CNY")));
+        when(userService.getUserBalance(1L)).thenReturn(Money.of("100.00", "CNY"));
+
+        UserController.RechargeRequest request = new UserController.RechargeRequest();
+        request.setAmount(BigDecimal.ZERO);
+        request.setCurrency("CNY");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).rechargeUser(anyLong(), any());
+        verify(userService, never()).getUserBalance(anyLong());
+    }
+
+    @Test
+    void testRechargeUser_DifferentCurrency() throws Exception {
+        // Given
+        doNothing().when(userService).rechargeUser(eq(1L), eq(Money.of("50.00", "USD")));
+        when(userService.getUserBalance(1L)).thenReturn(Money.of("150.00", "USD"));
+
+        UserController.RechargeRequest request = new UserController.RechargeRequest();
+        request.setAmount(new BigDecimal("50.00"));
+        request.setCurrency("USD");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("Recharge completed successfully"));
+
+        verify(userService).rechargeUser(eq(1L), eq(Money.of("50.00", "USD")));
+        verify(userService).getUserBalance(1L);
+    }
+
+    @Test
+    void testRechargeUser_LargeAmount() throws Exception {
+        // Given
+        doNothing().when(userService).rechargeUser(eq(1L), eq(Money.of("999999.99", "CNY")));
+        when(userService.getUserBalance(1L)).thenReturn(Money.of("1000000.00", "CNY"));
+
+        UserController.RechargeRequest request = new UserController.RechargeRequest();
+        request.setAmount(new BigDecimal("999999.99"));
+        request.setCurrency("CNY");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("Recharge completed successfully"));
+
+        verify(userService).rechargeUser(eq(1L), eq(Money.of("999999.99", "CNY")));
+        verify(userService).getUserBalance(1L);
+    }
+
+    @Test
+    void testRechargeUser_DecimalPrecision() throws Exception {
+        // Given
+        doNothing().when(userService).rechargeUser(eq(1L), eq(Money.of("100.12", "CNY")));
+        when(userService.getUserBalance(1L)).thenReturn(Money.of("200.12", "CNY"));
+
+        UserController.RechargeRequest request = new UserController.RechargeRequest();
+        request.setAmount(new BigDecimal("100.12"));
+        request.setCurrency("CNY");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/{userId}/recharge", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("Recharge completed successfully"));
+
+        verify(userService).rechargeUser(eq(1L), eq(Money.of("100.12", "CNY")));
+        verify(userService).getUserBalance(1L);
     }
 }

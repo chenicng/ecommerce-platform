@@ -25,6 +25,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.math.BigDecimal;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
 
 /**
  * Test class for EcommerceController
@@ -715,5 +720,161 @@ class EcommerceControllerTest {
                 .andExpect(jsonPath("$.message").value("Merchant not found"));
 
         verify(productService).getProductsByMerchant(999L);
+    }
+
+    // Test internal classes getter/setter methods
+    @Test
+    void testCancelOrderRequest_GettersAndSetters() {
+        EcommerceController.CancelOrderRequest request = new EcommerceController.CancelOrderRequest();
+        
+        request.setReason("Changed mind");
+        assertEquals("Changed mind", request.getReason());
+    }
+
+    @Test
+    void testProductDetailResponse_GettersAndSetters() {
+        EcommerceController.ProductDetailResponse response = new EcommerceController.ProductDetailResponse(
+            1L, "TEST-SKU", "Test Product", "Description", 
+            new BigDecimal("99.99"), "CNY", 1L, 50, "ACTIVE", true
+        );
+        
+        assertEquals(1L, response.getId());
+        assertEquals("TEST-SKU", response.getSku());
+        assertEquals("Test Product", response.getName());
+        assertEquals("Description", response.getDescription());
+        assertEquals(new BigDecimal("99.99"), response.getPrice());
+        assertEquals("CNY", response.getCurrency());
+        assertEquals(1L, response.getMerchantId());
+        assertEquals(50, response.getAvailableInventory());
+        assertEquals("ACTIVE", response.getStatus());
+        assertTrue(response.isAvailable());
+    }
+
+    @Test
+    void testProductSummaryResponse_GettersAndSetters() {
+        EcommerceController.ProductSummaryResponse response = new EcommerceController.ProductSummaryResponse(
+            1L, "TEST-SKU", "Test Product", new BigDecimal("99.99"), "CNY", 1L, 50, true
+        );
+        
+        assertEquals(1L, response.getId());
+        assertEquals("TEST-SKU", response.getSku());
+        assertEquals("Test Product", response.getName());
+        assertEquals(new BigDecimal("99.99"), response.getPrice());
+        assertEquals("CNY", response.getCurrency());
+        assertEquals(1L, response.getMerchantId());
+        assertEquals(50, response.getAvailableInventory());
+        assertTrue(response.isAvailable());
+    }
+
+    @Test
+    void testProductListResponse_GettersAndSetters() {
+        EcommerceController.ProductSummaryResponse productSummary = new EcommerceController.ProductSummaryResponse(
+            1L, "TEST-SKU", "Test Product", new BigDecimal("99.99"), "CNY", 1L, 50, true
+        );
+        
+        EcommerceController.ProductListResponse response = new EcommerceController.ProductListResponse(
+            Arrays.asList(productSummary), 1, "test", 1L
+        );
+        
+        assertEquals(1, response.getProducts().size());
+        assertEquals(1, response.getTotalCount());
+        assertEquals("test", response.getSearchTerm());
+        assertEquals(1L, response.getMerchantId());
+    }
+
+    @Test
+    void testInventoryResponse_GettersAndSetters() {
+        EcommerceController.InventoryResponse response = new EcommerceController.InventoryResponse(
+            "TEST-SKU", "Test Product", 50, true, "ACTIVE"
+        );
+        
+        assertEquals("TEST-SKU", response.getSku());
+        assertEquals("Test Product", response.getProductName());
+        assertEquals(50, response.getAvailableInventory());
+        assertTrue(response.isAvailable());
+        assertEquals("ACTIVE", response.getStatus());
+    }
+
+
+
+    @Test
+    void testCancelOrder_ValidationError_NullReason() throws Exception {
+        // Given
+        EcommerceController.CancelOrderRequest invalidRequest = new EcommerceController.CancelOrderRequest();
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/orders/{orderNumber}/cancel", "ORD123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(ecommerceService, never()).cancelOrder(anyString(), anyString());
+    }
+
+    @Test
+    void testCancelOrder_ValidationError_EmptyReason() throws Exception {
+        // Given
+        EcommerceController.CancelOrderRequest invalidRequest = new EcommerceController.CancelOrderRequest();
+        invalidRequest.setReason("");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/orders/{orderNumber}/cancel", "ORD123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(ecommerceService, never()).cancelOrder(anyString(), anyString());
+    }
+
+    @Test
+    void testCancelOrder_InvalidJson() throws Exception {
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/orders/{orderNumber}/cancel", "ORD123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("invalid json"))
+                .andExpect(status().isBadRequest());
+
+        verify(ecommerceService, never()).cancelOrder(anyString(), anyString());
+    }
+
+    @Test
+    void testCancelOrder_ServiceException() throws Exception {
+        // Given
+        doThrow(new RuntimeException("Database error")).when(ecommerceService).cancelOrder(eq("ORD123"), eq("Customer request"));
+
+        EcommerceController.CancelOrderRequest request = new EcommerceController.CancelOrderRequest();
+        request.setReason("Customer request");
+
+        // When & Then
+        mockMvc.perform(post(API_BASE_PATH + "/orders/{orderNumber}/cancel", "ORD123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError());
+
+        verify(ecommerceService).cancelOrder(eq("ORD123"), eq("Customer request"));
+    }
+
+    @Test
+    void testGetProductBySku_ProductNotFound() throws Exception {
+        // Given
+        when(productService.getProductBySku("INVALID-SKU")).thenThrow(new RuntimeException("Product not found"));
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/products/{sku}", "INVALID-SKU"))
+                .andExpect(status().isNotFound()); // Changed from isInternalServerError to isNotFound
+
+        verify(productService).getProductBySku("INVALID-SKU");
+    }
+
+    @Test
+    void testGetProductInventory_ProductNotFound() throws Exception {
+        // Given
+        when(productService.getProductBySku("INVALID-SKU")).thenThrow(new RuntimeException("Product not found"));
+
+        // When & Then
+        mockMvc.perform(get(API_BASE_PATH + "/products/{sku}/inventory", "INVALID-SKU"))
+                .andExpect(status().isNotFound()); // Changed from isInternalServerError to isNotFound
+
+        verify(productService).getProductBySku("INVALID-SKU");
     }
 }
