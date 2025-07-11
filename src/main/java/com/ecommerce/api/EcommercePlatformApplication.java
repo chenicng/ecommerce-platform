@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * E-commerce Platform Application Startup Class
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @ComponentScan(basePackages = "com.ecommerce")
+@EnableScheduling
 public class EcommercePlatformApplication implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(EcommercePlatformApplication.class);
