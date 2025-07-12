@@ -8,7 +8,6 @@ import com.ecommerce.infrastructure.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Set;
-import java.util.List;
 
 /**
  * User Service
@@ -103,6 +102,7 @@ public class UserService {
     /**
      * Get all user IDs
      */
+    @Transactional(readOnly = true)
     public Set<Long> getAllUserIds() {
         return userRepository.getAllUserIds();
     }

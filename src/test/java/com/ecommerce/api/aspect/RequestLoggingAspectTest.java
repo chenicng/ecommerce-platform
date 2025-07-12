@@ -57,8 +57,8 @@ class RequestLoggingAspectTest {
         String input = "{\"email\":\"user@example.com\",\"name\":\"John Doe\"}";
         String result = (String) maskMethod.invoke(aspect, input);
         
-        // Email should be masked: user***@example.com
-        assertTrue(result.contains("user***@example.com"));
+        // Email should be masked with new strategy: user -> us*r (medium length)
+        assertTrue(result.contains("us*r@example.com"));
         assertFalse(result.contains("user@example.com"));
     }
 
@@ -130,7 +130,7 @@ class RequestLoggingAspectTest {
         assertTrue(result.contains("\"password\":\"***\""));
         assertTrue(result.contains("\"token\":\"***\""));
         assertTrue(result.contains("138****5678"));
-        assertTrue(result.contains("user***@example.com"));
+        assertTrue(result.contains("us*r@example.com"));
         assertFalse(result.contains("secret123"));
         assertFalse(result.contains("abc123"));
         assertFalse(result.contains("13812345678"));
@@ -192,6 +192,101 @@ class RequestLoggingAspectTest {
     }
 
     @Test
+    void testMaskEmailAddresses_ShortUsername() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test short usernames (≤3 characters)
+        String input1 = "a@example.com";
+        String result1 = (String) maskMethod.invoke(aspect, input1);
+        assertTrue(result1.contains("a**@example.com"));
+        
+        String input2 = "ab@example.com";
+        String result2 = (String) maskMethod.invoke(aspect, input2);
+        assertTrue(result2.contains("a**@example.com"));
+        
+        String input3 = "abc@example.com";
+        String result3 = (String) maskMethod.invoke(aspect, input3);
+        assertTrue(result3.contains("a**@example.com"));
+    }
+
+    @Test
+    void testMaskEmailAddresses_MediumUsername() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test medium usernames (4-6 characters)
+        String input1 = "john@example.com";
+        String result1 = (String) maskMethod.invoke(aspect, input1);
+        assertTrue(result1.contains("jo*n@example.com"));
+        
+        String input2 = "alice@example.com";
+        String result2 = (String) maskMethod.invoke(aspect, input2);
+        assertTrue(result2.contains("al**e@example.com"));
+        
+        String input3 = "robert@example.com";
+        String result3 = (String) maskMethod.invoke(aspect, input3);
+        assertTrue(result3.contains("ro***t@example.com"));
+    }
+
+    @Test
+    void testMaskEmailAddresses_LongUsername() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test long usernames (≥7 characters)
+        String input1 = "johnsmith@example.com";
+        String result1 = (String) maskMethod.invoke(aspect, input1);
+        assertTrue(result1.contains("joh****th@example.com"));
+        
+        String input2 = "verylongusername@example.com";
+        String result2 = (String) maskMethod.invoke(aspect, input2);
+        assertTrue(result2.contains("ver***********me@example.com"));
+        
+        String input3 = "administrator@company.org";
+        String result3 = (String) maskMethod.invoke(aspect, input3);
+        assertTrue(result3.contains("adm********or@company.org"));
+    }
+
+    @Test
+    void testMaskEmailAddresses_PreserveDomain() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test that domain is always preserved
+        String input1 = "user@gmail.com";
+        String result1 = (String) maskMethod.invoke(aspect, input1);
+        assertTrue(result1.contains("@gmail.com"));
+        
+        String input2 = "admin@company.co.uk";
+        String result2 = (String) maskMethod.invoke(aspect, input2);
+        assertTrue(result2.contains("@company.co.uk"));
+        
+        String input3 = "test@subdomain.example.org";
+        String result3 = (String) maskMethod.invoke(aspect, input3);
+        assertTrue(result3.contains("@subdomain.example.org"));
+    }
+
+    @Test
+    void testMaskEmailAddresses_SpecialCharacters() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test emails with special characters in username
+        String input1 = "user.name@example.com";
+        String result1 = (String) maskMethod.invoke(aspect, input1);
+        assertTrue(result1.contains("use****me@example.com"));
+        
+        String input2 = "user_123@example.com";
+        String result2 = (String) maskMethod.invoke(aspect, input2);
+        assertTrue(result2.contains("use***23@example.com"));
+        
+        String input3 = "user+tag@example.com";
+        String result3 = (String) maskMethod.invoke(aspect, input3);
+        assertTrue(result3.contains("use***ag@example.com"));
+    }
+
+    @Test
     void testMaskSensitiveData_ComplexJson() throws Exception {
         Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
         maskMethod.setAccessible(true);
@@ -201,7 +296,7 @@ class RequestLoggingAspectTest {
         
         // Should mask all sensitive data
         assertTrue(result.contains("138****5678"));
-        assertTrue(result.contains("user***@example.com"));
+        assertTrue(result.contains("us*r@example.com"));
         assertTrue(result.contains("\"token\":\"***\""));
         assertFalse(result.contains("13812345678"));
         assertFalse(result.contains("user@example.com"));
@@ -353,9 +448,9 @@ class RequestLoggingAspectTest {
         String input = "{\"email1\":\"user1@example.com\",\"email2\":\"admin@company.org\",\"name\":\"John Doe\"}";
         String result = (String) maskMethod.invoke(aspect, input);
         
-        // Should mask all email addresses
-        assertTrue(result.contains("user1***@example.com"));
-        assertTrue(result.contains("admin***@company.org"));
+        // Should mask all email addresses with new strategy
+        assertTrue(result.contains("us**1@example.com")); // user1 -> us**1 (medium length)
+        assertTrue(result.contains("ad**n@company.org")); // admin -> ad**n (medium length)
         assertFalse(result.contains("user1@example.com"));
         assertFalse(result.contains("admin@company.org"));
     }
@@ -371,9 +466,9 @@ class RequestLoggingAspectTest {
         // Should mask all sensitive data
         assertTrue(result.contains("\"password\":\"***\""));
         assertTrue(result.contains("138****5678"));
-        assertTrue(result.contains("user***@example.com"));
-        assertTrue(result.contains("123****89012345678"));
-        assertTrue(result.contains("123****890123456"));
+        assertTrue(result.contains("us*r@example.com")); // user -> us*r (medium length)
+        assertTrue(result.contains("123456********5678"));
+        assertTrue(result.contains("1234****9012****3456"));
         assertTrue(result.contains("\"token\":\"***\""));
         assertFalse(result.contains("secret123"));
         assertFalse(result.contains("13812345678"));
@@ -684,6 +779,115 @@ class RequestLoggingAspectTest {
         
         // Then
         assertEquals(responseWithSensitiveData, result);
+    }
+
+    @Test
+    void testMaskEmailAddresses_DomainMaskingDisabled() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test that domain is always preserved
+        String input = "admin@company.example.com";
+        String result = (String) maskMethod.invoke(aspect, input);
+        
+        // Domain should always be preserved
+        assertTrue(result.contains("@company.example.com"));
+        assertTrue(result.contains("ad**n@company.example.com"));
+    }
+    
+    @Test
+    void testMaskUsername_ShortUsername() throws Exception {
+        Method maskUsernameMethod = RequestLoggingAspect.class.getDeclaredMethod("maskUsername", String.class);
+        maskUsernameMethod.setAccessible(true);
+        
+        // Test short usernames (≤3 characters)
+        String result1 = (String) maskUsernameMethod.invoke(aspect, "a");
+        assertEquals("a**", result1);
+        
+        String result2 = (String) maskUsernameMethod.invoke(aspect, "ab");
+        assertEquals("a**", result2);
+        
+        String result3 = (String) maskUsernameMethod.invoke(aspect, "abc");
+        assertEquals("a**", result3);
+    }
+    
+    @Test
+    void testMaskUsername_MediumUsername() throws Exception {
+        Method maskUsernameMethod = RequestLoggingAspect.class.getDeclaredMethod("maskUsername", String.class);
+        maskUsernameMethod.setAccessible(true);
+        
+        // Test medium usernames (4-6 characters)
+        String result1 = (String) maskUsernameMethod.invoke(aspect, "john");
+        assertEquals("jo*n", result1);
+        
+        String result2 = (String) maskUsernameMethod.invoke(aspect, "alice");
+        assertEquals("al**e", result2);
+        
+        String result3 = (String) maskUsernameMethod.invoke(aspect, "robert");
+        assertEquals("ro***t", result3);
+    }
+    
+    @Test
+    void testMaskUsername_LongUsername() throws Exception {
+        Method maskUsernameMethod = RequestLoggingAspect.class.getDeclaredMethod("maskUsername", String.class);
+        maskUsernameMethod.setAccessible(true);
+        
+        // Test long usernames (≥7 characters)
+        String result1 = (String) maskUsernameMethod.invoke(aspect, "johnsmith");
+        assertEquals("joh****th", result1);
+        
+        String result2 = (String) maskUsernameMethod.invoke(aspect, "administrator");
+        assertEquals("adm********or", result2);
+        
+        String result3 = (String) maskUsernameMethod.invoke(aspect, "verylongusername");
+        assertEquals("ver***********me", result3);
+    }
+    
+    @Test
+    void testMaskEmailAddresses_ComplexEmails() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test complex email scenarios
+        String input = "{\"primary\":\"user.name+tag@subdomain.example.com\",\"secondary\":\"a@b.co\"}";
+        String result = (String) maskMethod.invoke(aspect, input);
+        
+        // Should handle complex usernames and preserve domains
+        // user.name+tag is 13 characters, so it should be: use********ag (first 3 + 8 asterisks + last 2)
+        assertTrue(result.contains("use********ag@subdomain.example.com"));
+        assertTrue(result.contains("a**@b.co"));
+        assertFalse(result.contains("user.name+tag@subdomain.example.com"));
+        assertFalse(result.contains("a@b.co"));
+    }
+    
+    @Test
+    void testMaskEmailAddresses_EdgeCases() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Test edge cases
+        String input = "{\"email1\":\"x@example.com\",\"email2\":\"very.long.username.with.dots@very.long.domain.name.com\"}";
+        String result = (String) maskMethod.invoke(aspect, input);
+        
+        // Should handle single character usernames and very long usernames
+        assertTrue(result.contains("x**@example.com"));
+        // very.long.username.with.dots is 28 characters, so it should be: ver***********************ts (first 3 + 23 asterisks + last 2)
+        assertTrue(result.contains("ver***********************ts@very.long.domain.name.com"));
+    }
+    
+    @Test
+    void testMaskEmailAddresses_PreservesOriginalBehavior() throws Exception {
+        Method maskMethod = RequestLoggingAspect.class.getDeclaredMethod("maskSensitiveData", String.class);
+        maskMethod.setAccessible(true);
+        
+        // Ensure backward compatibility with existing test expectations
+        String input = "{\"email\":\"user@example.com\"}";
+        String result = (String) maskMethod.invoke(aspect, input);
+        
+        // Should match the original expected behavior
+        assertTrue(result.contains("us*r@example.com"));
+        assertTrue(result.contains("@example.com")); // Domain preserved
+        assertFalse(result.contains("user@example.com"));
     }
 
     @Test

@@ -48,10 +48,10 @@ public class RequestLoggingAspect {
     ));
     
     // Patterns for sensitive data masking
-    private static final Pattern PHONE_PATTERN = Pattern.compile("(\\d{3})(\\d{4})(\\d{4})");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("(?<!\\d)(\\d{3})(\\d{4})(\\d{4})(?!\\d)");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})");
-    private static final Pattern ID_CARD_PATTERN = Pattern.compile("(\\d{6})(\\d{8})(\\d{4})");
-    private static final Pattern BANK_CARD_PATTERN = Pattern.compile("(\\d{4})(\\d{4})(\\d{4})(\\d{4})");
+    private static final Pattern ID_CARD_PATTERN = Pattern.compile("(?<!\\d)(\\d{6})(\\d{8})(\\d{4})(?!\\d)");
+    private static final Pattern BANK_CARD_PATTERN = Pattern.compile("(?<!\\d)(\\d{4})(\\d{4})(\\d{4})(\\d{4})(?!\\d)");
 
     @Around("execution(* com.ecommerce.api.controller..*.*(..))")
     public Object logApiRequest(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -148,8 +148,8 @@ public class RequestLoggingAspect {
         // Mask phone numbers (11 digits)
         masked = PHONE_PATTERN.matcher(masked).replaceAll("$1****$3");
         
-        // Mask email addresses
-        masked = EMAIL_PATTERN.matcher(masked).replaceAll("$1***@$2");
+        // Mask email addresses with improved strategy
+        masked = maskEmailAddresses(masked);
         
         // Mask ID card numbers (18 digits)
         masked = ID_CARD_PATTERN.matcher(masked).replaceAll("$1********$3");
@@ -158,6 +158,46 @@ public class RequestLoggingAspect {
         masked = BANK_CARD_PATTERN.matcher(masked).replaceAll("$1****$3****$4");
         
         return masked;
+    }
+    
+    /**
+     * Improved email masking strategy
+     * - For short usernames (≤3 chars): show first char + asterisks
+     * - For medium usernames (4-6 chars): show first 2 chars + asterisks + last char
+     * - For long usernames (≥7 chars): show first 3 chars + asterisks + last 2 chars
+     * - Always preserve domain for debugging purposes
+     */
+    private String maskEmailAddresses(String content) {
+        return EMAIL_PATTERN.matcher(content).replaceAll(matchResult -> {
+            String username = matchResult.group(1);
+            String domain = matchResult.group(2);
+            
+            String maskedUsername = maskUsername(username);
+            
+            return maskedUsername + "@" + domain;
+        });
+    }
+    
+    /**
+     * Mask username part of email address
+     */
+    private String maskUsername(String username) {
+        int usernameLength = username.length();
+        
+        if (usernameLength <= 3) {
+            // Short username: show first char + asterisks
+            return username.charAt(0) + "*".repeat(Math.max(2, usernameLength - 1));
+        } else if (usernameLength <= 6) {
+            // Medium username: show first 2 chars + asterisks + last char
+            return username.substring(0, 2) + 
+                   "*".repeat(usernameLength - 3) + 
+                   username.charAt(usernameLength - 1);
+        } else {
+            // Long username: show first 3 chars + asterisks + last 2 chars
+            return username.substring(0, 3) + 
+                   "*".repeat(usernameLength - 5) + 
+                   username.substring(usernameLength - 2);
+        }
     }
     
     /**

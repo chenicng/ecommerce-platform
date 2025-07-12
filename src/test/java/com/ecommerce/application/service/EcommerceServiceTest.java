@@ -7,7 +7,6 @@ import com.ecommerce.domain.user.User;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.domain.order.Order;
-import com.ecommerce.domain.order.OrderStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

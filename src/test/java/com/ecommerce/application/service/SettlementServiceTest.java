@@ -1,11 +1,9 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.settlement.Settlement;
-import com.ecommerce.domain.settlement.SettlementStatus;
 import com.ecommerce.domain.Money;
 import com.ecommerce.domain.merchant.Merchant;
 import com.ecommerce.infrastructure.repository.SettlementRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

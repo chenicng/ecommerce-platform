@@ -25,7 +25,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import com.ecommerce.api.dto.ErrorResponse;
 
 /**
  * User Controller V2 (API v2)

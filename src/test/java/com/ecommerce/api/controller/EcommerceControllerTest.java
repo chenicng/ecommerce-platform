@@ -4,7 +4,6 @@ import com.ecommerce.application.service.EcommerceService;
 import com.ecommerce.application.service.ProductService;
 import com.ecommerce.application.dto.PurchaseRequest;
 import com.ecommerce.application.dto.PurchaseResponse;
-import com.ecommerce.api.dto.Result;
 import com.ecommerce.domain.product.Product;
 import com.ecommerce.domain.Money;
 import com.ecommerce.api.config.ApiVersionConfig;
@@ -28,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 
 /**

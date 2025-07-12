@@ -1,7 +1,6 @@
 package com.ecommerce.application.service;
 
 import com.ecommerce.domain.product.Product;
-import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +16,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

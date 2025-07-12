@@ -1,7 +1,6 @@
 package com.ecommerce.infrastructure.repository.mock;
 
 import com.ecommerce.domain.settlement.Settlement;
-import com.ecommerce.domain.settlement.SettlementStatus;
 import com.ecommerce.domain.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

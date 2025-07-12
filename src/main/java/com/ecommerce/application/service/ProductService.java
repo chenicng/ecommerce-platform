@@ -3,7 +3,6 @@ package com.ecommerce.application.service;
 import com.ecommerce.api.dto.ErrorCode;
 import com.ecommerce.api.exception.BusinessException;
 import com.ecommerce.domain.product.Product;
-import com.ecommerce.domain.product.ProductStatus;
 import com.ecommerce.domain.Money;
 import com.ecommerce.infrastructure.repository.ProductRepository;
 import org.springframework.stereotype.Service;

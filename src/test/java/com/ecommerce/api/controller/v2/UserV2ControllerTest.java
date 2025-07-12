@@ -3,7 +3,6 @@ package com.ecommerce.api.controller.v2;
 import com.ecommerce.application.service.UserService;
 import com.ecommerce.domain.Money;
 import com.ecommerce.domain.user.User;
-import com.ecommerce.domain.user.UserStatus;
 import com.ecommerce.api.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
