@@ -12,7 +12,7 @@ A comprehensive e-commerce platform built with **Spring Boot 3.2** and **Domain-
 ### Development Mode (Default)
 ```bash
 # Clone the repository
-git clone https://github.com/chenlicong0821/ecommerce-platform.git
+git clone https://github.com/chenicng/ecommerce-platform.git
 cd ecommerce-platform
 
 # Start with mock data (in-memory storage)
@@ -393,7 +393,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🤝 Support
 
 For questions, issues, or contributions:
-- **Issues**: [GitHub Issues](https://github.com/chenlicong0821/ecommerce-platform/issues)
+- **Issues**: [GitHub Issues](https://github.com/chenicng/ecommerce-platform/issues)
 - **Documentation**: [API Documentation](http://localhost:8080/swagger-ui/index.html)
 - **Health Check**: [System Status](http://localhost:8080/actuator/health)
 

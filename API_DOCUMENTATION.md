@@ -369,7 +369,7 @@ curl http://localhost:8080/api/v1/users/1/balance
 For API-related questions or issues:
 - **Documentation**: http://localhost:8080/swagger-ui/index.html
 - **Health Check**: http://localhost:8080/actuator/health
-- **Issues**: [GitHub Issues](https://github.com/chenlicong0821/ecommerce-platform/issues)
+- **Issues**: [GitHub Issues](https://github.com/chenicng/ecommerce-platform/issues)
 
 ---
 
