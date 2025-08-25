@@ -50,4 +50,4 @@ public class HealthController {
                 .headers(headers)
                 .body(Result.successWithMessage("System is healthy", healthInfo));
     }
-} 
+}

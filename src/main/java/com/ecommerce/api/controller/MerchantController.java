@@ -1080,4 +1080,4 @@ public class MerchantController {
             this.settlementTime = settlementTime;
         }
     }
-} 
+}

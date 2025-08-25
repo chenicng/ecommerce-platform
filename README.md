@@ -306,10 +306,9 @@ ecommerce-platform/
 
 ### Configuration
 ```bash
-# Environment variables
+# Environment variables (only needed for MySQL production mode)
 export DB_USERNAME=production_user
 export DB_PASSWORD=secure_password
-export SPRING_PROFILES_ACTIVE=mysql
 
 # Start application
 java -jar ecommerce-platform-1.0.0-SNAPSHOT.jar
