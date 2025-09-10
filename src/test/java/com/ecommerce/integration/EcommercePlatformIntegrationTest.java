@@ -111,7 +111,7 @@ class EcommercePlatformIntegrationTest {
         // Setup
         Merchant merchant = merchantService.createMerchant(
             "Electronics Store", "BL789012", "electronics@store.com", "555-5678");
-        Product product = productService.createProduct(
+        productService.createProduct(
             "PHONE001", "Smartphone", "Latest smartphone",
             Money.of("800.00", "CNY"), merchant.getId(), 20);
         User user = userService.createUser("buyer456", "buyer@example.com", "555-4321", "CNY");
@@ -151,10 +151,10 @@ class EcommercePlatformIntegrationTest {
             "Store B", "BL222222", "storeb@example.com", "555-2222");
 
         // Setup products
-        Product product1 = productService.createProduct(
+        productService.createProduct(
             "BOOK001", "Programming Book", "Learn programming",
             Money.of("50.00", "CNY"), merchant1.getId(), 100);
-        Product product2 = productService.createProduct(
+        productService.createProduct(
             "GAME001", "Video Game", "Action game",
             Money.of("60.00", "CNY"), merchant2.getId(), 50);
 
@@ -166,11 +166,11 @@ class EcommercePlatformIntegrationTest {
 
         // User 1 buys books
         PurchaseRequest request1 = new PurchaseRequest(user1.getId(), "BOOK001", 3);
-        PurchaseResponse response1 = ecommerceService.processPurchase(request1);
+        ecommerceService.processPurchase(request1);
 
         // User 2 buys games
         PurchaseRequest request2 = new PurchaseRequest(user2.getId(), "GAME001", 2);
-        PurchaseResponse response2 = ecommerceService.processPurchase(request2);
+        ecommerceService.processPurchase(request2);
 
         // Verify final states
         assertEquals(Money.of("50.00", "CNY"), userService.getUserBalance(user1.getId())); // 200 - 150
@@ -186,7 +186,7 @@ class EcommercePlatformIntegrationTest {
         // Setup
         Merchant merchant = merchantService.createMerchant(
             "Luxury Store", "BL999999", "luxury@store.com", "555-9999");
-        Product expensiveProduct = productService.createProduct(
+        productService.createProduct(
             "LUXURY001", "Luxury Watch", "Premium watch",
             Money.of("5000.00", "CNY"), merchant.getId(), 5);
         User poorUser = userService.createUser("poor_user", "poor@example.com", "555-0001", "CNY");
@@ -209,7 +209,7 @@ class EcommercePlatformIntegrationTest {
         // Setup
         Merchant merchant = merchantService.createMerchant(
             "Limited Store", "BL777777", "limited@store.com", "555-7777");
-        Product limitedProduct = productService.createProduct(
+        productService.createProduct(
             "LIMITED001", "Limited Edition", "Rare item",
             Money.of("100.00", "CNY"), merchant.getId(), 2); // Only 2 in stock
         User buyer = userService.createUser("buyer", "buyer@example.com", "555-0002", "CNY");
@@ -257,7 +257,7 @@ class EcommercePlatformIntegrationTest {
         // Setup complete ecosystem
         Merchant merchant = merchantService.createMerchant(
             "Consistency Store", "BL333333", "consistency@store.com", "555-3333");
-        Product product = productService.createProduct(
+        productService.createProduct(
             "CONSISTENT001", "Test Product", "For consistency testing",
             Money.of("25.00", "CNY"), merchant.getId(), 100);
         User user = userService.createUser("consistent_user", "consistent@example.com", "555-0003", "CNY");
@@ -271,7 +271,7 @@ class EcommercePlatformIntegrationTest {
         // Perform multiple operations
         for (int i = 1; i <= 10; i++) {
             PurchaseRequest request = new PurchaseRequest(user.getId(), "CONSISTENT001", 1);
-            PurchaseResponse response = ecommerceService.processPurchase(request);
+            ecommerceService.processPurchase(request);
         }
 
         // Verify final state
@@ -294,7 +294,7 @@ class EcommercePlatformIntegrationTest {
         // 1. Create merchant, product, user
         Merchant merchant = merchantService.createMerchant(
             "Settlement Test Merchant", "BL000001", "settle@store.com", "555-0000");
-        Product product = productService.createProduct(
+        productService.createProduct(
             "SETTLE001", "Settlement Product", "For settlement testing",
             Money.of("100.00", "CNY"), merchant.getId(), 10);
         User user = userService.createUser("settle_user", "settle@example.com", "555-0001", "CNY");
@@ -302,7 +302,7 @@ class EcommercePlatformIntegrationTest {
 
         // 2. User purchases 2 products
         PurchaseRequest request = new PurchaseRequest(user.getId(), "SETTLE001", 2);
-        PurchaseResponse response = ecommerceService.processPurchase(request);
+        ecommerceService.processPurchase(request);
 
         // 3. Verify merchant balance and order income
         Money expectedIncome = Money.of("200.00", "CNY"); // 100 * 2
@@ -327,7 +327,7 @@ class EcommercePlatformIntegrationTest {
         // 1. Create merchant, product, user
         Merchant merchant = merchantService.createMerchant(
             "Mismatch Test Merchant", "BL000002", "mismatch@store.com", "555-0002");
-        Product product = productService.createProduct(
+        productService.createProduct(
             "MISMATCH001", "Mismatch Product", "For mismatch testing",
             Money.of("50.00", "CNY"), merchant.getId(), 5);
         User user = userService.createUser("mismatch_user", "mismatch@example.com", "555-0003", "CNY");
@@ -335,7 +335,7 @@ class EcommercePlatformIntegrationTest {
 
         // 2. User purchases 1 product
         PurchaseRequest request = new PurchaseRequest(user.getId(), "MISMATCH001", 1);
-        PurchaseResponse response = ecommerceService.processPurchase(request);
+        ecommerceService.processPurchase(request);
 
         // 3. Manually adjust merchant balance to create mismatch
         Merchant loaded = merchantService.getMerchantById(merchant.getId());
@@ -359,7 +359,7 @@ class EcommercePlatformIntegrationTest {
         // 1. Create merchant, product, user
         Merchant merchant = merchantService.createMerchant(
             "Scheduled Settlement Merchant", "BL000003", "scheduled@store.com", "555-0004");
-        Product product = productService.createProduct(
+        productService.createProduct(
             "SCHEDULED001", "Scheduled Product", "For scheduled settlement testing",
             Money.of("20.00", "CNY"), merchant.getId(), 3);
         User user = userService.createUser("scheduled_user", "scheduled@example.com", "555-0005", "CNY");
@@ -367,7 +367,7 @@ class EcommercePlatformIntegrationTest {
 
         // 2. User purchases 2 products
         PurchaseRequest request = new PurchaseRequest(user.getId(), "SCHEDULED001", 2);
-        PurchaseResponse response = ecommerceService.processPurchase(request);
+        ecommerceService.processPurchase(request);
 
         // 3. Manual settlement
         LocalDate today = LocalDate.now();
